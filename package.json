@@ -4,6 +4,12 @@
   "description": "Square token contract running on Avalanche network",
   "main": "index.js",
   "scripts": {
+    "accounts": "npx hardhat accounts",
+    "balances": "npx hardhat balances",
+    "compile": "npx hardhat compile",
+    "deploy:local": "npx hardhat run scripts/deploy.js",
+    "deploy:testnet": "npx hardhat run scripts/deploy.js --network fuji",
+    "start:avalanche": "cd $GOPATH/src/github.com/ava-labs/avalanchego && ./build/avalanchego --network-id=local --staking-enabled=false --snow-sample-size=1 --snow-quorum-size=1",
     "test": "mocha"
   },
   "repository": {
