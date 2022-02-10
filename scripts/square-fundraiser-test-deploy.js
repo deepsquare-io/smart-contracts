@@ -1,8 +1,3 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `npx hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
 const { randomBytes } = require("ethers/lib/utils");
 const hre = require("hardhat");
 const ethers = hre.ethers;
@@ -16,23 +11,16 @@ const inToken = (value) => {
 };
 
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
-  var owner, addr1, addr2, addrs;
-  [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
+  const signers = await ethers.getSigners();
+  const owner = signers[0];
+  const addr1 = signers[1];
+  const addr2 = signers[2];
 
   // Deploy & fund FakeUSDTe
   const FakeUSDTe = await ethers.getContractFactory("BridgeToken");
   const fakeUSDTe = await FakeUSDTe.deploy();
   await fakeUSDTe.deployed();
 
-  console.log("a", owner.address);
-  console.log("b", addr1.address);
-  console.log("c", addr2.address);
   // Fund owner account
   await fakeUSDTe.mint(
     owner.address,
@@ -48,6 +36,7 @@ async function main() {
   const square = await Square.deploy(owner.address, fakeUSDTe.address);
   await square.deployed();
   console.log("Square deployed to:", square.address);
+
   // Transfer some USDTe to addr1 and addr2
   await fakeUSDTe.transfer(addr1.address, inToken(100000));
   console.log("100000 USDTe sent to:", addr1.address);
@@ -55,8 +44,6 @@ async function main() {
   console.log("10000 USDTe sent to:", addr2.address);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main()
   .then(() => process.exit(0))
   .catch((error) => {
