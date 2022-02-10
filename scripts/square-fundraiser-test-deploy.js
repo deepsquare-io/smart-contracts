@@ -1,6 +1,5 @@
 const { randomBytes } = require("ethers/lib/utils");
-const hre = require("hardhat");
-const ethers = hre.ethers;
+const { ethers, upgrades } = require("hardhat");
 const { BigNumber } = ethers;
 
 const e6 = BigNumber.from(10).pow(6);
@@ -31,9 +30,12 @@ async function main() {
   );
   console.log("FakeUSDTe deployed to:", fakeUSDTe.address);
 
-  // Deploy Square
+  // Deploy Square with proxy
   const Square = await ethers.getContractFactory("SquareFundRaiser");
-  const square = await Square.deploy(owner.address, fakeUSDTe.address);
+  const square = await upgrades.deployProxy(Square, [
+    owner.address,
+    fakeUSDTe.address,
+  ]);
   await square.deployed();
   console.log("Square deployed to:", square.address);
 

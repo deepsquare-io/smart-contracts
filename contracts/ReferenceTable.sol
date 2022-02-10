@@ -1,10 +1,10 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.1;
 // SPDX-License-Identifier: MIT
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 pragma experimental ABIEncoderV2;
 
-contract ReferenceTable is Ownable{
+contract ReferenceTable is OwnableUpgradeable {
     mapping (address => string) private _address_reference;
     mapping (string => address) private _reference_address;
     mapping (address => bool) private _address_reference_set;
