@@ -1,0 +1,22 @@
+{
+  "name": "fundraising-contract-avax",
+  "version": "0.0.1",
+  "description": "Square token contract running on Avalanche network",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepsquare-io/fundraising-contract-avax.git"
+  },
+  "author": "Julien Schneider, Florin Dzeladini",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/deepsquare-io/fundraising-contract-avax/issues"
+  },
+  "homepage": "https://github.com/deepsquare-io/fundraising-contract-avax#readme",
+  "devDependencies": {
+    "hardhat": "^2.8.3"
+  }
+}
