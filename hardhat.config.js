@@ -1,5 +1,5 @@
 require("dotenv").config();
-
+require("@openzeppelin/hardhat-upgrades");
 require("@nomiclabs/hardhat-waffle");
 require("hardhat-gas-reporter");
 require("solidity-coverage");
@@ -72,12 +72,13 @@ module.exports = {
         process.env.TEST_ACCOUNT_3_PRIVATE_KEY,
       ], // Use your account private key on the Avalanche testnet
     },
+    /*
     mainnet: {
       url: "https://api.avax.network/ext/bc/C/rpc", // Public Avalanche mainnet
       gasPrice: 225000000000,
       chainId: 43114,
       accounts: [process.env.MAIN_ACCOUNT_PRIVATE_KEY], // Use your account private key on the Avalanche mainnet
-    },
+    }, */
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
