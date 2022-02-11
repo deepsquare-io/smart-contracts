@@ -1,12 +1,13 @@
 const hre = require("hardhat");
+require("dotenv").config();
+
 const ethers = hre.ethers;
 
 async function main() {
   const ethersSigners = await ethers.getSigners();
   const owner = ethersSigners[0];
 
-  // TODO: change with correct USDT.e address
-  const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+  const usdtAddress = process.env.USDTE_ADDRESS;
   const Square = await ethers.getContractFactory("SquareFundRaiser");
   const square = await Square.deploy(owner.address, usdtAddress);
   await square.deployed();
