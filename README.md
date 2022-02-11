@@ -29,6 +29,11 @@ Open the console, instead of writing scripts
 npx hardhat console
 ```
 
+Verify a contract on snowtrace testnet
+```node
+npx hardhat verify --network fuji CONTRACT_ADDRESS
+```
+
 # Other commands from hardhat
 Try running some of the following tasks:
 
