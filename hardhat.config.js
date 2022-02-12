@@ -1,6 +1,7 @@
 require("dotenv").config();
 require("@openzeppelin/hardhat-upgrades");
 require("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-etherscan");
 require("hardhat-gas-reporter");
 require("solidity-coverage");
 
@@ -83,5 +84,11 @@ module.exports = {
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
     currency: "USD",
+  },
+  etherscan: {
+    apiKey: {
+      avalanche: process.env.SNOWTRACE_API_KEY,
+      avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY, // create account on snowtrace.io to get api key
+    },
   },
 };
