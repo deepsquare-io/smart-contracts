@@ -40,7 +40,7 @@ task(
  */
 module.exports = {
   solidity: {
-    compilers: [{ version: "0.8.1" }], // same as smart contracts solidity version
+    compilers: [{ version: "0.8.3" }], // same as smart contracts solidity version
   },
   networks: {
     // Configure each network to the respective Avalanche instances
