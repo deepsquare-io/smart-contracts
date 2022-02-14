@@ -36,11 +36,11 @@ contract SquareFundRaiserV2 is ReferenceTable {
     // TetherERC20 public fundingStableCoin
     TetherERC20 public fundingStableCoin;
 
-    uint96 public cUsdtPerSquare; 
+    uint96 public cUsdtPerSquare;
 
-    uint96 public nextFundingCap; 
+    uint96 public nextFundingCap;
 
-    uint96 public fundingCapCurrentState; 
+    uint96 public fundingCapCurrentState;
 
     string public iban;
 
@@ -110,14 +110,15 @@ contract SquareFundRaiserV2 is ReferenceTable {
      * @param account The initial account to grant all the tokens
      */
     function initialize(address account, address fundingStableCoinAddress)
-        public initializer
+        public
+        initializer
     {
-        // no need to call super initializer, since it has no "constructor"
+        super.__ReferenceTable_init();
         // initialization of parameters
         swap_to_utility_enabled = false; /// TODO
         cUsdtPerSquare = 20;
         nextFundingCap = 10e12; // 10 million token ($600k)
-        fundingCapCurrentState = 0;       
+        fundingCapCurrentState = 0;
         iban = "";
 
         //TODO : Shouldn't this go to the already set _owner (e.g. msg.sender)
@@ -125,9 +126,6 @@ contract SquareFundRaiserV2 is ReferenceTable {
         balances[account] = uint96(totalSupply);
         emit Transfer(address(0), account, totalSupply);
     }
-
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() initializer {}
 
     /**
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
@@ -626,6 +624,6 @@ contract SquareFundRaiserV2 is ReferenceTable {
     }
 
     function newMethodAfterUpgrade() public pure returns (string memory) {
-        return "This is my new method after upgrade";
+        return "New method from SquareFundRaiserV2 contract";
     }
 }

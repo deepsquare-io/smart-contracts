@@ -16,11 +16,10 @@ describe("Square", function () {
     [owner, addr1, addr2] = await ethers.getSigners();
     // Deploy FakeUSDT
     const fakeUSDT = await usdtHelper.deploy();
-
     // Deploy Square
     square = await squareHelper.deploy(owner.address, fakeUSDT.address);
     // Fund owner account
-    await usdtHelper.mint(fakeUSDT, owner.address, inToken(200000));
+    await usdtHelper.mint(fakeUSDT, owner.address, inToken(20000));
 
     // Transfer some usdt to addr1 and addr2
     await fakeUSDT.transfer(addr1.address, inToken(10000));
