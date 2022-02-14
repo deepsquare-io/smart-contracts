@@ -23,7 +23,7 @@ interface TetherERC20 {
     function approve(address spender, uint256 value) external;
 }
 
-contract SquareFundRaiser is ReferenceTable {
+contract SquareFundRaiserV2 is ReferenceTable {
     /// @notice EIP-20 token name for this token
     bool public swap_to_utility_enabled;
 
@@ -105,8 +105,6 @@ contract SquareFundRaiser is ReferenceTable {
         uint256 amount
     );
 
-
-
     /**
      * @notice Construct a new Square token
      * @param account The initial account to grant all the tokens
@@ -128,7 +126,6 @@ contract SquareFundRaiser is ReferenceTable {
         balances[account] = uint96(totalSupply);
         emit Transfer(address(0), account, totalSupply);
     }
-
 
     /**
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
@@ -624,5 +621,9 @@ contract SquareFundRaiser is ReferenceTable {
             chainId := chainid()
         }
         return chainId;
+    }
+
+    function newMethodAfterUpgrade() public pure returns (string memory) {
+        return "New method from SquareFundRaiserV2 contract";
     }
 }

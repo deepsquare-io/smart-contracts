@@ -2,7 +2,7 @@ const { randomBytes } = require("ethers/lib/utils");
 const hre = require("hardhat");
 const ethers = hre.ethers;
 const { BigNumber } = ethers;
-
+const usdtHelper = require("../scripts/helpers/usdt");
 const e6 = BigNumber.from(10).pow(6);
 
 const inToken = (value) => {
@@ -15,8 +15,7 @@ async function main() {
   const addr1 = signers[1];
 
   // Deploy & fund owner account FakeUSDTe
-  const FakeUSDTe = await ethers.getContractFactory("BridgeToken");
-  const fakeUSDTe = await FakeUSDTe.attach(process.env.USDTE_ADDRESS);
+  const fakeUSDTe = usdtHelper.attach(process.env.USDTE_ADDRESS);
 
   await fakeUSDTe.mint(
     owner.address,

@@ -1,5 +1,5 @@
 require("dotenv").config();
-
+require("@openzeppelin/hardhat-upgrades");
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 require("hardhat-gas-reporter");
@@ -41,7 +41,7 @@ task(
  */
 module.exports = {
   solidity: {
-    compilers: [{ version: "0.8.0" }], // same as smart contracts solidity version
+    compilers: [{ version: "0.8.9" }], // same as smart contracts solidity version
   },
   networks: {
     // Configure each network to the respective Avalanche instances
@@ -79,8 +79,7 @@ module.exports = {
       gasPrice: 225000000000,
       chainId: 43114,
       accounts: [process.env.MAIN_ACCOUNT_PRIVATE_KEY], // Use your account private key on the Avalanche mainnet
-    },
-    */
+    }, */
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,

@@ -1,5 +1,6 @@
 const hre = require("hardhat");
 require("dotenv").config();
+const squareHelper = require("../scripts/helpers/square");
 
 const ethers = hre.ethers;
 
@@ -7,11 +8,7 @@ async function main() {
   const ethersSigners = await ethers.getSigners();
   const owner = ethersSigners[0];
 
-  const usdtAddress = process.env.USDTE_ADDRESS;
-  const Square = await ethers.getContractFactory("SquareFundRaiser");
-  const square = await Square.deploy(owner.address, usdtAddress);
-  await square.deployed();
-  console.log("Square deployed to:", square.address);
+  await squareHelper.deploy(owner.address, process.env.USDTE_ADDRESS, true);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
