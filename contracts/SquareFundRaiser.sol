@@ -36,11 +36,11 @@ contract SquareFundRaiser is ReferenceTable {
     // TetherERC20 public fundingStableCoin
     TetherERC20 public fundingStableCoin;
 
-    uint96 public cUsdtPerSquare; 
+    uint96 public cUsdtPerSquare;
 
-    uint96 public nextFundingCap; 
+    uint96 public nextFundingCap;
 
-    uint96 public fundingCapCurrentState; 
+    uint96 public fundingCapCurrentState;
 
     string public iban;
 
@@ -105,19 +105,22 @@ contract SquareFundRaiser is ReferenceTable {
         uint256 amount
     );
 
+
+
     /**
      * @notice Construct a new Square token
      * @param account The initial account to grant all the tokens
      */
     function initialize(address account, address fundingStableCoinAddress)
-        public initializer
+        public
+        initializer
     {
-        // no need to call super initializer, since it has no "constructor"
+        super.__ReferenceTable_init();
         // initialization of parameters
         swap_to_utility_enabled = false; /// TODO
         cUsdtPerSquare = 20;
         nextFundingCap = 10e12; // 10 million token ($600k)
-        fundingCapCurrentState = 0;       
+        fundingCapCurrentState = 0;
         iban = "";
 
         //TODO : Shouldn't this go to the already set _owner (e.g. msg.sender)
@@ -126,8 +129,6 @@ contract SquareFundRaiser is ReferenceTable {
         emit Transfer(address(0), account, totalSupply);
     }
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() initializer {}
 
     /**
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
