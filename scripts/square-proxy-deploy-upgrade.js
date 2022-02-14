@@ -1,4 +1,13 @@
 // scripts/create-box.js
+
+/**
+ * THIS SCRIPT IS USED FOR SHOWING THAT VERSIONNING WORKS.
+ * IN ORDER TO MAKE THE SCRIPT RUN, COPY PAST SquareFundRaiser.sol to
+ * SquareFundRaiserV2.sol and add the following method :
+ *     function newMethodAfterUpgrade() public pure returns (string memory) {
+        return "New method from SquareFundRaiserV2 contract";
+    }
+ */
 const { ethers, upgrades } = require("hardhat");
 
 function displaySeparator() {
