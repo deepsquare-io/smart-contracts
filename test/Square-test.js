@@ -31,6 +31,15 @@ describe("Square", function () {
     const ownerBalance = await square.balanceOf(owner.address);
     expect(ownerBalance).to.equal(inToken(210).mul(e6));
   });
+
+  it("can set iban", async function () {
+    const iban = "yolo mon iban";
+    await square.setIban(iban);
+    const receivedIban = await square.getIban();
+    console.log(receivedIban);
+    expect(receivedIban).to.equal(iban);
+  });
+
   it("Owner give away", async function () {
     // Amount of token to transfer (in token, not in wei)
     const amount = 150;
