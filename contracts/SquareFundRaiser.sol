@@ -25,9 +25,6 @@ interface TetherERC20 {
 
 contract SquareFundRaiser is ReferenceTable {
     /// @notice EIP-20 token name for this token
-    bool public swap_to_utility_enabled;
-
-    /// @notice EIP-20 token name for this token
     string public constant name = "DeepSquare";
 
     /// @notice EIP-20 token symbol for this token
@@ -117,7 +114,6 @@ contract SquareFundRaiser is ReferenceTable {
     {
         super.__ReferenceTable_init();
         // initialization of parameters
-        swap_to_utility_enabled = false; /// TODO
         cUsdtPerSquare = 20;
         nextFundingCap = 10e12; // 10 million token ($600k)
         fundingCapCurrentState = 0;
@@ -214,15 +210,6 @@ contract SquareFundRaiser is ReferenceTable {
     function setIban(string memory _iban) public onlyOwner {
         iban = _iban;
     }
-
-    /**
-     * @notice Get the current iban
-     */
-    function getIban() external view returns (string memory) {
-        return iban;
-    }
-
-    //function enableSwapToUtility()
 
     /**
      * @notice Get the number of tokens held by the `account`
