@@ -2,10 +2,10 @@
 
 /**
  * THIS SCRIPT IS USED FOR SHOWING THAT VERSIONNING WORKS.
- * IN ORDER TO MAKE THE SCRIPT RUN, COPY PAST SquareFundRaiser.sol to
- * SquareFundRaiserV2.sol and add the following method :
+ * IN ORDER TO MAKE THE SCRIPT RUN, COPY PAST DpsFundRaiser.sol to
+ * DpsFundRaiserV2.sol and add the following method :
  *     function newMethodAfterUpgrade() public pure returns (string memory) {
-        return "New method from SquareFundRaiserV2 contract";
+        return "New method from DpsFundRaiserV2 contract";
     }
  */
 const { ethers, upgrades } = require("hardhat");
@@ -35,7 +35,7 @@ async function main() {
 
   displaySeparator();
   console.log("*** V2 contract ***\n");
-  const BoxV2 = await ethers.getContractFactory("SquareFundRaiserV2");
+  const BoxV2 = await ethers.getContractFactory("DpsFundRaiserV2");
   const upgraded = await upgrades.upgradeProxy(instance.address, BoxV2);
   console.log("Proxy upgraded");
   console.log("SquareV2 contract deployed");

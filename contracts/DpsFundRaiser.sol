@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-contract SquareFundRaiser is ReferenceTable {
+contract DpsFundRaiser is ReferenceTable {
     IERC20 public fundingStableCoin;
 
     uint96 public cUsdtPerSquare;
