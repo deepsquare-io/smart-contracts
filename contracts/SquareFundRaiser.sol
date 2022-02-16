@@ -5,33 +5,9 @@ import "./ReferenceTable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
-/**
- * @title ERC20 interface
- * @dev see https://github.com/ethereum/EIPs/issues/20
- */
-interface TetherERC20 {
-    function allowance(address owner, address spender)
-        external
-        returns (uint256);
-
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) external;
-
-    function approve(address spender, uint256 value) external;
-}
-
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract SquareFundRaiser is ReferenceTable {
-    /// @notice EIP-20 token name for this token
-    string public constant name = "DeepSquare";
-
-    /// @notice EIP-20 token symbol for this token
-    string public constant symbol = "DPS";
-
-    // TetherERC20 public fundingStableCoin
-    TetherERC20 public fundingStableCoin;
+    IERC20 public fundingStableCoin;
 
     uint96 public cUsdtPerSquare;
 
@@ -102,8 +78,6 @@ contract SquareFundRaiser is ReferenceTable {
         uint256 amount
     );
 
-
-
     /**
      * @notice Construct a new Square token
      * @param account The initial account to grant all the tokens
@@ -120,11 +94,10 @@ contract SquareFundRaiser is ReferenceTable {
         iban = "";
 
         //TODO : Shouldn't this go to the already set _owner (e.g. msg.sender)
-        fundingStableCoin = TetherERC20(fundingStableCoinAddress);
+        fundingStableCoin = IERC20(fundingStableCoinAddress);
         balances[account] = uint96(totalSupply);
         emit Transfer(address(0), account, totalSupply);
     }
-
 
     /**
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
@@ -182,7 +155,7 @@ contract SquareFundRaiser is ReferenceTable {
      * @param _address the address to use for the fundingStableCoin
      */
     function setfundingStableCoinAddress(address _address) public onlyOwner {
-        fundingStableCoin = TetherERC20(_address);
+        fundingStableCoin = IERC20(_address);
     }
 
     /**
