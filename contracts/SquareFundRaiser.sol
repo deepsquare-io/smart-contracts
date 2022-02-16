@@ -57,7 +57,7 @@ contract SquareFundRaiser is ReferenceTable {
      * @notice Construct a new Square token
      * @param account The initial account to grant all the tokens
      */
-    function initialize(address account, address fundingStableCoinAddress)
+    function initialize(address fundingStableCoinAddress)
         public
         initializer
     {

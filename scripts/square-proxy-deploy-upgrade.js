@@ -9,7 +9,7 @@
     }
  */
 const { ethers, upgrades } = require("hardhat");
-
+const squareHelper = require("../scripts/helpers/square");
 function displaySeparator() {
   console.log("---------------");
 }
@@ -22,12 +22,7 @@ async function main() {
   // Deploying
   displaySeparator();
   console.log("*** V1 contract ***\n");
-  const Square = await ethers.getContractFactory("SquareFundRaiser");
-  const instance = await upgrades.deployProxy(Square, [
-    owner.address,
-    usdtAddress,
-  ]);
-  await instance.deployed();
+  const instance = await squareHelper.deploy(usdtAddress);
 
   console.log("Proxy deployed to :", instance.address);
   console.log("SquareV1 contract deployed");
