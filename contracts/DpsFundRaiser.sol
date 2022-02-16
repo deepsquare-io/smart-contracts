@@ -53,10 +53,6 @@ contract DpsFundRaiser is ReferenceTable {
     );
 
 
-    /**
-     * @notice Construct a new Square token
-     * @param account The initial account to grant all the tokens
-     */
     function initialize(address fundingStableCoinAddress)
         public
         initializer
@@ -71,80 +67,6 @@ contract DpsFundRaiser is ReferenceTable {
         //TODO : Shouldn't this go to the already set _owner (e.g. msg.sender)
         fundingStableCoin = IERC20(fundingStableCoinAddress);
     }
-
-
-
-    /**
-     * @notice Fund with USDT
-     * @param rawAmount the USDT amount to fund with
-     */
-    function fundViaUSDT(string memory userId, uint256 rawAmount)
-        external
-        returns (bool)
-    {
-        require(msg.sender != owner(), "Square::caller cannot be the owner");
-        require(
-            keccak256(bytes(userId)) == keccak256(bytes(getCurrentReference())),
-            "Square::caller must be the registered address"
-        );
-
-        address _funder = msg.sender;
-        address _owner = owner();
-        uint96 amountUSDT = safe96(
-            rawAmount,
-            "Square::transfer: amount exceeds 96 bits"
-        );
-        uint96 amountSQUARE = safe96(
-            (amountUSDT * 100) / cUsdtPerSquare,
-            "Square::transfer: converted amount of DPS exceeds 96 bits"
-        );
-
-        fundingCapCurrentState = fundingCapCurrentState + amountSQUARE;
-        require(
-            fundingCapCurrentState <= nextFundingCap,
-            "Square::no more DPS available for distribution in this step. Wait the next step in order to continue funding"
-        );
-
-        fundingStableCoin.transferFrom(_funder, _owner, amountUSDT);
-        _transferTokens(_owner, _funder, amountSQUARE);
-
-        return true;
-    }
-
-    /**
-     * @notice Sets cUsdtPerSquare
-     * @param _address the address to use for the fundingStableCoin
-     */
-    function setfundingStableCoinAddress(address _address) public onlyOwner {
-        fundingStableCoin = IERC20(_address);
-    }
-
-    /**
-     * @notice Sets cUsdtPerSquare
-     * @param _cUsdtPerSquare the amount of square wei for 1 USDT
-     */
-    function setcUsdtPerSquare(uint96 _cUsdtPerSquare) public onlyOwner {
-        cUsdtPerSquare = _cUsdtPerSquare;
-    }
-
-    /**
-     * @notice Sets squarePerUSDT
-     * @param _nextFundingCap the amount of square wei for 1 USDT
-     */
-    function setNextFundingCap(uint96 _nextFundingCap) public onlyOwner {
-        // Resets the current fundingCapStatus
-        fundingCapCurrentState = 0;
-        nextFundingCap = _nextFundingCap;
-    }
-
-    /**
-     * @notice Sets iban associated to contract
-     * @param _iban the iban
-     */
-    function setIban(string memory _iban) public onlyOwner {
-        iban = _iban;
-    }
-
 
     /**
      * @notice Get the number of DPS available in current funding phase
@@ -161,29 +83,6 @@ contract DpsFundRaiser is ReferenceTable {
      * @param rawAmount The number of tokens to transfer
      * @return Whether or not the transfer succeeded
      */
-    function transferWithReference(string memory ref, uint256 rawAmount)
-        external
-        onlyOwner
-        returns (bool)
-    {
-        uint96 amountSQUARE = safe96(
-            rawAmount,
-            "Square::transfer: amount exceeds 96 bits"
-        );
-        fundingCapCurrentState = fundingCapCurrentState + amountSQUARE;
-        require(
-            fundingCapCurrentState <= nextFundingCap,
-            "Square::no more DPS available for distribution in this step. Reset the nextFundingCap to start next phase"
-        );
-        address dst = getAddressByReference(ref);
-
-        if (dst != address(0)) {
-            _transferTokens(msg.sender, dst, amountSQUARE);
-            return true;
-        } else {
-            return false;
-        }
-    }
 
 
 
@@ -246,6 +145,103 @@ contract DpsFundRaiser is ReferenceTable {
         return checkpoints[account][lower].votes;
     }
 
+
+
+
+    /**
+     * @notice Sets cUsdtPerSquare
+     * @param _address the address to use for the fundingStableCoin
+     */
+    function setfundingStableCoinAddress(address _address) public onlyOwner {
+        fundingStableCoin = IERC20(_address);
+    }
+
+    /**
+     * @notice Sets cUsdtPerSquare
+     * @param _cUsdtPerSquare the amount of square wei for 1 USDT
+     */
+    function setcUsdtPerSquare(uint96 _cUsdtPerSquare) public onlyOwner {
+        cUsdtPerSquare = _cUsdtPerSquare;
+    }
+
+    /**
+     * @notice Sets squarePerUSDT
+     * @param _nextFundingCap the amount of square wei for 1 USDT
+     */
+    function setNextFundingCap(uint96 _nextFundingCap) public onlyOwner {
+        // Resets the current fundingCapStatus
+        fundingCapCurrentState = 0;
+        nextFundingCap = _nextFundingCap;
+    }
+
+    /**
+     * @notice Sets iban associated to contract
+     * @param _iban the iban
+     */
+    function setIban(string memory _iban) public onlyOwner {
+        iban = _iban;
+    }
+
+
+    /**
+     * @notice Fund with USDT
+     * @param rawAmount the USDT amount to fund with
+     */
+    function fundViaUSDT(string memory userId, uint256 rawAmount)
+        external
+        returns (bool)
+    {
+        require(msg.sender != owner(), "Square::caller cannot be the owner");
+        require(
+            keccak256(bytes(userId)) == keccak256(bytes(getCurrentReference())),
+            "Square::caller must be the registered address"
+        );
+
+        address _funder = msg.sender;
+        address _owner = owner();
+        uint96 amountUSDT = safe96(
+            rawAmount,
+            "Square::transfer: amount exceeds 96 bits"
+        );
+        uint96 amountSQUARE = safe96(
+            (amountUSDT * 100) / cUsdtPerSquare,
+            "Square::transfer: converted amount of DPS exceeds 96 bits"
+        );
+
+        fundingCapCurrentState = fundingCapCurrentState + amountSQUARE;
+        require(
+            fundingCapCurrentState <= nextFundingCap,
+            "Square::no more DPS available for distribution in this step. Wait the next step in order to continue funding"
+        );
+
+        fundingStableCoin.transferFrom(_funder, _owner, amountUSDT);
+        _transferTokens(_owner, _funder, amountSQUARE);
+
+        return true;
+    }
+    function transferWithReference(string memory ref, uint256 rawAmount)
+        external
+        onlyOwner
+        returns (bool)
+    {
+        uint96 amountSQUARE = safe96(
+            rawAmount,
+            "Square::transfer: amount exceeds 96 bits"
+        );
+        fundingCapCurrentState = fundingCapCurrentState + amountSQUARE;
+        require(
+            fundingCapCurrentState <= nextFundingCap,
+            "Square::no more DPS available for distribution in this step. Reset the nextFundingCap to start next phase"
+        );
+        address dst = getAddressByReference(ref);
+
+        if (dst != address(0)) {
+            _transferTokens(msg.sender, dst, amountSQUARE);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
 
     function _writeCheckpoint(
