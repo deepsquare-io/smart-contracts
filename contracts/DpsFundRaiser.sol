@@ -7,35 +7,39 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "hardhat/console.sol";
+
 contract DpsFundRaiser is ReferenceTable {
     IERC20 public stableCoinContract;
 
     IERC20 public dpsContract;
+    // TODO change all the uint -> to less ? uint16 ?
+    uint256 public cUsdtPerDps;
 
-    uint96 public cUsdtPerDps;
+    uint256 public nextFundingCap;
 
-    uint96 public nextFundingCap;
-
-    uint96 public fundingCapCurrentState;
+    uint256 public currentFunding;
 
     function initialize(
+        address _dpsContractAddress,
         address _stableCoinContractAddress,
-        address _dpsContractAddress
+        uint256 _currentFunding
     ) public initializer {
         super.__ReferenceTable_init();
         dpsContract = IERC20(_dpsContractAddress);
         stableCoinContract = IERC20(_stableCoinContractAddress);
+        currentFunding = _currentFunding;
+
         cUsdtPerDps = 20;
-        nextFundingCap = 10e12; // 10 million token ($600k)
-        fundingCapCurrentState = 0;
+        nextFundingCap = 10e12; // 10 million token ($600k). TODO change this ?
     }
 
     /**
      * @notice Get the number of DPS available in current funding phase
      * @return The number of tokens remaining in current phase
      */
-    function getRemainingDPSInPhase() external view returns (uint256) {
-        return nextFundingCap - fundingCapCurrentState;
+    function getRemainingDpsInPhase() external view returns (uint256) {
+        return nextFundingCap - currentFunding;
     }
 
     /**
@@ -64,34 +68,22 @@ contract DpsFundRaiser is ReferenceTable {
 
     // Resets the current fundingCapStatus
     function setNextFundingCap(uint96 _nextFundingCap) public onlyOwner {
-        fundingCapCurrentState = 0;
+        currentFunding = 0;
         nextFundingCap = _nextFundingCap;
     }
 
-    /**
-     * @notice Fund with USDT
-     * @param rawAmount the USDT amount to fund with
-     */
-    function fundViaUSDT(string memory userId, uint256 rawAmount)
+    function fundViaUSDT(string memory userId, uint256 amountUSDT)
         external
         returns (bool)
     {
-        require(msg.sender != owner(), "caller cannot be the owner");
+        require(msg.sender != owner(), "Caller cannot be the owner");
         require(
             keccak256(bytes(userId)) == keccak256(bytes(getCurrentReference())),
             "Caller must be the registered address"
         );
 
-        uint96 amountUSDT = safe96(
-            rawAmount,
-            "transfer: amount exceeds 96 bits"
-        );
-        uint96 amountDps = safe96(
-            (amountUSDT * 100) / cUsdtPerDps,
-            "transfer: converted amount of DPS exceeds 96 bits"
-        );
-
-        increaseCap(amountDps);
+        uint256 amountDps = (amountUSDT * 100) / cUsdtPerDps;
+        requireNotReachingFundingCap(amountDps);
 
         address _funder = msg.sender;
         address _owner = owner();
@@ -99,47 +91,37 @@ contract DpsFundRaiser is ReferenceTable {
         // TODO add conditions that everything goes alright. approval maybe ?
         stableCoinContract.transferFrom(_funder, _owner, amountUSDT);
         dpsContract.transferFrom(_owner, _funder, amountDps);
+        increaseFundingCap(amountDps);
 
         return true;
     }
 
-    function transferWithReference(string memory ref, uint256 rawAmount)
+    /**
+     * Fund account linked to bank account reference with the right DPS amount.
+     *
+     * NOTE: TODO : ask Charly if amountDPS should not consider 18 decimals, added later on
+     *
+     */
+    function fundViaReference(string memory ref, uint32 amountDps)
         external
+        referenceExists(ref)
         onlyOwner
-        returns (bool)
     {
-        uint96 amountDps = safe96(
-            rawAmount,
-            "Transfer amount exceeds 96 bits."
-        );
-
-        increaseCap(amountDps);
-        address dst = getAddressByReference(ref);
-
-        // TODO improve this part, use revert ?
-        if (dst != address(0)) {
-            dpsContract.transfer(dst, amountDps);
-            return true;
-        } else {
-            return false;
-        }
+        requireNotReachingFundingCap(amountDps);
+        address receiver = getAddressByReference(ref);
+        dpsContract.transferFrom(msg.sender, receiver, amountDps);
+        increaseFundingCap(amountDps);
     }
 
     // TODO uint96 for amountDPS ? Use safeMath, or BigNumbers ?
-    function increaseCap(uint96 amountDPS) internal {
-        fundingCapCurrentState += amountDPS;
-        require(
-            fundingCapCurrentState <= nextFundingCap,
-            "No more DPS available for distribution in this funding phase"
-        );
+    function increaseFundingCap(uint256 amountDPS) internal {
+        currentFunding = currentFunding + amountDPS;
     }
 
-    function safe96(uint256 n, string memory errorMessage)
-        internal
-        pure
-        returns (uint96)
-    {
-        require(n < 2**96, errorMessage);
-        return uint96(n);
+    function requireNotReachingFundingCap(uint256 amountDPS) internal view {
+        require(
+            currentFunding + amountDPS <= nextFundingCap,
+            "No more DPS available for distribution in this funding phase"
+        );
     }
 }

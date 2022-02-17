@@ -1,7 +1,7 @@
 pragma solidity ^0.8.1;
 // SPDX-License-Identifier: MIT
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-
+import "hardhat/console.sol";
 pragma experimental ABIEncoderV2;
 
 contract ReferenceTable is OwnableUpgradeable {
@@ -10,6 +10,14 @@ contract ReferenceTable is OwnableUpgradeable {
     mapping(address => bool) private _address_reference_set;
     mapping(string => bool) private _reference_address_set;
 
+    modifier referenceExists(string memory _reference) {
+        require(
+            getAddressByReference(_reference) != address(0),
+            "Reference does not exist"
+        );
+        _;
+    }
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 
@@ -17,34 +25,6 @@ contract ReferenceTable is OwnableUpgradeable {
         OwnableUpgradeable.__Ownable_init();
     }
 
-    /**
-     * @notice Sets iban associated to contract
-     * @param _reference the reference
-     */
-    function setReference(string memory _reference) public virtual {
-        require(
-            _reference_address_set[_reference] != true,
-            "Reference: already used"
-        );
-        require(
-            _address_reference_set[msg.sender] != true,
-            "Reference: already set for this address"
-        );
-        // check balance
-        // if ( msg.sender.balance == 0 ){
-        //     // If balance is 0 send him some token and return false
-        //     // Send balance
-        //     return false
-        // }
-        // else{
-
-        // }
-        // If balance is non 0 procced
-        _address_reference_set[msg.sender] = true;
-        _reference_address_set[_reference] = true;
-        _address_reference[msg.sender] = _reference;
-        _reference_address[_reference] = msg.sender;
-    }
 
     /**
      * @notice Get the current reference
@@ -75,5 +55,34 @@ contract ReferenceTable is OwnableUpgradeable {
         returns (address)
     {
         return _reference_address[_reference];
+    }
+
+    /**
+     * @notice Sets iban associated to contract
+     * @param _reference the reference
+     */
+    function setReference(string memory _reference) public virtual {
+        require(
+            _reference_address_set[_reference] != true,
+            "Reference: already used"
+        );
+        require(
+            _address_reference_set[msg.sender] != true,
+            "Reference: already set for this address"
+        );
+        // check balance
+        // if ( msg.sender.balance == 0 ){
+        //     // If balance is 0 send him some token and return false
+        //     // Send balance
+        //     return false
+        // }
+        // else{
+
+        // }
+        // If balance is non 0 procced
+        _address_reference_set[msg.sender] = true;
+        _reference_address_set[_reference] = true;
+        _address_reference[msg.sender] = _reference;
+        _reference_address[_reference] = msg.sender;
     }
 }

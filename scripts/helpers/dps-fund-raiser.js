@@ -6,11 +6,21 @@ const { ethers, upgrades } = require("hardhat");
  * @param {*} showLogs
  * @returns
  */
-async function deploy(usdtAddress, showLogs = false) {
+async function deploy(
+  deepSquareTokenAddress,
+  usdtAddress,
+  currentFunding,
+  showLogs = false
+) {
   const contractFactory = await ethers.getContractFactory("DpsFundRaiser");
-  const contract = await upgrades.deployProxy(contractFactory, [usdtAddress]);
+  const contract = await upgrades.deployProxy(contractFactory, [
+    deepSquareTokenAddress,
+    usdtAddress,
+    currentFunding,
+  ]);
   return contract.deployed().then((contract) => {
-    showLogs ?? console.log("DpsFundRaiser contract deployed to:", contract.address);
+    showLogs ??
+      console.log("DpsFundRaiser contract deployed to:", contract.address);
     return contract;
   });
 }

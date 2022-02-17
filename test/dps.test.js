@@ -2,9 +2,11 @@ const chai = require("chai");
 const expect = chai.expect;
 
 const { ethers } = require("hardhat");
-const dpsHelper = require("../scripts/helpers/dps");
+const deepSquareTokenHelper = require("../scripts/helpers/deep-square-token");
+const messagesHelper = require("./messages.helper");
+
 describe("DPS contract", function () {
-  let dps;
+  let deepSquareToken;
   let owner;
   let addr1;
   let addr2;
@@ -13,22 +15,18 @@ describe("DPS contract", function () {
   beforeEach(async function () {
     [owner, addr1, addr2] = await ethers.getSigners();
     // Deploy DPS
-    dps = await dpsHelper.deploy();
+    deepSquareToken = await deepSquareTokenHelper.deploy();
   });
 
   it("setup : owner account balance should be 210'000'000 DPS", async function () {
-    const ownerBalance = await dps.balanceOf(owner.address);
+    const ownerBalance = await deepSquareToken.balanceOf(owner.address);
     expect(ownerBalance).to.equal(210000000);
   });
 
   it("transfer() cannot be executed from non admin user", async function () {
-    const dpsRandomUser = await dps.connect(addr1);
-
-    const nonOwnerResponse =
-      "VM Exception while processing transaction: reverted with reason string 'Ownable: caller is not the owner'";
     await expect(
-      dpsRandomUser.transfer(addr1.address, 2403)
-    ).to.be.revertedWith(nonOwnerResponse);
+      deepSquareToken.connect(addr1).transfer(addr1.address, 2403)
+    ).to.be.revertedWith(messagesHelper.ERROR_NON_OWNER);
   });
 
   describe("it should act as an ERC20 token", async function () {

@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract DeepSquareToken is ERC20, Ownable {
     constructor() ERC20("DeepSquareToken", "DPS") {
-        _mint(msg.sender, 210000000); // mint 210 000 000 tokens
+        _mint(msg.sender, 210e24); // 210e6e18 = 210 millions token
     }
 
     function _beforeTokenTransfer(
