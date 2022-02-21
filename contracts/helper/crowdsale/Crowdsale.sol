@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 // import "./ReentrancyGuard.sol";
 
 /**
@@ -27,9 +28,6 @@ contract Crowdsale is Context {
     // The token being sold
     IERC20 public _token;
 
-    // Address where funds are collected
-    address payable public _wallet;
-
     // How many token units a buyer gets per wei.
     // The rate is the conversion between wei and the smallest and indivisible token unit.
     // So, if you are using a rate of 1 with a ERC20Detailed token with 3 decimals called TOK
@@ -46,23 +44,31 @@ contract Crowdsale is Context {
      * @param value weis paid for purchase
      * @param amount amount of tokens purchased
      */
-    event TokensPurchased(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
+    event TokensPurchased(
+        address indexed purchaser,
+        address indexed beneficiary,
+        uint256 value,
+        uint256 amount
+    );
 
     /**
      * @param rate Number of token units a buyer gets per wei
      * @dev The rate is the conversion between wei and the smallest and indivisible
      * token unit. So, if you are using a rate of 1 with a ERC20Detailed token
      * with 3 decimals called TOK, 1 wei will give you 1 unit, or 0.001 TOK.
-     * @param wallet Address where collected funds will be forwarded to
      * @param token Address of the token being sold
      */
-    constructor (uint256 rate, address payable wallet, IERC20 token)  {
+    constructor(
+        uint256 rate,
+        IERC20 token
+    ) {
         require(rate > 0, "Crowdsale: rate is 0");
-        require(wallet != address(0), "Crowdsale: wallet is the zero address");
-        require(address(token) != address(0), "Crowdsale: token is the zero address");
+        require(
+            address(token) != address(0),
+            "Crowdsale: token is the zero address"
+        );
 
         _rate = rate;
-        _wallet = wallet;
         _token = token;
     }
 
@@ -72,21 +78,21 @@ contract Crowdsale is Context {
      * of 2300, which is not enough to call buyTokens. Consider calling
      * buyTokens directly when purchasing tokens from a contract.
      */
-     // TODO Julien: warning, it was originally a fallback function, but I've change it as receive: CHECK
+    // TODO Julien: warning, it was originally a fallback function, but I've change it as receive: CHECK
+    /*
     receive () external payable {
         buyTokens(_msgSender());
     }
-
+*/
     /**
      * @dev low level token purchase ***DO NOT OVERRIDE***
      * This function has a non-reentrancy guard, so it shouldn't be called by
      * another `nonReentrant` function.
      * @param beneficiary Recipient of the token purchase
      */
-     // TODO WHATCHOUT there was nonReentrant originally
+    // TODO WHATCHOUT there was nonReentrant originally
     // TODO original : function buyTokens(address beneficiary) public nonReentrant payable {
-    function buyTokens(address beneficiary) public payable {
-        uint256 weiAmount = msg.value;
+    function buyTokens(address beneficiary, uint256 weiAmount) public payable {
         _preValidatePurchase(beneficiary, weiAmount);
 
         // calculate token amount to be created
@@ -100,7 +106,7 @@ contract Crowdsale is Context {
 
         _updatePurchasingState(beneficiary, weiAmount);
 
-        _forwardFunds();
+        _forwardFunds(weiAmount);
         _postValidatePurchase(beneficiary, weiAmount);
     }
 
@@ -113,8 +119,15 @@ contract Crowdsale is Context {
      * @param beneficiary Address performing the token purchase
      * @param weiAmount Value in wei involved in the purchase
      */
-    function _preValidatePurchase(address beneficiary, uint256 weiAmount) internal view virtual {
-        require(beneficiary != address(0), "Crowdsale: beneficiary is the zero address");
+    function _preValidatePurchase(address beneficiary, uint256 weiAmount)
+        internal
+        view
+        virtual
+    {
+        require(
+            beneficiary != address(0),
+            "Crowdsale: beneficiary is the zero address"
+        );
         require(weiAmount != 0, "Crowdsale: weiAmount is 0");
         this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
     }
@@ -125,7 +138,10 @@ contract Crowdsale is Context {
      * @param beneficiary Address performing the token purchase
      * @param weiAmount Value in wei involved in the purchase
      */
-    function _postValidatePurchase(address beneficiary, uint256 weiAmount) internal view {
+    function _postValidatePurchase(address beneficiary, uint256 weiAmount)
+        internal
+        view
+    {
         // solhint-disable-previous-line no-empty-blocks
     }
 
@@ -145,7 +161,9 @@ contract Crowdsale is Context {
      * @param beneficiary Address receiving the tokens
      * @param tokenAmount Number of tokens to be purchased
      */
-    function _processPurchase(address beneficiary, uint256 tokenAmount) internal {
+    function _processPurchase(address beneficiary, uint256 tokenAmount)
+        internal
+    {
         _deliverTokens(beneficiary, tokenAmount);
     }
 
@@ -155,7 +173,9 @@ contract Crowdsale is Context {
      * @param beneficiary Address receiving the tokens
      * @param weiAmount Value in wei involved in the purchase
      */
-    function _updatePurchasingState(address beneficiary, uint256 weiAmount) internal {
+    function _updatePurchasingState(address beneficiary, uint256 weiAmount)
+        internal
+    {
         // solhint-disable-previous-line no-empty-blocks
     }
 
@@ -164,14 +184,18 @@ contract Crowdsale is Context {
      * @param weiAmount Value in wei to be converted into tokens
      * @return Number of tokens that can be purchased with the specified _weiAmount
      */
-    function _getTokenAmount(uint256 weiAmount) internal view returns (uint256) {
+    function _getTokenAmount(uint256 weiAmount)
+        internal
+        view
+        returns (uint256)
+    {
         return weiAmount.mul(_rate);
     }
 
     /**
      * @dev Determines how ETH is stored/forwarded on purchases.
      */
-    function _forwardFunds() internal virtual {
-        _wallet.transfer(msg.value);
+    function _forwardFunds(uint256 weiAmount) internal virtual {
+        // _wallet.transfer(weiAmount);
     }
 }

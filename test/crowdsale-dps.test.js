@@ -39,7 +39,7 @@ describe("CrowdsaleDps", function () {
   beforeEach(async function () {
     [owner, addr1, addr2] = await ethers.getSigners();
     // Deploy FakeUSDT
-    const fakeUSDT = await usdtHelper.deploy();
+    fakeUSDT = await usdtHelper.deploy();
     // Deploy DPS
     deepSquareToken = await deepSquareTokenHelper.deploy();
     // Deploy CrowdsaleDps
@@ -52,9 +52,9 @@ describe("CrowdsaleDps", function () {
     );
 
     // Fund owner account
-    await usdtHelper.mint(fakeUSDT, owner.address, inToken(20000));
+    await usdtHelper.mint(fakeUSDT, owner.address, inToken(200000000000));
     // Transfer some usdt to addr1 and addr2
-    await fakeUSDT.transfer(addr1.address, inToken(10000));
+    await fakeUSDT.transfer(addr1.address, inToken(10000001));
     await fakeUSDT.transfer(addr2.address, inToken(8000));
   });
 
@@ -83,13 +83,14 @@ describe("CrowdsaleDps", function () {
   describe("#buyTokens", function () {
     describeRevert(function () {
       it("caller is the owner TODO or not ?");
+      it("caller is not KYC registered");
 
       it("usdt amount exceeds 96 bytes"); // TODO why 96 bytes ?
       it("dps amount exceeds 96 bytes"); // TODO why 96 bytes ?
       it("next funding cap is reached");
     });
     describeOk(function () {
-      it("should transfer DPS according to USDT/DPS ratio", async function () {
+      it.only("should transfer DPS according to USDT/DPS ratio", async function () {
         const USDT = 3000;
         const CROWDSALE_DPS_FUND = 303222222222;
         await deepSquareToken.grantAccess(crowdsaleDps.address);
@@ -97,10 +98,18 @@ describe("CrowdsaleDps", function () {
           crowdsaleDps.address,
           CROWDSALE_DPS_FUND
         );
-        await crowdsaleDps.buyTokens(addr1.address, { value: USDT });
+        await crowdsaleDps.connect(addr1).setReference("REFERENCE");
+
+        console.log("A", owner.address);
+        const allowance = 10001;
+        await fakeUSDT.connect(addr1).approve(owner.address, allowance);
+        // await fakeUSDT.transferFrom(addr1.address, owner.address, allowance);
+        await crowdsaleDps.connect(addr1).buyTokens(addr1.address, allowance);
+        /*
         expect(await deepSquareToken.balanceOf(addr1.address)).to.equal(
           USDT * crowdsaleDpsRatio
         );
+        */
 
         expect(await deepSquareToken.balanceOf(crowdsaleDps.address)).to.equal(
           CROWDSALE_DPS_FUND - USDT * crowdsaleDpsRatio
@@ -128,9 +137,9 @@ describe("CrowdsaleDps", function () {
     describeRevert(function () {
       it("caller is not the owner", async function () {
         await expect(
-          crowdsaleDps.connect(addr1).transferTokensViaReference(REFERENCE, {
-            value: faker.datatype.number(),
-          })
+          crowdsaleDps
+            .connect(addr1)
+            .transferTokensViaReference(REFERENCE, faker.datatype.number())
         ).to.revertedWith(messagesHelper.ERROR_NON_OWNER);
       });
       it("usdt amount exceeds 32 bytes");
@@ -140,17 +149,19 @@ describe("CrowdsaleDps", function () {
         await deepSquareToken.grantAccess(crowdsaleDps.address);
 
         await expect(
-          crowdsaleDps.transferTokensViaReference(REFERENCE, {
-            value: faker.datatype.number({ min: 10 }),
-          })
+          crowdsaleDps.transferTokensViaReference(
+            REFERENCE,
+            faker.datatype.number({ min: 10 })
+          )
         ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
       });
 
       it("there is no address matching reference", async function () {
         await expect(
-          crowdsaleDps.transferTokensViaReference(faker.datatype.string(), {
-            value: AMOUNT_DPS,
-          })
+          crowdsaleDps.transferTokensViaReference(
+            faker.datatype.string(),
+            AMOUNT_DPS
+          )
         ).to.be.revertedWith("Reference does not exist");
       });
 
@@ -170,9 +181,7 @@ describe("CrowdsaleDps", function () {
           crowdsaleDps.address,
           CROWDSALE_DPS_FUND
         );
-        await crowdsaleDps.transferTokensViaReference(REFERENCE, {
-          value: USDT,
-        });
+        await crowdsaleDps.transferTokensViaReference(REFERENCE, USDT);
         expect(await deepSquareToken.balanceOf(crowdsaleDps.address)).to.equal(
           CROWDSALE_DPS_FUND - USDT * crowdsaleDpsRatio
         );

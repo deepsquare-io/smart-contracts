@@ -4,9 +4,11 @@ pragma solidity ^0.8.1;
 import "./helper/crowdsale/Crowdsale.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "hardhat/console.sol";
 
 contract CrowdsaleDps is Crowdsale, Ownable {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     // TODO is there a better way than two arrays ?
     mapping(address => string) public referenceFromAddress;
@@ -18,13 +20,7 @@ contract CrowdsaleDps is Crowdsale, Ownable {
         uint256 _rate,
         address _dpsContractAddress,
         address _stableCoinContractAddress
-    )
-        Crowdsale(
-            _rate,
-            payable(0x9632a79656af553F58738B0FB750320158495942),
-            IERC20(_dpsContractAddress)
-        )
-    {
+    ) Crowdsale(_rate, IERC20(_dpsContractAddress)) Ownable() {
         stableCoinToken = IERC20(_stableCoinContractAddress);
         // TODO change rate and wallet address
     }
@@ -48,12 +44,11 @@ contract CrowdsaleDps is Crowdsale, Ownable {
      * Transfer tokens after getting user KYC reference
      * @param _reference Kyc reference
      */
-    function transferTokensViaReference(string memory _reference)
-        public
-        payable
-        onlyOwner
-    {
-        buyTokens(addressFromReference[_reference]);
+    function transferTokensViaReference(
+        string memory _reference,
+        uint256 weiAmount
+    ) public payable onlyOwner {
+        buyTokens(addressFromReference[_reference], weiAmount);
     }
 
     /**
@@ -65,6 +60,7 @@ contract CrowdsaleDps is Crowdsale, Ownable {
         view
         override
     {
+        payable(owner());
         super._preValidatePurchase(_beneficiary, _weiAmount);
         require(msg.sender != owner(), "Caller cannot be the owner");
         require(
@@ -74,7 +70,16 @@ contract CrowdsaleDps is Crowdsale, Ownable {
         );
     }
 
-    function _forwardFunds() internal override {
-        stableCoinToken
+    // TODO WHO SHOULD IT SEND MONEY TO ? Contract owner ?
+    function _forwardFunds(uint256 _weiAmount) internal override {
+        console.log(msg.sender);
+        console.log(owner());
+        console.log(stableCoinToken.allowance(owner(), msg.sender));
+        stableCoinToken.transferFrom(
+            msg.sender,
+            owner(),
+            1
+        );
+        
     }
 }
