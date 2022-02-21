@@ -33,12 +33,13 @@ contract CrowdsaleDps is Crowdsale, Ownable {
         require(
             addressFromReference[_reference] == address(0) &&
                 keccak256(bytes(referenceFromAddress[msg.sender])) ==
-                keccak256(""), // && referenceFromAddress[msg.sender] == "",
+                keccak256(""),
             "CrowdsaleDps: already used"
         );
         referenceFromAddress[msg.sender] = _reference;
         addressFromReference[_reference] = msg.sender;
     }
+
 
     /**
      * Transfer tokens after getting user KYC reference
@@ -48,7 +49,17 @@ contract CrowdsaleDps is Crowdsale, Ownable {
         string memory _reference,
         uint256 weiAmount
     ) public payable onlyOwner {
-        buyTokens(addressFromReference[_reference], weiAmount);
+        address beneficiary = addressFromReference[_reference];
+        _requireRegistered(beneficiary);
+
+        // calculate token amount to be created
+        uint256 tokens = _getTokenAmount(weiAmount);
+
+        // update state
+        _weiRaised = _weiRaised.add(weiAmount);
+
+        _processPurchase(beneficiary, tokens);
+        emit TokensPurchased(_msgSender(), beneficiary, weiAmount, tokens);
     }
 
     /**
@@ -60,26 +71,24 @@ contract CrowdsaleDps is Crowdsale, Ownable {
         view
         override
     {
-        payable(owner());
         super._preValidatePurchase(_beneficiary, _weiAmount);
         require(msg.sender != owner(), "Caller cannot be the owner");
-        require(
-            keccak256(bytes(referenceFromAddress[_beneficiary])) !=
-                keccak256(""),
-            "Caller is not registered"
-        );
+        _requireRegistered(_beneficiary);
+        
     }
 
-    // TODO WHO SHOULD IT SEND MONEY TO ? Contract owner ?
     function _forwardFunds(uint256 _weiAmount) internal override {
-        console.log(msg.sender);
-        console.log(owner());
-        console.log(stableCoinToken.allowance(owner(), msg.sender));
         stableCoinToken.transferFrom(
             msg.sender,
             owner(),
-            1
+            _weiAmount
         );
-        
+    }
+    function _requireRegistered(address _beneficiary) internal view {
+        require(
+            keccak256(bytes(referenceFromAddress[_beneficiary])) !=
+                keccak256(""),
+            "CrowdsaleDps: Caller is not registered"
+        );
     }
 }

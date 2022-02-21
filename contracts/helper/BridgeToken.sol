@@ -1,5 +1,5 @@
 // @source: copied from Avalanche USDT.e https://snowtrace.io/address/0xc7198437980c041c805a1edcba50c1ce5db95118#code
-/**
+/*/**
  *Submitted for verification at snowtrace.io on 2021-11-02
 */
 
@@ -743,3 +743,4 @@ contract BridgeToken is ERC20Burnable {
         return length > 0;
     }
 }
+ 
