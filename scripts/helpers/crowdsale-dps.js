@@ -2,6 +2,8 @@ const { ethers } = require("hardhat");
 
 /** Deploy CrowdsaleDps contract
  *
+ * @param {*} rate
+ * @param {*} deepSquareTokenAddress
  * @param {*} usdtAddress
  * @param {*} showLogs
  * @returns
@@ -17,7 +19,7 @@ async function deploy(
   const contract = await contractFactory.deploy(
     rate,
     deepSquareTokenAddress,
-    usdtAddress,
+    usdtAddress
   );
   return contract.deployed().then((contract) => {
     showLogs ??

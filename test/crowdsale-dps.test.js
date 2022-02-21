@@ -3,6 +3,7 @@ const { ethers } = require("hardhat");
 const crowdsaleDpsHelper = require("../scripts/helpers/crowdsale-dps");
 const {
   deployDeepSquareToken,
+  dpsToken,
 } = require("../scripts/helpers/deep-square-token");
 const usdtHelper = require("../scripts/helpers/usdt");
 const { faker } = require("@faker-js/faker");
@@ -15,10 +16,6 @@ function describeOk(callback) {
   describe("if everything ok", callback);
 }
 
-function itSets(callback) {
-  it("sets", callback);
-}
-
 function greaterThanBytes(numBytes) {
   return 2 ** numBytes + Math.random() * 2 ** (numBytes - 1);
 }
@@ -27,7 +24,7 @@ function lessThanBytes(numBytes) {
   return 2 ** (numBytes - 1);
 }
 
-describe("CrowdsaleDps", function () {
+describe("CrowdsaleDps contract", function () {
   let crowdsaleDps;
   let deepSquareToken;
   let fakeUSDT;
@@ -59,28 +56,29 @@ describe("CrowdsaleDps", function () {
     await fakeUSDT.transfer(addr2.address, usdtHelper.token(100));
   });
 
-  describe("#initializer", function () {
-    describeRevert(function () {});
-    describeOk(function () {
-      it(
-        "should initialize the right addresses (check USDT and DPS addresses)"
-      );
+  describe("on initialization", function () {
+    describeRevert(function () {
+      it("dps/usd rate should not be 0", async function () {
+        await expect(
+          crowdsaleDpsHelper.deploy(
+            0,
+            deepSquareToken.address,
+            fakeUSDT.address
+          )
+        ).to.be.revertedWith("Crowdsale: rate is 0");
+      });
+
+      it("token should not be the 0 address", async function () {
+        await expect(
+          crowdsaleDpsHelper.deploy(
+            faker.datatype.number({ min: 1 }),
+            messagesHelper.ZERO_ADDRESS,
+            fakeUSDT.address
+          )
+        ).to.be.revertedWith("Crowdsale: token is the zero address");
+      });
     });
   });
-
-  describe("#getRemainingDpsInPhase", function () {});
-  describe("#setcUsd  PerDps", function () {
-    itSets(function () {}); // TODO for all
-  });
-
-  describe("#setNextFundingCap", function () {
-    itSets(function () {});
-  });
-
-  describe("#setStableCoinContractAddress", function () {
-    itSets(function () {});
-  });
-
   describe("#setReference", function () {
     describeRevert(function () {
       it("reference already exists", async function () {
@@ -89,13 +87,25 @@ describe("CrowdsaleDps", function () {
         expect(await crowdsaleDps.addressFromReference(reference)).to.equal(
           owner.address
         );
-        await expect(crowdsaleDps.setReference(reference)).to.be.revertedWith("CrowdsaleDps: reference already used");
+        await expect(crowdsaleDps.setReference(reference)).to.be.revertedWith(
+          "CrowdsaleDps: reference already used"
+        );
       });
     });
   });
 
   describe("#buyTokens", function () {
     describeRevert(function () {
+      it("beneficiary is the zero address", async function () {
+        await expect(
+          crowdsaleDps.buyTokens(messagesHelper.ZERO_ADDRESS, 23)
+        ).to.be.revertedWith("Crowdsale: beneficiary is the zero address");
+      });
+      it("wei amount is 0", async function () {
+        await expect(
+          crowdsaleDps.buyTokens(addr2.address, 0)
+        ).to.be.revertedWith("ss");
+      });
       it("caller is the owner TODO or not ? maybe it can help at the end ?", async function () {
         await expect(
           crowdsaleDps.buyTokens(owner.address, 23)
@@ -107,9 +117,15 @@ describe("CrowdsaleDps", function () {
         ).to.be.revertedWith("CrowdsaleDps: caller is not KYC registered");
       });
 
-      it("usdt amount exceeds 96 bytes"); // TODO why 96 bytes ?
-      it("dps amount exceeds 96 bytes"); // TODO why 96 bytes ?
-      it("next funding cap is reached");
+      /* TODO !
+        it("amount exceeds contract balance", async function () {
+          await expect(
+            crowdsaleDps
+              .connect(addr1)
+              .buyTokens(addr2.address, dpsToken(100000))
+          ).to.be.revertedWith("no balance");
+        });
+        */
     });
     describeOk(function () {
       let CROWDSALE_DPS_FUND;
@@ -148,11 +164,9 @@ describe("CrowdsaleDps", function () {
           BALANCE_OWNER_USDT + USDT
         );
       });
-      it("should revert all if one transaction goes wrong TODO");
-      it("can we test the overflows / edge values ?");
-      it(
-        "SHOULD ESPECIALLY CHECK IF SOMETHING GOES WRONG IF BUYTOKENS BUG TODO"
-      );
+      // TODO should revert all if one transaction goes wrong TODO"
+      // TODO can we test the overflows / edge values ?
+      // SHOULD ESPECIALLY CHECK IF SOMETHING GOES WRONG IF BUYTOKENS BUG TODO
     });
   });
 
@@ -173,7 +187,6 @@ describe("CrowdsaleDps", function () {
             .transferTokensViaReference(REFERENCE, faker.datatype.number())
         ).to.revertedWith(messagesHelper.ERROR_NON_OWNER);
       });
-      it("usdt amount exceeds 32 bytes");
       it("not enough funds on crowdsaleDps", async function () {
         // const DIFFERENCE = faker.datatype.number({ max: 100000 }); // TODO change
         // const CURRENT_FUNDING = await crowdsaleDps.currentFunding();
@@ -196,13 +209,12 @@ describe("CrowdsaleDps", function () {
         ).to.be.revertedWith("CrowdsaleDps: caller is not KYC registered");
       });
 
-      it("what happens if no same reference wants to add money twice ?");
+      // TODO what happens if no same reference wants to add money twice ?")
     });
     describeOk(function () {
       beforeEach(async function () {
         await deepSquareToken.grantAccess(crowdsaleDps.address);
       });
-      it("should fund DPS account with us");
       it("should send DPS according to USDT rate", async function () {
         const USDT = faker.datatype.number({ min: 1000000 });
         const CROWDSALE_DPS_FUND = faker.datatype.number({
@@ -217,12 +229,15 @@ describe("CrowdsaleDps", function () {
           CROWDSALE_DPS_FUND - USDT * crowdsaleDpsRatio
         );
       });
-      it("should revert if funding goes wrong TODO");
-      it(
-        "should not accept transfer less than ?? TODO, or keep in the web interface ?"
-      );
-
-      it("owner can withdraw DPS from contract");
+      // it("should revert if funding goes wrong");
     });
+    /* TODO 
+      describe("new features ? ", function () {
+        it("owner can withdraw DPS from contract");
+        it(
+          "should not accept transfer less than X USDT ? TODO, or keep in the web interface ?"
+        );
+      });
+      */
   });
 });
