@@ -4,6 +4,7 @@ pragma solidity ^0.8.1;
 import "./helper/Crowdsale.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+// TODO remove console.sol later on
 import "hardhat/console.sol";
 
 contract CrowdsaleDps is Crowdsale, Ownable {
@@ -34,12 +35,11 @@ contract CrowdsaleDps is Crowdsale, Ownable {
             addressFromReference[_reference] == address(0) &&
                 keccak256(bytes(referenceFromAddress[msg.sender])) ==
                 keccak256(""),
-            "CrowdsaleDps: already used"
+            "CrowdsaleDps: reference already used"
         );
         referenceFromAddress[msg.sender] = _reference;
         addressFromReference[_reference] = msg.sender;
     }
-
 
     /**
      * Transfer tokens after getting user KYC reference
@@ -72,23 +72,22 @@ contract CrowdsaleDps is Crowdsale, Ownable {
         override
     {
         super._preValidatePurchase(_beneficiary, _weiAmount);
-        require(msg.sender != owner(), "Caller cannot be the owner");
+        require(
+            msg.sender != owner(),
+            "CrowdsaleDps: caller cannot be the owner"
+        );
         _requireRegistered(_beneficiary);
-        
     }
 
     function _forwardFunds(uint256 _weiAmount) internal override {
-        stableCoinToken.transferFrom(
-            msg.sender,
-            owner(),
-            _weiAmount
-        );
+        stableCoinToken.transferFrom(msg.sender, owner(), _weiAmount);
     }
+
     function _requireRegistered(address _beneficiary) internal view {
         require(
             keccak256(bytes(referenceFromAddress[_beneficiary])) !=
                 keccak256(""),
-            "CrowdsaleDps: Caller is not registered"
+            "CrowdsaleDps: caller is not KYC registered"
         );
     }
 }

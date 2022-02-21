@@ -1,9 +1,10 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const crowdsaleDpsHelper = require("../scripts/helpers/crowdsale-dps");
-const deepSquareTokenHelper = require("../scripts/helpers/deep-square-token");
+const {
+  deployDeepSquareToken,
+} = require("../scripts/helpers/deep-square-token");
 const usdtHelper = require("../scripts/helpers/usdt");
-const { inToken, e6 } = require("../scripts/helpers/in-token");
 const { faker } = require("@faker-js/faker");
 const messagesHelper = require("./messages.helper");
 function describeRevert(callback) {
@@ -41,7 +42,7 @@ describe("CrowdsaleDps", function () {
     // Deploy FakeUSDT
     fakeUSDT = await usdtHelper.deploy();
     // Deploy DPS
-    deepSquareToken = await deepSquareTokenHelper.deploy();
+    deepSquareToken = await deployDeepSquareToken();
     // Deploy CrowdsaleDps
     crowdsaleDps = await crowdsaleDpsHelper.deploy(
       crowdsaleDpsRatio, // TODO: rate to change
@@ -52,10 +53,10 @@ describe("CrowdsaleDps", function () {
     );
 
     // Fund owner account
-    await usdtHelper.mint(fakeUSDT, owner.address, inToken(2201));
+    await usdtHelper.mint(fakeUSDT, owner.address, usdtHelper.token(2201));
     // Transfer some usdt to addr1 and addr2
-    await fakeUSDT.transfer(addr1.address, inToken(100));
-    await fakeUSDT.transfer(addr2.address, inToken(100));
+    await fakeUSDT.transfer(addr1.address, usdtHelper.token(100));
+    await fakeUSDT.transfer(addr2.address, usdtHelper.token(100));
   });
 
   describe("#initializer", function () {
@@ -80,10 +81,31 @@ describe("CrowdsaleDps", function () {
     itSets(function () {});
   });
 
+  describe("#setReference", function () {
+    describeRevert(function () {
+      it("reference already exists", async function () {
+        const reference = faker.datatype.string();
+        await crowdsaleDps.setReference(reference);
+        expect(await crowdsaleDps.addressFromReference(reference)).to.equal(
+          owner.address
+        );
+        await expect(crowdsaleDps.setReference(reference)).to.be.revertedWith("CrowdsaleDps: reference already used");
+      });
+    });
+  });
+
   describe("#buyTokens", function () {
     describeRevert(function () {
-      it("caller is the owner TODO or not ?");
-      it("caller is not KYC registered");
+      it("caller is the owner TODO or not ? maybe it can help at the end ?", async function () {
+        await expect(
+          crowdsaleDps.buyTokens(owner.address, 23)
+        ).to.be.revertedWith("CrowdsaleDps: caller cannot be the owner");
+      });
+      it("caller is not KYC registered", async function () {
+        await expect(
+          crowdsaleDps.connect(addr1).buyTokens(addr2.address, 23)
+        ).to.be.revertedWith("CrowdsaleDps: caller is not KYC registered");
+      });
 
       it("usdt amount exceeds 96 bytes"); // TODO why 96 bytes ?
       it("dps amount exceeds 96 bytes"); // TODO why 96 bytes ?
@@ -171,7 +193,7 @@ describe("CrowdsaleDps", function () {
             faker.datatype.string(),
             AMOUNT_DPS
           )
-        ).to.be.revertedWith("Caller is not registered");
+        ).to.be.revertedWith("CrowdsaleDps: caller is not KYC registered");
       });
 
       it("what happens if no same reference wants to add money twice ?");
@@ -199,6 +221,8 @@ describe("CrowdsaleDps", function () {
       it(
         "should not accept transfer less than ?? TODO, or keep in the web interface ?"
       );
+
+      it("owner can withdraw DPS from contract");
     });
   });
 });

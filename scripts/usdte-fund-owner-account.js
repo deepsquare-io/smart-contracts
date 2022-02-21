@@ -1,13 +1,8 @@
 const { randomBytes } = require("ethers/lib/utils");
 const hre = require("hardhat");
 const ethers = hre.ethers;
-const { BigNumber } = ethers;
 const usdtHelper = require("../scripts/helpers/usdt");
-const e6 = BigNumber.from(10).pow(6);
-
-const inToken = (value) => {
-  return BigNumber.from(value).mul(e6);
-};
+const { usdtToken } = require("../scripts/helpers/in-token");
 
 async function main() {
   const signers = await ethers.getSigners();
@@ -19,7 +14,7 @@ async function main() {
 
   await fakeUSDTe.mint(
     owner.address,
-    inToken(20000000),
+    usdtToken(20000000),
     owner.address, // TODO : I don't understand what this parameter is for yet
     0,
     randomBytes(32)

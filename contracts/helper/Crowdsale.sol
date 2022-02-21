@@ -92,6 +92,7 @@ contract Crowdsale is Context {
      */
     // TODO WHATCHOUT there was nonReentrant originally
     // TODO original : function buyTokens(address beneficiary) public nonReentrant payable {
+        // TODO julien: why is there a beneficiary ? Cant the beneficiary be msg.sender ?
     function buyTokens(address beneficiary, uint256 weiAmount) public payable {
         _preValidatePurchase(beneficiary, weiAmount);
 
