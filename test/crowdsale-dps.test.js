@@ -44,9 +44,7 @@ describe("CrowdsaleDps contract", function () {
     crowdsaleDps = await crowdsaleDpsHelper.deploy(
       crowdsaleDpsRatio, // TODO: rate to change
       deepSquareToken.address,
-      fakeUSDT.address,
-      // TODO if I increase maximum, it fails, why ?
-      faker.datatype.number({ min: 0, max: 20000 })
+      fakeUSDT.address
     );
 
     // Fund owner account
@@ -185,27 +183,20 @@ describe("CrowdsaleDps contract", function () {
         await expect(
           crowdsaleDps
             .connect(addr1)
-            .transferTokensViaReference(REFERENCE, faker.datatype.number())
+            .transferTokensViaReference(
+              REFERENCE,
+              faker.datatype.number(),
+              addr2.address
+            )
         ).to.revertedWith(messagesHelper.ERROR_NON_OWNER);
-      });
-      it("not enough funds on crowdsaleDps", async function () {
-        // const DIFFERENCE = faker.datatype.number({ max: 100000 }); // TODO change
-        // const CURRENT_FUNDING = await crowdsaleDps.currentFunding();
-        await deepSquareToken.grantAccess(crowdsaleDps.address);
-
-        await expect(
-          crowdsaleDps.transferTokensViaReference(
-            REFERENCE,
-            faker.datatype.number({ min: 10 })
-          )
-        ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
       });
 
       it("there is no address matching reference", async function () {
         await expect(
           crowdsaleDps.transferTokensViaReference(
             faker.datatype.string(),
-            AMOUNT_DPS
+            AMOUNT_DPS,
+            addr2.address
           )
         ).to.be.revertedWith("CrowdsaleDps: caller is not KYC registered");
       });
@@ -213,32 +204,75 @@ describe("CrowdsaleDps contract", function () {
       // TODO what happens if no same reference wants to add money twice ?")
     });
     describeOk(function () {
+      let WEI_AMOUNT, CROWDSALE_DPS_FUND, BENEFICIARY;
       beforeEach(async function () {
-        await deepSquareToken.grantAccess(crowdsaleDps.address);
-      });
-      it("should send DPS according to USDT rate", async function () {
-        const USDT = faker.datatype.number({ min: 1000000 });
-        const CROWDSALE_DPS_FUND = faker.datatype.number({
-          min: USDT + 100000000,
+        WEI_AMOUNT = faker.datatype.number({ min: 1000000 });
+        CROWDSALE_DPS_FUND = faker.datatype.number({
+          min: WEI_AMOUNT + 100000000,
         });
+        BENEFICIARY = addr2.address;
+
+        await deepSquareToken.grantAccess(crowdsaleDps.address);
         await deepSquareToken.transfer(
           crowdsaleDps.address,
           CROWDSALE_DPS_FUND
         );
-        await crowdsaleDps.transferTokensViaReference(REFERENCE, USDT);
+
+        await crowdsaleDps.transferTokensViaReference(
+          REFERENCE,
+          WEI_AMOUNT,
+          addr2.address
+        );
+      });
+      it("should create reference if it does not exists yet", async function () {
+        expect(await crowdsaleDps.referenceFromAddress(BENEFICIARY)).to.equal(
+          REFERENCE
+        );
+        expect(await crowdsaleDps.addressFromReference(REFERENCE)).to.equal(
+          BENEFICIARY
+        );
+      });
+
+      it("should send DPS according to USDT rate", async function () {
         expect(await deepSquareToken.balanceOf(crowdsaleDps.address)).to.equal(
-          CROWDSALE_DPS_FUND - USDT * crowdsaleDpsRatio
+          CROWDSALE_DPS_FUND - WEI_AMOUNT * crowdsaleDpsRatio
         );
       });
-      // it("should revert if funding goes wrong");
     });
-    /* TODO 
-      describe("new features ? ", function () {
-        it("owner can withdraw DPS from contract");
-        it(
-          "should not accept transfer less than X USDT ? TODO, or keep in the web interface ?"
-        );
+    describe("#closeCrowdsale", function () {
+      describeRevert(function () {
+        it("caller is not the owner", async function () {
+          await expect(
+            crowdsaleDps.connect(addr1).closeCrowdsale()
+          ).to.be.revertedWith(messagesHelper.ERROR_NON_OWNER);
+        });
       });
-      */
+      describeOk(function () {
+        it("should withdraw contract DPS to owner account", async function () {
+          // check initial DPS funds on the contract
+          expect(
+            await deepSquareToken.balanceOf(crowdsaleDps.address)
+          ).to.be.greaterThan(0);
+          // call close()
+          await crowdsaleDps.closeCrowdsale();
+          // check that there are 0 funds in the contract
+          expect(
+            await deepSquareToken.balanceOf(crowdsaleDps.address)
+          ).to.equal(0);
+        });
+        it("should revoke its own access to DPS contract", async function () {
+          // check that we have access to transfer tokens
+          await expect(
+            deepSquareToken.transfer(addr2.address, 1)
+          ).not.be.reverted;
+          // call close()
+          await crowdsaleDps.closeCrowdsale();
+          // check that you cannot transfer tokens anymore
+          await expect(
+            deepSquareToken.transfer(addr2.address, 1)
+          ).to.be.reverted;
+        });
+      });
+    });
   });
 });

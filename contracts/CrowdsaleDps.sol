@@ -32,13 +32,10 @@ contract CrowdsaleDps is Crowdsale, Ownable {
      */
     function setReference(string memory _reference) public {
         require(
-            addressFromReference[_reference] == address(0) &&
-                keccak256(bytes(referenceFromAddress[msg.sender])) ==
-                keccak256(""),
+            _emptyAddressAndReference(_reference, msg.sender),
             "CrowdsaleDps: reference already used"
         );
-        referenceFromAddress[msg.sender] = _reference;
-        addressFromReference[_reference] = msg.sender;
+        _setReference(_reference, msg.sender);
     }
 
     /**
@@ -47,20 +44,27 @@ contract CrowdsaleDps is Crowdsale, Ownable {
      */
     function transferTokensViaReference(
         string memory _reference,
-        uint256 weiAmount
+        uint256 _weiAmount,
+        address _beneficiary
     ) public payable onlyOwner {
-        address beneficiary = addressFromReference[_reference];
-        _requireRegistered(beneficiary);
+        if (_emptyAddressAndReference(_reference, _beneficiary)) {
+            _setReference(_reference, _beneficiary);
+        }
+
+        _requireRegistered(_beneficiary);
 
         // calculate token amount to be created
-        uint256 tokens = _getTokenAmount(weiAmount);
+        uint256 tokens = _getTokenAmount(_weiAmount);
 
         // update state
-        _weiRaised = _weiRaised.add(weiAmount);
+        _weiRaised = _weiRaised.add(_weiAmount);
 
-        _processPurchase(beneficiary, tokens);
-        emit TokensPurchased(_msgSender(), beneficiary, weiAmount, tokens);
+        _processPurchase(_beneficiary, tokens);
+        emit TokensPurchased(_msgSender(), _beneficiary, _weiAmount, tokens);
     }
+
+    // TODO finish
+    function closeCrowdsale() public onlyOwner {}
 
     /**
      * @notice Extends Crowdsale._prevalidatePurchase method in order to add
@@ -89,5 +93,28 @@ contract CrowdsaleDps is Crowdsale, Ownable {
                 keccak256(""),
             "CrowdsaleDps: caller is not KYC registered"
         );
+    }
+
+    /**
+     * @notice Sets kyc reference corresponding to beneficiary
+     */
+    function _setReference(string memory _reference, address _beneficiary)
+        internal
+    {
+        referenceFromAddress[_beneficiary] = _reference;
+        addressFromReference[_reference] = _beneficiary;
+    }
+
+    /**
+     * @notice Address and reference exist in the contract mapping
+     */
+    function _emptyAddressAndReference(
+        string memory _reference,
+        address _beneficiary
+    ) internal view returns (bool) {
+        return
+            addressFromReference[_reference] == address(0) &&
+            keccak256(bytes(referenceFromAddress[_beneficiary])) ==
+            keccak256("");
     }
 }

@@ -1,17 +1,21 @@
 require("dotenv").config();
 const crowdsaleDpsHelper = require("../helpers/crowdsale-dps");
-const { deployDeepSquareToken } = require("../helpers/deep-square-token");
+const {
+  deployDeepSquareToken,
+  dpsToken,
+} = require("../helpers/deep-square-token");
 const usdtHelper = require("../helpers/usdt");
 const wallets = require("../../wallets.json");
-const { getJsonWalletAddress } = require("ethers/lib/utils");
 
 async function main() {
+  // IMPORTANT CONSTANTS FOR DEPLOYMENT !
+  const RATE = 2;
+  const INITIAL_CROWDSALE_FUNDING_DPS = dpsToken(7000000);
   // deploy DPS
   const dps = await deployDeepSquareToken(true);
   // deploy fakeUsdt
   const usdt = await usdtHelper.deploy(true);
   // deploy CrowdsaleDps
-  const RATE = 2;
   const crowdsaleDps = await crowdsaleDpsHelper.deploy(
     RATE,
     dps.address,
@@ -19,9 +23,32 @@ async function main() {
     true
   );
 
-  // set balances
+  // DPS grant access to Crowdsale address
+  await dps.grantAccess(crowdsaleDps.address);
+
+  // check balance with 0 DPS;
+  const balance0 = [];
   for (let i = 0; i < wallets.length; i++) {
-    await dps.transfer(wallets[i].address, wallets[i].balance_uDPS);
+    if (parseInt(wallets[i].balance_uDPS) === 0) {
+      balance0.push(i);
+    }
+  }
+  console.log("Balance zero : ", balance0);
+  // DPS send money to Crowdsale address
+  await dps.transfer(crowdsaleDps.address, INITIAL_CROWDSALE_FUNDING_DPS);
+  console.log(INITIAL_CROWDSALE_FUNDING_DPS, "DPS sent from DPS to Crowdsale");
+
+  // add reference and send tokens to every wallet
+  for (let i = 0; i < wallets.length; i++) {
+    await crowdsaleDps.transferTokensViaReference(
+      wallets[i].reference,
+      parseInt(wallets[i].balance_uDPS) / RATE, // TODO IT DOES NOT WORK HERE ! UNDERFLOW THERE IS A .5. CHECK WHAT WAS THE PREVIOUS RATE AND SEE IF IT WORKS
+      wallets[i].address
+    );
+    console.log(
+      await dps.balanceOf(wallets[i].address),
+      wallets[i].balance_uDPS
+    );
   }
 
   // check references are not the same
@@ -29,7 +56,10 @@ async function main() {
   // check balances
   let assertBalanceCorresponds = true;
   for (let i = 0; i < wallets.length; i++) {
-    if (wallets[i].balance_uDPS == (await dps.balanceOf(wallets[i].address))) {
+    if (
+      parseInt(wallets[i].balance_uDPS) ===
+      parseInt(await dps.balanceOf(wallets[i].address))
+    ) {
       assertBalanceCorresponds = assertBalanceCorresponds && true;
     } else {
       assertBalanceCorresponds = false;
