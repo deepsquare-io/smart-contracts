@@ -80,6 +80,7 @@ describe("CrowdsaleDps contract", function () {
     });
   });
   describe("#setReference", function () {
+    it("WATCH OUT, IMPOSSIBLE TO ADD REFERENCE FROM OTHER USER (LIKE OWNER)");
     describeRevert(function () {
       it("reference already exists", async function () {
         const reference = faker.datatype.string();

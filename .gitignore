@@ -8,3 +8,6 @@ typechain
 cache
 artifacts
 .openzeppelin
+
+# migration
+wallets.json

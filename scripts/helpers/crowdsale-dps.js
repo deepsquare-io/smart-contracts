@@ -8,25 +8,33 @@ const { ethers } = require("hardhat");
  * @param {*} showLogs
  * @returns
  */
+const factoryPromise = ethers.getContractFactory("CrowdsaleDps"); // only promise
+
 async function deploy(
   rate,
   deepSquareTokenAddress,
   usdtAddress,
   showLogs = false
 ) {
-  const contractFactory = await ethers.getContractFactory("CrowdsaleDps");
-
-  const contract = await contractFactory.deploy(
-    rate,
-    deepSquareTokenAddress,
-    usdtAddress
-  );
+  const contract = await (
+    await factoryPromise
+  ).deploy(rate, deepSquareTokenAddress, usdtAddress);
   return contract.deployed().then((contract) => {
-    showLogs ??
+    if (showLogs) {
       console.log("CrowdsaleDps contract deployed to:", contract.address);
+    }
     return contract;
   });
 }
+
+/*
+Create a contract by attaching address to  CrowdsaleDps contractFactory.
+*/
+async function attach(address) {
+  return (await factoryPromise).attach(address);
+}
+
 module.exports = {
   deploy,
+  attach,
 };

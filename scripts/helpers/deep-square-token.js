@@ -7,7 +7,9 @@ async function deployDeepSquareToken(showLogs = false) {
   const contractFactory = await ethers.getContractFactory("DeepSquareToken");
   const contract = await contractFactory.deploy();
   return contract.deployed().then((contract) => {
-    showLogs ?? console.log("Dps contract deployed to:", contract.address);
+    if (showLogs) {
+      console.log("Dps contract deployed to:", contract.address);
+    }
     return contract;
   });
 }
