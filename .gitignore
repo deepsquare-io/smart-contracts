@@ -11,3 +11,4 @@ artifacts
 
 # migration
 wallets.json
+wallets_original.json

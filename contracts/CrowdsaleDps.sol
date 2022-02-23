@@ -47,7 +47,7 @@ contract CrowdsaleDps is Crowdsale, Ownable {
      */
     function transferTokensViaReference(
         address _beneficiary,
-        uint256 _weiAmount,
+        uint256 _weiAmount, // TODO method is call transferTokens, but parameter does NOT represent tokens
         string memory _reference
     ) public payable onlyOwner {
         // set reference if it does not exist yet

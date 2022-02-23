@@ -33,22 +33,33 @@ async function main() {
       balance0.push(i);
     }
   }
-  console.log("Balance zero : ", balance0);
-  // DPS send money to Crowdsale address
+  // console.log("Balance zero : ", balance0);
+
+  // DPS sends money to Crowdsale address
   await dps.transfer(crowdsaleDps.address, INITIAL_CROWDSALE_FUNDING_DPS);
-  console.log(INITIAL_CROWDSALE_FUNDING_DPS, "DPS sent from DPS to Crowdsale");
+  console.log(
+    INITIAL_CROWDSALE_FUNDING_DPS,
+    "DPS sent from DPS to Crowdsale\n"
+  );
 
   // add reference and send tokens to every wallet
   for (let i = 0; i < wallets.length; i++) {
-    await crowdsaleDps.transferTokensViaReference(
-      wallets[i].reference,
-      parseInt(wallets[i].balance_uDPS) / RATE, // TODO IT DOES NOT WORK HERE ! UNDERFLOW THERE IS A .5. CHECK WHAT WAS THE PREVIOUS RATE AND SEE IF IT WORKS
-      wallets[i].address
-    );
-    console.log(
-      await dps.balanceOf(wallets[i].address),
-      wallets[i].balance_uDPS
-    );
+    try {
+      await crowdsaleDps.setReferenceTo(
+        wallets[i].address,
+        wallets[i].reference
+      );
+    } catch (e) {
+      console.log(
+        "cannot set reference to wallet. Index : ",
+        i,
+        "address : ",
+        wallets[i].address
+      );
+    }
+
+    // transfer money
+    await dps.transfer(wallets[i].address, wallets[i].balance_uDPS);
   }
 
   // check references are not the same
