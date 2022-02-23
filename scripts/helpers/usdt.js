@@ -30,6 +30,7 @@ async function mint(usdtContract, address, amount) {
 const token = (value) => {
   return BigNumber.from(value).mul(e6);
 };
+
 module.exports = {
   deploy,
   attach,

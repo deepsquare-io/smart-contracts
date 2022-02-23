@@ -77,18 +77,48 @@ describe("CrowdsaleDps contract", function () {
       });
     });
   });
-  describe("#setReference", function () {
-    it("WATCH OUT, IMPOSSIBLE TO ADD REFERENCE FROM OTHER USER (LIKE OWNER)");
+
+  describe("#setReferenceTo", function () {
+    describeRevert(function () {
+      it("caller is not the owner", async function () {
+        await expect(
+          crowdsaleDps
+            .connect(addr1)
+            .setReferenceTo(
+              faker.finance.ethereumAddress(),
+              faker.datatype.string()
+            )
+        ).to.be.revertedWith(messagesHelper.ERROR_NON_OWNER);
+      });
+
+      it("reference already exists", async function () {
+        const reference = faker.datatype.string();
+
+        await crowdsaleDps.setReferenceTo(addr2.address, reference);
+
+        expect(await crowdsaleDps.addressFromReference(reference)).to.equal(
+          addr2.address
+        );
+
+        await expect(
+          crowdsaleDps.setReferenceTo(addr2.address, reference)
+        ).to.be.revertedWith("CrowdsaleDps: reference already used");
+      });
+    });
+  });
+  describe("#setOwnReference", function () {
     describeRevert(function () {
       it("reference already exists", async function () {
         const reference = faker.datatype.string();
-        await crowdsaleDps.setReference(reference);
+
+        await crowdsaleDps.setOwnReference(reference);
         expect(await crowdsaleDps.addressFromReference(reference)).to.equal(
           owner.address
         );
-        await expect(crowdsaleDps.setReference(reference)).to.be.revertedWith(
-          "CrowdsaleDps: reference already used"
-        );
+
+        await expect(
+          crowdsaleDps.setOwnReference(reference)
+        ).to.be.revertedWith("CrowdsaleDps: reference already used");
       });
     });
   });
@@ -135,7 +165,7 @@ describe("CrowdsaleDps contract", function () {
           crowdsaleDps.address,
           CROWDSALE_DPS_FUND
         );
-        await crowdsaleDps.connect(addr1).setReference("REFERENCE");
+        await crowdsaleDps.connect(addr1).setOwnReference("REFERENCE");
       });
       it("should transfer DPS according to USDT/DPS ratio and transfer USDT", async function () {
         const USDT = 3000;
@@ -148,6 +178,7 @@ describe("CrowdsaleDps contract", function () {
 
         await fakeUSDT.connect(addr1).approve(crowdsaleDps.address, USDT);
         await crowdsaleDps.connect(addr1).buyTokens(addr1.address, USDT);
+
         expect(await deepSquareToken.balanceOf(addr1.address)).to.equal(
           USDT * crowdsaleDpsRatio
         );
@@ -176,7 +207,7 @@ describe("CrowdsaleDps contract", function () {
     beforeEach(async function () {
       REFERENCE = faker.datatype.string();
       AMOUNT_DPS = faker.datatype.number();
-      await crowdsaleDps.setReference(REFERENCE);
+      // await crowdsaleDps.setOwnReference(REFERENCE);
     });
     describeRevert(function () {
       it("caller is not the owner", async function () {
@@ -184,21 +215,11 @@ describe("CrowdsaleDps contract", function () {
           crowdsaleDps
             .connect(addr1)
             .transferTokensViaReference(
-              REFERENCE,
+              addr2.address,
               faker.datatype.number(),
-              addr2.address
+              REFERENCE
             )
         ).to.revertedWith(messagesHelper.ERROR_NON_OWNER);
-      });
-
-      it("there is no address matching reference", async function () {
-        await expect(
-          crowdsaleDps.transferTokensViaReference(
-            faker.datatype.string(),
-            AMOUNT_DPS,
-            addr2.address
-          )
-        ).to.be.revertedWith("CrowdsaleDps: caller is not KYC registered");
       });
 
       // TODO what happens if no same reference wants to add money twice ?")
@@ -219,9 +240,9 @@ describe("CrowdsaleDps contract", function () {
         );
 
         await crowdsaleDps.transferTokensViaReference(
-          REFERENCE,
+          addr2.address,
           WEI_AMOUNT,
-          addr2.address
+          REFERENCE
         );
       });
       it("should create reference if it does not exists yet", async function () {
@@ -248,7 +269,7 @@ describe("CrowdsaleDps contract", function () {
         });
       });
       describeOk(function () {
-        it("should withdraw contract DPS to owner account", async function () {
+        it.skip("should withdraw contract DPS tokens to owner account", async function () {
           // check initial DPS funds on the contract
           expect(
             await deepSquareToken.balanceOf(crowdsaleDps.address)
@@ -260,7 +281,7 @@ describe("CrowdsaleDps contract", function () {
             await deepSquareToken.balanceOf(crowdsaleDps.address)
           ).to.equal(0);
         });
-        it("should revoke its own access to DPS contract", async function () {
+        it.skip("should revoke its own access to DPS contract", async function () {
           // check that we have access to transfer tokens
           await expect(
             deepSquareToken.transfer(addr2.address, 1)

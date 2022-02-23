@@ -11,7 +11,7 @@ contract CrowdsaleDps is Crowdsale, Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    // TODO is there a better way than two arrays ?
+    // TODO is there a better way than two mappings ?
     mapping(address => string) public referenceFromAddress;
     mapping(string => address) public addressFromReference;
 
@@ -23,35 +23,40 @@ contract CrowdsaleDps is Crowdsale, Ownable {
         address _stableCoinContractAddress
     ) Crowdsale(_rate, IERC20(_dpsContractAddress)) Ownable() {
         stableCoinToken = IERC20(_stableCoinContractAddress);
-        // TODO change rate and wallet address
     }
 
     /**
-     * @notice Sets kyc reference corresponding to sender address
-     * @param _reference the reference
+     * @notice Sets kyc reference to a specific beneficiary
      */
-    function setReference(string memory _reference) public {
-        require(
-            _emptyAddressAndReference(_reference, msg.sender),
-            "CrowdsaleDps: reference already used"
-        );
-        _setReference(_reference, msg.sender);
+    function setReferenceTo(address _beneficiary, string memory _reference)
+        public
+        onlyOwner
+    {
+        _setReferenceTo(_beneficiary, _reference);
     }
 
     /**
-     * Transfer tokens after getting user KYC reference
-     * @param _reference Kyc reference
+     * @notice Sets kyc reference corresponding to your own address
+     */
+    function setOwnReference(string memory _reference) public {
+        _setReferenceTo(msg.sender, _reference);
+    }
+
+    /**
+     * @notice Set user KYC reference and transfer tokens to beneficiary
      */
     function transferTokensViaReference(
-        string memory _reference,
+        address _beneficiary,
         uint256 _weiAmount,
-        address _beneficiary
+        string memory _reference
     ) public payable onlyOwner {
-        if (_emptyAddressAndReference(_reference, _beneficiary)) {
-            _setReference(_reference, _beneficiary);
+        // set reference if it does not exist yet
+        if (_emptyAddressAndReference(_beneficiary, _reference)) {
+            _setReferenceTo(_beneficiary, _reference);
         }
 
-        _requireRegistered(_beneficiary);
+        // require that reference exists
+        _requireRegisteredReference(_beneficiary, _reference);
 
         // calculate token amount to be created
         uint256 tokens = _getTokenAmount(_weiAmount);
@@ -80,41 +85,62 @@ contract CrowdsaleDps is Crowdsale, Ownable {
             msg.sender != owner(),
             "CrowdsaleDps: caller cannot be the owner"
         );
-        _requireRegistered(_beneficiary);
+        _requireRegisteredReference(
+            _beneficiary,
+            referenceFromAddress[_beneficiary]
+        );
     }
 
+    /**
+     * @notice Extends crowdsale forward funds. TODO should be refactored */
     function _forwardFunds(uint256 _weiAmount) internal override {
         stableCoinToken.transferFrom(msg.sender, owner(), _weiAmount);
-    }
-
-    function _requireRegistered(address _beneficiary) internal view {
-        require(
-            keccak256(bytes(referenceFromAddress[_beneficiary])) !=
-                keccak256(""),
-            "CrowdsaleDps: caller is not KYC registered"
-        );
     }
 
     /**
      * @notice Sets kyc reference corresponding to beneficiary
      */
-    function _setReference(string memory _reference, address _beneficiary)
+    function _setReferenceTo(address _beneficiary, string memory _reference)
         internal
     {
+        require(
+            _emptyAddressAndReference(_beneficiary, _reference),
+            "CrowdsaleDps: reference already used"
+        );
+
         referenceFromAddress[_beneficiary] = _reference;
         addressFromReference[_reference] = _beneficiary;
     }
 
     /**
-     * @notice Address and reference exist in the contract mapping
+     * @return true if address and reference do not exist in the contract mapping
      */
     function _emptyAddressAndReference(
-        string memory _reference,
-        address _beneficiary
+        address _beneficiary,
+        string memory _reference
     ) internal view returns (bool) {
         return
             addressFromReference[_reference] == address(0) &&
             keccak256(bytes(referenceFromAddress[_beneficiary])) ==
             keccak256("");
+    }
+
+    /**
+     * @notice Reverts if reference is not registered correctly
+     */
+    function _requireRegisteredReference(
+        address _beneficiary,
+        string memory _reference
+    ) internal view {
+        bool referenceMatch = keccak256(
+            bytes(referenceFromAddress[_beneficiary])
+        ) == keccak256(bytes(_reference));
+
+        bool addressMatch = addressFromReference[_reference] == _beneficiary;
+
+        require(
+            referenceMatch && addressMatch,
+            "CrowdsaleDps: caller is not KYC registered"
+        );
     }
 }
