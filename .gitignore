@@ -12,3 +12,4 @@ artifacts
 # migration
 wallets.json
 wallets_original.json
+wallets_etherscan.json

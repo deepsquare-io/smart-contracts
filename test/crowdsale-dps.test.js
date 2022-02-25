@@ -269,6 +269,10 @@ describe("CrowdsaleDps contract", function () {
         });
       });
       describeOk(function () {
+        it(
+          "VERY IMPORTANT !! AFTER DISCUSSION WITH DIARMUID, HOW DO WE DO WITH KYC ? I NEED A KYC FROM DB, AND THEY MANAGE THE PROBLEM IN THE DB ?"
+        );
+        it("AND I KEEP IT VERY STRING ON THE REFERENCE ?")
         it.skip("should withdraw contract DPS tokens to owner account", async function () {
           // check initial DPS funds on the contract
           expect(

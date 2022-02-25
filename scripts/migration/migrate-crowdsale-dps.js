@@ -4,12 +4,16 @@ const {
   deployDeepSquareToken,
   dpsToken,
 } = require("../helpers/deep-square-token");
+const { ethers } = require("hardhat");
 const usdtHelper = require("../helpers/usdt");
 const wallets = require("../../wallets.json");
 
+function databaseBalanceToTokens(value) {
+  return dpsToken(value).div(1000000);
+}
 async function main() {
   // IMPORTANT CONSTANTS FOR DEPLOYMENT !
-  const RATE = 2;
+  const RATE = 2; // TODO change
   const INITIAL_CROWDSALE_FUNDING_DPS = dpsToken(7000000);
   // deploy DPS
   const dps = await deployDeepSquareToken(true);
@@ -23,6 +27,9 @@ async function main() {
     true
   );
 
+  const signers = await ethers.getSigners();
+  const owner = signers[0];
+
   // DPS grant access to Crowdsale address
   await dps.grantAccess(crowdsaleDps.address);
 
@@ -34,13 +41,6 @@ async function main() {
     }
   }
   // console.log("Balance zero : ", balance0);
-
-  // DPS sends money to Crowdsale address
-  await dps.transfer(crowdsaleDps.address, INITIAL_CROWDSALE_FUNDING_DPS);
-  console.log(
-    INITIAL_CROWDSALE_FUNDING_DPS,
-    "DPS sent from DPS to Crowdsale\n"
-  );
 
   // add reference and send tokens to every wallet
   for (let i = 0; i < wallets.length; i++) {
@@ -59,7 +59,12 @@ async function main() {
     }
 
     // transfer money
-    await dps.transfer(wallets[i].address, wallets[i].balance_uDPS);
+    // TODO: WATCH OUT !!! MATHIEU DPS TOKENS HOW MANY DECIMALS ?
+
+    await dps.transfer(
+      wallets[i].address,
+      databaseBalanceToTokens(wallets[i].balance_uDPS)
+    );
   }
 
   // check references are not the same
@@ -68,7 +73,7 @@ async function main() {
   let assertBalanceCorresponds = true;
   for (let i = 0; i < wallets.length; i++) {
     if (
-      parseInt(wallets[i].balance_uDPS) ===
+      parseInt(databaseBalanceToTokens(wallets[i].balance_uDPS)) ===
       parseInt(await dps.balanceOf(wallets[i].address))
     ) {
       assertBalanceCorresponds = assertBalanceCorresponds && true;
@@ -81,6 +86,18 @@ async function main() {
     }
   }
   console.log("All balances are the same : ", assertBalanceCorresponds);
+  console.log("Current DPS balance :", await dps.balanceOf(owner.address));
+
+  // DPS sends money to Crowdsale address
+  const SEND_DPS_TO_CROWDSALE = false;
+  if (SEND_DPS_TO_CROWDSALE) {
+    await dps.transfer(crowdsaleDps.address, INITIAL_CROWDSALE_FUNDING_DPS);
+
+    console.log(
+      INITIAL_CROWDSALE_FUNDING_DPS,
+      "DPS sent from DPS to Crowdsale\n"
+    );
+  }
 }
 
 main()

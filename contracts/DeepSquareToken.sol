@@ -13,7 +13,7 @@ contract DeepSquareToken is ERC20, Ownable {
 
     constructor() ERC20("DeepSquareToken", "DPS") {
         transferWhitelist[msg.sender] = true;
-        _mint(msg.sender, 210e24); // 210e6e18 = 210 millions token
+        _mint(msg.sender, 210e24); // 210e6e18 = 210 millions token with 18 decimals
     }
 
     function grantAccess(address _address) external onlyOwner {
