@@ -1,5 +1,8 @@
 require("dotenv").config();
-const { deployDeepSquareToken, dpsToken } = require("../helpers/deep-square-token");
+const {
+  deployDeepSquareToken,
+  dpsToken,
+} = require("../helpers/deep-square-token");
 const { ethers } = require("hardhat");
 const usdtHelper = require("../helpers/usdt");
 
@@ -50,7 +53,7 @@ async function main() {
 
   if (POSTCHECK_DATA_INTEGRITY) {
     let assertBalanceCorresponds = true;
-    for (let i = 0; i < wallets.length; i++) {
+    for (let i = 0; i < wallets.entries.length; i++) {
       if (
         wallets[i].value === parseInt(await dps.balanceOf(wallets[i].address))
       ) {

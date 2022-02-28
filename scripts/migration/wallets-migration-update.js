@@ -63,20 +63,16 @@ function walletsMigrationUpdatePre(dbWallets, ethWallets, ethWalletContract) {
 function walletsMigrationUpdatePost(wallets) {
   h2Separator();
   // merge D's address with its main one
-  const indexAddress1001 = wallets.findIndex(
-    (v) =>
-      v.address ===
-      ethers.utils.getAddress("0x44590be69395b2bfa9c140a9ab70bc0389701001")
+  const address1001 = ethers.utils.getAddress(
+    "0x44590be69395b2bfa9c140a9ab70bc0389701001"
   );
 
-  const indexAddressD = wallets.findIndex(
-    (v) =>
-      v.address ===
-      ethers.utils.getAddress("0x07ad0de1fcb57a4d94afb759c3025ff8863cc077")
+  const addressD = ethers.utils.getAddress(
+    "0x07ad0de1fcb57a4d94afb759c3025ff8863cc077"
   );
-  wallets[indexAddressD].value += wallets[indexAddress1001].value;
 
-  wallets.splice(indexAddress1001, 1);
+  wallets.get(addressD).value += wallets.get(address1001).value;
+  wallets.delete(address1001);
   console.log(
     "D 2nd address merged : address 0x44590be69395b2bfa9c140a9ab70bc0389701001 (35 000 DPS) merged into 0x07Ad0DE1fCB57A4D94AFB759C3025FF8863cC077"
   );

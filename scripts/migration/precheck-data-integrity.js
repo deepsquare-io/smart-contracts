@@ -1,5 +1,5 @@
 const { h1Separator, h2Separator, check } = require("../helpers/misc");
-async function precheckDataIntegrity(dbWallets, ethWallets, ethWalletContract) {
+function precheckDataIntegrity(dbWallets, ethWallets, ethWalletContract) {
   h1Separator();
   console.log("\n*** CHECK DATA INTEGRITY ***\n");
   // check sum of DPS is 210 millions
@@ -51,22 +51,30 @@ async function precheckDataIntegrity(dbWallets, ethWallets, ethWalletContract) {
     }
   });
 
-  check("There is a bijection between ETH and DB wallets addresses");
-
   h2Separator();
 
   dbWallets.forEach((v) => {
     if (ethMap.get(v.address).value != v.value) {
-      console.log(
-        "ETH / DB value mismatch on address " + v.address,
-        ethMap.get(v.address).value,
-        v.value
+      throw Error(
+        "ETH / DB value mismatch on address " +
+          v.address +
+          " with value eth " +
+          ethMap.get(v.address).value +
+          " with value DB " +
+          v.value
       );
     }
   });
 
+  check("There is a bijection between ETH and DB wallets addresses");
 
   h1Separator();
+
+  dbMap.forEach((v) => {
+    ethMap.get(v.address).reference = v.reference;
+  });
+
+  return ethMap;
 }
 
 module.exports = {

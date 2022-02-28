@@ -5,8 +5,7 @@ const { walletsMigrationUpdatePre } = require("./wallets-migration-update");
 
 const { ethers } = require("hardhat");
 function getWallet() {
-    const TEMP_UPDATES_MIGRATION = true;
-    const PRECHECK_DATA_INTEGRITY = true;
+  const TEMP_UPDATES_MIGRATION = true;
 
   const dbWallets = dbWalletsFile
     .map((v) => {
@@ -32,17 +31,16 @@ function getWallet() {
   const ethWalletContract = ethWalletsFile[0];
   const ethWallets = ethWalletsFile.slice(1);
 
-
   if (TEMP_UPDATES_MIGRATION) {
     walletsMigrationUpdatePre(dbWallets, ethWallets, ethWalletContract);
   }
 
-  if (PRECHECK_DATA_INTEGRITY) {
-    precheckDataIntegrity(dbWallets, ethWallets, ethWalletContract);
-  }
-
-  
-
+  const wallet = precheckDataIntegrity(
+    dbWallets,
+    ethWallets,
+    ethWalletContract
+  );
+  return wallet;
 }
 
 module.exports = {
