@@ -39,8 +39,6 @@ contract CrowdsaleDps is Crowdsale, Ownable {
         public
         onlyOwner
     {
-        console.log("adress", addressFromReference["dfkld"]);
-        console.log("reference", referenceFromAddress[address(0)]);
         require(
             addressFromReference[_reference]
              ==address(0),

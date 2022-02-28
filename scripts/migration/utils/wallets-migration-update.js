@@ -1,10 +1,10 @@
-const { h1Separator, h1, h2Separator } = require("../helpers/misc");
+const { h1Separator, h1, h2Separator } = require("../../helpers/misc");
 
 const { ethers } = require("hardhat");
 
 function walletsMigrationUpdatePre(dbWallets, ethWallets, ethWalletContract) {
   h1Separator();
-  h1("Pre-migration : address changes");
+  h1("PRE-MIGRATION : ADDRESS CHANGES");
   // remove address with 375 000 DPS and add it to main pool
   const indexAddress98fa = ethWallets.findIndex(
     (v) =>
@@ -17,7 +17,6 @@ function walletsMigrationUpdatePre(dbWallets, ethWallets, ethWalletContract) {
   console.log(
     "Address 0x813b2b5541fa238514b0161712b40d2ca1bc98fa (375 000 DPS) removed back to the pool"
   );
-  h2Separator();
   dbWallets.push({
     address: ethers.utils.getAddress(
       "0x44590be69395b2bfa9c140a9ab70bc0389701001"
@@ -53,7 +52,6 @@ function walletsMigrationUpdatePre(dbWallets, ethWallets, ethWalletContract) {
     "0x8a6759d1e35c5a79bda0a941a5f4400fb36ddc5e : Reference added (TODO CHECK WITH MATHIEU!"
   );
 
-  h2Separator();
   // D has made the KYC two times with two different addresses, remove 2nd address
   const indexRefD = dbWallets.findIndex((v) => v.reference === "in0eQ9c50hC1");
   dbWallets.splice(indexRefD, 1);
@@ -61,7 +59,7 @@ function walletsMigrationUpdatePre(dbWallets, ethWallets, ethWalletContract) {
 }
 
 function walletsMigrationUpdatePost(wallets) {
-  h2Separator();
+  h1("PRE-MIGRATION : ADDRESS MERGE");
   // merge D's address with its main one
   const address1001 = ethers.utils.getAddress(
     "0x44590be69395b2bfa9c140a9ab70bc0389701001"

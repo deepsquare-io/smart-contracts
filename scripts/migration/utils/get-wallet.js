@@ -1,5 +1,5 @@
-const dbWalletsFile = require("../../wallets_db.json");
-let ethWalletsFile = require("../../wallets_etherscan.json");
+const dbWalletsFile = require("../../../wallets_db.json");
+let ethWalletsFile = require("../../../wallets_etherscan.json");
 const { precheckDataIntegrity } = require("./precheck-data-integrity");
 const { walletsMigrationUpdatePre } = require("./wallets-migration-update");
 

@@ -1,4 +1,4 @@
-const { h1Separator, h2Separator, check } = require("../helpers/misc");
+const { h1Separator, check } = require("../../helpers/misc");
 function precheckDataIntegrity(dbWallets, ethWallets, ethWalletContract) {
   h1Separator();
   console.log("\n*** CHECK DATA INTEGRITY ***\n");
@@ -14,7 +14,6 @@ function precheckDataIntegrity(dbWallets, ethWallets, ethWalletContract) {
   }
   check("Sum of wallets on etherscan is 210 million tokens");
 
-  h2Separator();
   const dbMap = new Map();
   const ethMap = new Map();
 
@@ -50,8 +49,6 @@ function precheckDataIntegrity(dbWallets, ethWallets, ethWalletContract) {
       );
     }
   });
-
-  h2Separator();
 
   dbWallets.forEach((v) => {
     if (ethMap.get(v.address).value != v.value) {

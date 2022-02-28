@@ -1,15 +1,12 @@
-const crowdsaleDpsHelper = require("../helpers/crowdsale-dps");
-const { dpsToken } = require("../helpers/deep-square-token");
+const crowdsaleDpsHelper = require("../../helpers/crowdsale-dps");
+const { dpsToken } = require("../../helpers/deep-square-token");
 
-async function setupCrowdsale(dbWallets, dps) {
-  const USDT_ADDRESS = ""; // TODO change those constants to other address ?
-  const DPS_ADDRESS = "";
-  const RATE = "";
+async function setupCrowdsale(dbWallets, dps, usdtAddress, rate) {
   // deploy CrowdsaleDps
   const crowdsaleDps = await crowdsaleDpsHelper.deploy(
-    RATE,
-    DPS_ADDRESS,
-    USDT_ADDRESS,
+    rate,
+    dps.address,
+    usdtAddress,
     true
   );
 

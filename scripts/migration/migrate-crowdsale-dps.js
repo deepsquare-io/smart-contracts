@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("dotenv").config();
 const {
   deployDeepSquareToken,
   dpsToken,
@@ -6,23 +7,25 @@ const {
 const { ethers } = require("hardhat");
 const usdtHelper = require("../helpers/usdt");
 
-const { h1Separator, h1, h2Separator } = require("../helpers/misc");
-const { walletsMigrationUpdatePost } = require("./wallets-migration-update");
-const { setupCrowdsale } = require("./deploy-crowdsale-dps");
-const { getWallet } = require("./get-wallet");
+const { h1Separator, h1, check } = require("../helpers/misc");
+const {
+  walletsMigrationUpdatePost,
+} = require("./utils/wallets-migration-update");
+const { setupCrowdsale } = require("./utils/deploy-crowdsale-dps");
+const { getWallet } = require("./utils/get-wallet");
 
 async function main() {
   // IMPORTANT CONSTANTS FOR DEPLOYMENT !
+  const RATE = 2; // TODO wrong rate
 
   const POSTCHECK_DATA_INTEGRITY = true;
   const SETUP_CROWDSALE = true;
   const DEPLOY_DPS = true;
-  const DEPLOY_FAKE_USDT = true; // TODO false on production
+  const PRODUCTION = true; // TODO false on production
   const INITIAL_CROWDSALE_FUNDING_DPS = dpsToken(7000000);
 
   let USDT_ADDRESS = "";
   // DPS sends money to Crowdsale address
-  const SEND_DPS_TO_CROWDSALE = false;
   let dps; // dps contract TODO rename
 
   const wallets = getWallet();
@@ -32,26 +35,21 @@ async function main() {
   const owner = signers[0];
 
   h1Separator();
-  h1("Start contract deployments");
+  h1("START CONTRACT DEPLOYMENTS");
   // deploy DPS
 
   if (DEPLOY_DPS) {
     dps = await deployDeepSquareToken(true);
   }
   // deploy fakeUsdt
-  if (DEPLOY_FAKE_USDT) {
+  if (!PRODUCTION) {
     const usdt = await usdtHelper.deploy(true);
     USDT_ADDRESS = usdt.address;
   }
 
-  h2Separator();
-
-  let crowdsaleDps;
-  if (SETUP_CROWDSALE) {
-    crowdsaleDps = setupCrowdsale(wallets, dps);
-  }
-
   if (POSTCHECK_DATA_INTEGRITY) {
+    h1Separator();
+    h1("CHECK REMOTE DATA");
     let assertBalanceCorresponds = true;
     for (let i = 0; i < wallets.entries.length; i++) {
       if (
@@ -67,15 +65,15 @@ async function main() {
       }
     }
     console.log("All balances are the same : ", assertBalanceCorresponds);
-    console.log("Current DPS balance :", await dps.balanceOf(owner.address));
   }
 
-  if (SEND_DPS_TO_CROWDSALE) {
+  if (SETUP_CROWDSALE) {
+    h1Separator();
+    h1("LAUNCH CROWDSALE && SEND DPS TO WALLETS");
+    const crowdsaleDps = await setupCrowdsale(wallets, dps, USDT_ADDRESS, RATE);
     await dps.transfer(crowdsaleDps.address, INITIAL_CROWDSALE_FUNDING_DPS);
-
-    console.log(
-      INITIAL_CROWDSALE_FUNDING_DPS,
-      "DPS sent from DPS to Crowdsale\n"
+    check(
+      "Crowdsale DPS launched with " + INITIAL_CROWDSALE_FUNDING_DPS + " DPS"
     );
   }
 }
