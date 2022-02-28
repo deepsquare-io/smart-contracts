@@ -10,6 +10,5 @@ artifacts
 .openzeppelin
 
 # migration
-wallets.json
-wallets_original.json
+wallets_db.json
 wallets_etherscan.json

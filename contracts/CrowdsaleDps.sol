@@ -28,18 +28,38 @@ contract CrowdsaleDps is Crowdsale, Ownable {
     /**
      * @notice Sets kyc reference to a specific beneficiary
      */
-    function setReferenceTo(address _beneficiary, string memory _reference)
+    function setReference(address _beneficiary, string memory _reference)
         public
         onlyOwner
     {
-        _setReferenceTo(_beneficiary, _reference);
+        _setReference(_beneficiary, _reference);
+    }
+
+    function removeReference(address _to, string memory _reference)
+        public
+        onlyOwner
+    {
+        console.log("adress", addressFromReference["dfkld"]);
+        console.log("reference", referenceFromAddress[address(0)]);
+        require(
+            addressFromReference[_reference]
+             ==address(0),
+            "Crowdsale: address does not exist"
+        );
+        require(
+            keccak256(abi.encode(referenceFromAddress[_to])) == keccak256(abi.encode("")),
+            "Crowdsale: reference does not exist"
+        );
+
+        addressFromReference[_reference] = address(0);
+        referenceFromAddress[_to] = "";
     }
 
     /**
      * @notice Sets kyc reference corresponding to your own address
      */
     function setOwnReference(string memory _reference) public {
-        _setReferenceTo(msg.sender, _reference);
+        _setReference(msg.sender, _reference);
     }
 
     /**
@@ -52,7 +72,7 @@ contract CrowdsaleDps is Crowdsale, Ownable {
     ) public payable onlyOwner {
         // set reference if it does not exist yet
         if (_emptyAddressAndReference(_beneficiary, _reference)) {
-            _setReferenceTo(_beneficiary, _reference);
+            _setReference(_beneficiary, _reference);
         }
 
         // require that reference exists
@@ -100,7 +120,7 @@ contract CrowdsaleDps is Crowdsale, Ownable {
     /**
      * @notice Sets kyc reference corresponding to beneficiary
      */
-    function _setReferenceTo(address _beneficiary, string memory _reference)
+    function _setReference(address _beneficiary, string memory _reference)
         internal
     {
         require(

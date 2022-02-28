@@ -10,7 +10,7 @@
  */
 const { ethers, upgrades } = require("hardhat");
 const squareHelper = require("../scripts/helpers/square");
-function displaySeparator() {
+function h2Separator() {
   console.log("---------------");
 }
 
@@ -20,7 +20,7 @@ async function main() {
 
   const usdtAddress = process.env.USDTE_ADDRESS;
   // Deploying
-  displaySeparator();
+  h2Separator();
   console.log("*** V1 contract ***\n");
   const instance = await squareHelper.deploy(usdtAddress);
 
@@ -33,7 +33,7 @@ async function main() {
   );
   // Upgrading
 
-  displaySeparator();
+  h2Separator();
   console.log("*** V2 contract ***\n");
   const BoxV2 = await ethers.getContractFactory("DpsFundRaiserV2");
   const upgraded = await upgrades.upgradeProxy(instance.address, BoxV2);
@@ -41,7 +41,7 @@ async function main() {
   console.log("SquareV2 contract deployed");
   console.log("V2 method does exist :", upgraded.newMethodAfterUpgrade);
   console.log("V2 method returns :", await upgraded.newMethodAfterUpgrade());
-  displaySeparator();
+  h2Separator();
 }
 
 main()

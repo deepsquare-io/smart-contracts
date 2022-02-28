@@ -3,7 +3,6 @@ const { ethers } = require("hardhat");
 const crowdsaleDpsHelper = require("../scripts/helpers/crowdsale-dps");
 const {
   deployDeepSquareToken,
-  dpsToken,
 } = require("../scripts/helpers/deep-square-token");
 const usdtHelper = require("../scripts/helpers/usdt");
 const { faker } = require("@faker-js/faker");
@@ -14,14 +13,6 @@ function describeRevert(callback) {
 
 function describeOk(callback) {
   describe("if everything ok", callback);
-}
-
-function greaterThanBytes(numBytes) {
-  return 2 ** numBytes + Math.random() * 2 ** (numBytes - 1);
-}
-
-function lessThanBytes(numBytes) {
-  return 2 ** (numBytes - 1);
 }
 
 describe("CrowdsaleDps contract", function () {
@@ -78,13 +69,13 @@ describe("CrowdsaleDps contract", function () {
     });
   });
 
-  describe("#setReferenceTo", function () {
+  describe("#setReference", function () {
     describeRevert(function () {
       it("caller is not the owner", async function () {
         await expect(
           crowdsaleDps
             .connect(addr1)
-            .setReferenceTo(
+            .setReference(
               faker.finance.ethereumAddress(),
               faker.datatype.string()
             )
@@ -94,15 +85,45 @@ describe("CrowdsaleDps contract", function () {
       it("reference already exists", async function () {
         const reference = faker.datatype.string();
 
-        await crowdsaleDps.setReferenceTo(addr2.address, reference);
+        await crowdsaleDps.setReference(addr2.address, reference);
 
         expect(await crowdsaleDps.addressFromReference(reference)).to.equal(
           addr2.address
         );
 
         await expect(
-          crowdsaleDps.setReferenceTo(addr2.address, reference)
+          crowdsaleDps.setReference(addr2.address, reference)
         ).to.be.revertedWith("CrowdsaleDps: reference already used");
+      });
+    });
+  });
+
+  describe.only("#removeReference", function () {
+    let REFERENCE;
+    let ADDRESS;
+    beforeEach(async function () {
+      REFERENCE = faker.datatype.string();
+      ADDRESS = faker.finance.ethereumAddress();
+      await crowdsaleDps.setReference(ADDRESS, REFERENCE);
+    });
+    describeRevert(function () {
+      it("caller is not the owner", async function () {
+        await expect(
+          crowdsaleDps
+            .connect(addr1.address)
+            .removeReference(ADDRESS, REFERENCE)
+        );
+      });
+      it("address does not exist", async function () {
+        await expect(
+          crowdsaleDps.removeReference(faker.finance.ethereumAddress, REFERENCE)
+        ).to.be.revertedWith("Crowdsale: address does not exist");
+      });
+
+      it("reference does not exist", async function () {
+        await expect(
+          crowdsaleDps.removeReference(ADDRESS, faker.datatype.string())
+        );
       });
     });
   });
@@ -272,7 +293,7 @@ describe("CrowdsaleDps contract", function () {
         it(
           "VERY IMPORTANT !! AFTER DISCUSSION WITH DIARMUID, HOW DO WE DO WITH KYC ? I NEED A KYC FROM DB, AND THEY MANAGE THE PROBLEM IN THE DB ?"
         );
-        it("AND I KEEP IT VERY STRING ON THE REFERENCE ?")
+        it("AND I KEEP IT VERY STRING ON THE REFERENCE ?");
         it.skip("should withdraw contract DPS tokens to owner account", async function () {
           // check initial DPS funds on the contract
           expect(
