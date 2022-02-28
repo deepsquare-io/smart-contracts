@@ -109,12 +109,10 @@ describe("CrowdsaleDps contract", function () {
     describeRevert(function () {
       it("caller is not the owner", async function () {
         await expect(
-          crowdsaleDps
-            .connect(addr1.address)
-            .removeReference(ADDRESS, REFERENCE)
-        );
+          crowdsaleDps.connect(addr2).removeReference(ADDRESS, REFERENCE)
+        ).to.be.revertedWith(messagesHelper.ERROR_NON_OWNER);
       });
-      it.skip("address does not exist", async function () {
+      it("address does not exist", async function () {
         await expect(
           crowdsaleDps.removeReference(
             faker.finance.ethereumAddress(),
@@ -123,16 +121,16 @@ describe("CrowdsaleDps contract", function () {
         ).to.be.revertedWith("Crowdsale: address does not exist");
       });
 
-      it.skip("reference does not exist", async function () {
+      it("reference does not exist", async function () {
         await expect(
           crowdsaleDps.removeReference(ADDRESS, faker.datatype.string())
-        );
+        ).to.be.revertedWith("Crowdsale: reference does not exist");
       });
     });
   });
   describe("#setOwnReference", function () {
     describeRevert(function () {
-      it.skip("reference already exists", async function () {
+      it("reference already exists", async function () {
         const reference = faker.datatype.string();
 
         await crowdsaleDps.setOwnReference(reference);

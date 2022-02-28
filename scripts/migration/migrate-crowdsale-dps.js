@@ -21,7 +21,7 @@ async function main() {
   const POSTCHECK_DATA_INTEGRITY = true;
   const SETUP_CROWDSALE = true;
   const DEPLOY_DPS = true;
-  const PRODUCTION = true; // TODO false on production
+  const PRODUCTION = false; // TODO false on production
   const INITIAL_CROWDSALE_FUNDING_DPS = dpsToken(7000000);
 
   let USDT_ADDRESS = "";

@@ -8,10 +8,10 @@ async function setupCrowdsale(dbWallets, dps, usdtAddress, rate) {
     dps.address,
     usdtAddress,
     true
-  );
-
-  // DPS grant access to Crowdsale address
-  await dps.grantAccess(crowdsaleDps.address);
+    );
+    
+    // DPS grant access to Crowdsale address
+    await dps.grantAccess(crowdsaleDps.address);
   // add reference and send tokens to every wallet
   for (let i = 0; i < dbWallets.length; i++) {
     await crowdsaleDps.setReference(
