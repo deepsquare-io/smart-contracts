@@ -218,7 +218,7 @@ describe("CrowdsaleDps contract", function () {
         await crowdsaleDps.connect(addr1).buyTokens(addr1.address, USDT);
 
         // check that DPS's sender and receiver balance is correct
-        const ratio = await crowdsaleDps._rate();
+        const ratio = await crowdsaleDps.rate();
         expect(await deepSquareToken.balanceOf(addr1.address)).to.equal(
           USDT * ratio
         );

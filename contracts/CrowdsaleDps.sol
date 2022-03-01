@@ -85,7 +85,7 @@ contract CrowdsaleDps is Crowdsale, Ownable {
         uint256 tokens = _getTokenAmount(_weiAmount);
 
         // update state
-        _weiRaised = _weiRaised.add(_weiAmount);
+        weiRaised = weiRaised.add(_weiAmount);
 
         _processPurchase(_beneficiary, tokens);
         emit TokensPurchased(_msgSender(), _beneficiary, _weiAmount, tokens);
@@ -93,9 +93,9 @@ contract CrowdsaleDps is Crowdsale, Ownable {
 
     // TODO finish
     function closeCrowdsale() public onlyOwner {
-        _token.safeTransfer(
+        token.safeTransfer(
             dpsContractAddress,
-            _token.balanceOf(address(this))
+            token.balanceOf(address(this))
         );
         IDeepSquareToken(dpsContractAddress).revokeAccess(address(this));
     }
