@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+
 // import "./ReentrancyGuard.sol";
 
 /**
@@ -21,12 +23,15 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
  * behavior.
  */
 // TODO contract Crowdsale is Context, ReentrancyGuard {
-contract Crowdsale is Context {
+contract Crowdsale is Context, Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     // The token being sold
     IERC20 public token;
+
+    // The stablecoin used for exchange
+    IERC20 public stableCoin;
 
     // How many token units a buyer gets per wei.
     // The rate is the conversion between wei and the smallest and indivisible token unit.
@@ -58,7 +63,11 @@ contract Crowdsale is Context {
      * with 3 decimals called TOK, 1 wei will give you 1 unit, or 0.001 TOK.
      * @param _token Address of the token being sold
      */
-    constructor(uint256 _rate, IERC20 _token) {
+    constructor(
+        uint256 _rate,
+        IERC20 _token,
+        IERC20 _stableCoin
+    ) {
         require(_rate > 0, "Crowdsale: rate is 0");
         require(
             address(_token) != address(0),
@@ -67,6 +76,7 @@ contract Crowdsale is Context {
 
         rate = _rate;
         token = _token;
+        stableCoin = _stableCoin;
     }
 
     /**
@@ -107,7 +117,7 @@ contract Crowdsale is Context {
 
         _updatePurchasingState(_beneficiary, _weiAmount);
 
-        _forwardFunds(_weiAmount);
+        _forwardFunds(_beneficiary, _weiAmount);
         _postValidatePurchase(_beneficiary, _weiAmount);
     }
 
@@ -196,9 +206,28 @@ contract Crowdsale is Context {
     }
 
     /**
-     * @dev Determines how ETH is stored/forwarded on purchases.
+     * @dev Override to extend the way in which ether is converted to tokens.
+     * @param _tokenAmount Value in token to be converted into wei
+     * @return Number of wei that can be purchased with the specified _tokenAmount
+     // TODO change all these WEI things with stable coin ?
      */
-    function _forwardFunds(uint256 _weiAmount) internal virtual {
-        // _wallet.transfer(_weiAmount);
+    function _getWeiAmount(uint256 _tokenAmount)
+        internal
+        view
+        returns (uint256)
+    {
+        return _tokenAmount.div(rate);
+    }
+
+    /**
+     * @dev Forward stablecoin funds to contract owner
+     * @param _beneficiary Address sending the stableCoins
+     * @param _tokenAmount Number of stableCoins token to transfer
+     */
+    function _forwardFunds(address _beneficiary, uint256 _tokenAmount)
+        internal
+        virtual
+    {
+        stableCoin.safeTransferFrom(_beneficiary, owner(), _tokenAmount);
     }
 }

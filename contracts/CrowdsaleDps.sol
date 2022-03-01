@@ -9,36 +9,42 @@ import "hardhat/console.sol";
 
 import "./IDeepSquareToken.sol";
 
-contract CrowdsaleDps is Crowdsale, Ownable {
+contract CrowdsaleDps is Crowdsale {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
+    // sets bijection between KYC reference and user address
     mapping(address => string) public referenceFromAddress;
     mapping(string => address) public addressFromReference;
 
-    IERC20 public stableCoinToken;
-
-    address dpsContractAddress;
+    // dps contract address
+    address public dpsContract;
 
     constructor(
         uint256 _rate,
-        address _dpsContractAddress,
-        address _stableCoinContractAddress
-    ) Crowdsale(_rate, IERC20(_dpsContractAddress)) Ownable() {
-        stableCoinToken = IERC20(_stableCoinContractAddress);
-        dpsContractAddress = _dpsContractAddress;
+        address _dpsContract,
+        address _stableCoinContract
+    ) Crowdsale(_rate, IERC20(_dpsContract), IERC20(_stableCoinContract)) {
+        dpsContract = _dpsContract;
     }
 
     /**
      * @notice Sets kyc reference to a specific beneficiary
+     * @param _to Address associated to KYC reference
+     * @param _reference KYC reference associated to beneficiary
      */
-    function setReference(address _beneficiary, string memory _reference)
+    function setReference(address _to, string memory _reference)
         public
         onlyOwner
     {
-        _setReference(_beneficiary, _reference);
+        _setReference(_to, _reference);
     }
 
+    /**
+     * @notice Remove KYC mapping between reference and address
+     * @param _to Address associated to KYC reference
+     * @param _reference KYC reference associated to address
+     */
     function removeReference(address _to, string memory _reference)
         public
         onlyOwner
@@ -49,8 +55,7 @@ contract CrowdsaleDps is Crowdsale, Ownable {
         );
 
         require(
-            keccak256(abi.encodePacked(referenceFromAddress[_to])) !=
-                keccak256(abi.encodePacked("")),
+            !_isEqual(referenceFromAddress[_to], ""),
             "CrowdsaleDps: address does not exist"
         );
 
@@ -60,6 +65,7 @@ contract CrowdsaleDps is Crowdsale, Ownable {
 
     /**
      * @notice Sets kyc reference corresponding to your own address
+     * @param _reference KYC reference
      */
     function setOwnReference(string memory _reference) public {
         _setReference(msg.sender, _reference);
@@ -67,42 +73,46 @@ contract CrowdsaleDps is Crowdsale, Ownable {
 
     /**
      * @notice Set user KYC reference and transfer tokens to beneficiary
+     * @param _beneficiary Address that receive tokens
+     * @param _tokenAmount Amount of token to send to beneficiary
+     * @param _reference Associated KYC reference
      */
     function transferTokensViaReference(
         address _beneficiary,
-        uint256 _weiAmount, // TODO method is call transferTokens, but parameter does NOT represent tokens
+        uint256 _tokenAmount, // TODO method is call transferTokens, but parameter does NOT represent tokens
         string memory _reference
     ) public payable onlyOwner {
         // set reference if it does not exist yet
-        if (_emptyAddressAndReference(_beneficiary, _reference)) {
+        if (_isAddressAndReferenceEmpty(_beneficiary, _reference)) {
             _setReference(_beneficiary, _reference);
         }
 
         // require that reference exists
         _requireRegisteredReference(_beneficiary, _reference);
 
-        // calculate token amount to be created
-        uint256 tokens = _getTokenAmount(_weiAmount);
+        // calculate corresponding wei amount // TODO change with usdt
+        uint256 weiAmount = _getWeiAmount(_tokenAmount);
 
         // update state
-        weiRaised = weiRaised.add(_weiAmount);
+        weiRaised = weiRaised.add(weiAmount);
 
-        _processPurchase(_beneficiary, tokens);
-        emit TokensPurchased(_msgSender(), _beneficiary, _weiAmount, tokens);
+        // purchase
+        _processPurchase(_beneficiary, _tokenAmount);
+        emit TokensPurchased(_msgSender(), _beneficiary, weiAmount, _tokenAmount);
     }
 
-    // TODO finish
+    /**
+     * @notice Close Crowdsale : transfer remaining DPS, revoke its access to DPS token
+     */
     function closeCrowdsale() public onlyOwner {
-        token.safeTransfer(
-            dpsContractAddress,
-            token.balanceOf(address(this))
-        );
-        IDeepSquareToken(dpsContractAddress).revokeAccess(address(this));
+        token.safeTransfer(dpsContract, token.balanceOf(address(this)));
+        IDeepSquareToken(dpsContract).revokeAccess(address(this));
     }
 
     /**
      * @notice Extends Crowdsale._prevalidatePurchase method in order to add
      * restrictions before purchase
+     * @param _beneficiary Address that buys tokens
      */
     function _preValidatePurchase(address _beneficiary, uint256 _weiAmount)
         internal
@@ -121,55 +131,65 @@ contract CrowdsaleDps is Crowdsale, Ownable {
     }
 
     /**
-     * @notice Extends crowdsale forward funds. TODO should be refactored */
-    function _forwardFunds(uint256 _weiAmount) internal override {
-        stableCoinToken.transferFrom(msg.sender, owner(), _weiAmount);
-    }
-
-    /**
-     * @notice Sets kyc reference corresponding to beneficiary
+     * @notice Sets KYC reference corresponding to beneficiary
+     * @param _to Address associated to KYC reference
+     * @param _reference KYC reference
      */
-    function _setReference(address _beneficiary, string memory _reference)
-        internal
-    {
+    function _setReference(address _to, string memory _reference) internal {
         require(
-            _emptyAddressAndReference(_beneficiary, _reference),
+            _isAddressAndReferenceEmpty(_to, _reference),
             "CrowdsaleDps: reference already used"
         );
 
-        referenceFromAddress[_beneficiary] = _reference;
-        addressFromReference[_reference] = _beneficiary;
+        referenceFromAddress[_to] = _reference;
+        addressFromReference[_reference] = _to;
     }
 
     /**
-     * @return true if address and reference do not exist in the contract mapping
+     * @notice Returns true if address and reference do not exist in the contract mapping
+     * @param _to Address associated to KYC reference
+     * @param _reference KYC reference associated to address
      */
-    function _emptyAddressAndReference(
-        address _beneficiary,
-        string memory _reference
-    ) internal view returns (bool) {
+    function _isAddressAndReferenceEmpty(address _to, string memory _reference)
+        internal
+        view
+        returns (bool)
+    {
         return
             addressFromReference[_reference] == address(0) &&
-            keccak256(bytes(referenceFromAddress[_beneficiary])) ==
-            keccak256("");
+            _isEqual(referenceFromAddress[_to], "");
     }
 
     /**
      * @notice Reverts if reference is not registered correctly
+     * @param _to Address associated to KYC reference
+     * @param _reference KYC reference associated to address
      */
-    function _requireRegisteredReference(
-        address _beneficiary,
-        string memory _reference
-    ) internal view {
-        bool referenceMatch = keccak256(
-            bytes(referenceFromAddress[_beneficiary])
-        ) == keccak256(bytes(_reference));
-
-        bool addressMatch = addressFromReference[_reference] == _beneficiary;
+    function _requireRegisteredReference(address _to, string memory _reference)
+        internal
+        view
+    {
+        bool referenceMatch = _isEqual(referenceFromAddress[_to], _reference);
+        bool addressMatch = addressFromReference[_reference] == _to;
 
         require(
             referenceMatch && addressMatch,
             "CrowdsaleDps: caller is not KYC registered"
         );
+    }
+
+    /**
+     * @notice returns true if two parameter string are equal
+     * @param stringA first string
+     * @param stringB second string
+     */
+    function _isEqual(string memory stringA, string memory stringB)
+        internal
+        pure
+        returns (bool)
+    {
+        return
+            keccak256(abi.encodePacked(stringA)) ==
+            keccak256(abi.encodePacked(stringB));
     }
 }

@@ -293,9 +293,9 @@ describe("CrowdsaleDps contract", function () {
         );
       });
 
-      it("should send DPS according to USDT rate", async function () {
+      it("should send DPS tokens", async function () {
         expect(await deepSquareToken.balanceOf(crowdsaleDps.address)).to.equal(
-          CROWDSALE_DPS_FUND - WEI_AMOUNT * crowdsaleDpsRatio
+          CROWDSALE_DPS_FUND - WEI_AMOUNT
         );
       });
     });
