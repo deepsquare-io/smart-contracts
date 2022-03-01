@@ -33,20 +33,21 @@ contract Crowdsale is Context, Ownable {
     // The stablecoin used for exchange
     IERC20 public stableCoin;
 
-    // How many token units a buyer gets per wei.
-    // The rate is the conversion between wei and the smallest and indivisible token unit.
-    // So, if you are using a rate of 1 with a ERC20Detailed token with 3 decimals called TOK
-    // 1 wei will give you 1 unit, or 0.001 TOK.
+    // How many token units a buyer gets per stableCoin unit. Watch out for the decimals difference.
+    // The rate is the conversion between the smallest stableCoin indivisible unit and the smallest and indivisible token unit.
+    // So, if you are using a rate of 1 with a USDT token with 6 decimals, and a ERC20 token with 18 decimals
+    // 10^-6 USDT will give you will give you 10^-18 Tokens
+    // -> 1 USDT = 10^-12 tokens.
     uint256 public rate;
 
-    // Amount of wei raised
-    uint256 public weiRaised;
+    // Amount of stableCoins raised
+    uint256 public sbcRaised;
 
     /**
      * Event for token purchase logging
      * @param _purchaser who paid for the tokens
      * @param _beneficiary who got the tokens
-     * @param _value weis paid for purchase
+     * @param _value stableCoins paid for purchase
      * @param _amount amount of tokens purchased
      */
     event TokensPurchased(
@@ -57,10 +58,12 @@ contract Crowdsale is Context, Ownable {
     );
 
     /**
-     * @param _rate Number of token units a buyer gets per wei
-     * @dev The rate is the conversion between wei and the smallest and indivisible
-     * token unit. So, if you are using a rate of 1 with a ERC20Detailed token
-     * with 3 decimals called TOK, 1 wei will give you 1 unit, or 0.001 TOK.
+     * @param _rate Number of token units a buyer gets per stableCoin
+     * @dev The rate is the conversion between the smallest and indivisible stableCoin unit 
+     * and the smallest and indivisible token unit.
+     * So, if you are using a rate of 1 with a USDT token with 6 decimals, and a ERC20 token with 18 decimals
+     * 10^-6 USDT will give you will give you 10^-18 Tokens
+     * -> 1 USDT = 10^-12 tokens.
      * @param _token Address of the token being sold
      */
     constructor(
@@ -91,46 +94,45 @@ contract Crowdsale is Context, Ownable {
         buyTokens(_msgSender());
     }
 */
+
+
     /**
      * @dev low level token purchase ***DO NOT OVERRIDE***
      * This function has a non-reentrancy guard, so it shouldn't be called by
-     * another `nonReentrant` function.
+     * another `nonReentrant` function. TODO
      * @param _beneficiary Recipient of the token purchase
      */
     // TODO WHATCHOUT there was nonReentrant originally
     // TODO original : function buyTokens(address beneficiary) public nonReentrant payable {
     // TODO julien: why is there a beneficiary ? Cant the beneficiary be msg.sender ?
-    function buyTokens(address _beneficiary, uint256 _weiAmount)
+    function buyTokens(address _beneficiary, uint256 _sbcAmount)
         public
         payable
     {
-        _preValidatePurchase(_beneficiary, _weiAmount);
+        _preValidatePurchase(_beneficiary, _sbcAmount);
 
         // calculate token amount to be created
-        uint256 tokens = _getTokenAmount(_weiAmount);
+        uint256 tokens = _getTokenAmount(_sbcAmount);
 
         // update state
-        weiRaised = weiRaised.add(_weiAmount);
+        sbcRaised = sbcRaised.add(_sbcAmount);
 
         _processPurchase(_beneficiary, tokens);
-        emit TokensPurchased(_msgSender(), _beneficiary, _weiAmount, tokens);
+        emit TokensPurchased(_msgSender(), _beneficiary, _sbcAmount, tokens);
 
-        _updatePurchasingState(_beneficiary, _weiAmount);
+        _updatePurchasingState(_beneficiary, _sbcAmount);
 
-        _forwardFunds(_beneficiary, _weiAmount);
-        _postValidatePurchase(_beneficiary, _weiAmount);
+        _forwardFunds(_beneficiary, _sbcAmount);
+        _postValidatePurchase(_beneficiary, _sbcAmount);
     }
 
     /**
      * @dev Validation of an incoming purchase. Use require statements to revert state when conditions are not met.
      * Use `super` in contracts that inherit from Crowdsale to extend their validations.
-     * Example from CappedCrowdsale.sol's _preValidatePurchase method:
-     *     super._preValidatePurchase(beneficiary, weiAmount);
-     *     require(weiRaised().add(weiAmount) <= cap);
      * @param _beneficiary Address performing the token purchase
-     * @param _weiAmount Value in wei involved in the purchase
+     * @param _sbcAmount stableCoin amount involved in the purchase
      */
-    function _preValidatePurchase(address _beneficiary, uint256 _weiAmount)
+    function _preValidatePurchase(address _beneficiary, uint256 _sbcAmount)
         internal
         view
         virtual
@@ -139,17 +141,18 @@ contract Crowdsale is Context, Ownable {
             _beneficiary != address(0),
             "Crowdsale: beneficiary is the zero address"
         );
-        require(_weiAmount != 0, "Crowdsale: weiAmount is 0");
+        require(_sbcAmount != 0, "Crowdsale: stableCoin amount is 0");
         this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
+        // TODO what is the line above ?
     }
 
     /**
      * @dev Validation of an executed purchase. Observe state and use revert statements to undo rollback when valid
      * conditions are not met.
      * @param _beneficiary Address performing the token purchase
-     * @param _weiAmount Value in wei involved in the purchase
+     * @param _sbcAmount Value in stable coin involved in the purchase
      */
-    function _postValidatePurchase(address _beneficiary, uint256 _weiAmount)
+    function _postValidatePurchase(address _beneficiary, uint256 _sbcAmount)
         internal
         view
     {
@@ -184,9 +187,9 @@ contract Crowdsale is Context, Ownable {
      * @dev Override for extensions that require an internal state to check for validity (current user contributions,
      * etc.)
      * @param _beneficiary Address receiving the tokens
-     * @param _weiAmount Value in wei involved in the purchase
+     * @param _sbcAmount Value in staleCoin involved in the purchase
      */
-    function _updatePurchasingState(address _beneficiary, uint256 _weiAmount)
+    function _updatePurchasingState(address _beneficiary, uint256 _sbcAmount)
         internal
     {
         // solhint-disable-previous-line no-empty-blocks
@@ -194,24 +197,23 @@ contract Crowdsale is Context, Ownable {
 
     /**
      * @dev Override to extend the way in which ether is converted to tokens.
-     * @param _weiAmount Value in wei to be converted into tokens
-     * @return Number of tokens that can be purchased with the specified _weiAmount
+     * @param _sbcAmount Value in stableCoins to be converted into tokens
+     * @return Number of tokens that can be purchased with the specified _sbcAmount
      */
-    function _getTokenAmount(uint256 _weiAmount)
+    function _getTokenAmount(uint256 _sbcAmount)
         internal
         view
         returns (uint256)
     {
-        return _weiAmount.mul(rate);
+        return _sbcAmount.mul(rate);
     }
 
     /**
      * @dev Override to extend the way in which ether is converted to tokens.
-     * @param _tokenAmount Value in token to be converted into wei
-     * @return Number of wei that can be purchased with the specified _tokenAmount
-     // TODO change all these WEI things with stable coin ?
+     * @param _tokenAmount Value in token to be converted into stableCoin
+     * @return Number of stableCoin that can be purchased with the specified _tokenAmount
      */
-    function _getWeiAmount(uint256 _tokenAmount)
+    function _getStableCoinAmount(uint256 _tokenAmount)
         internal
         view
         returns (uint256)

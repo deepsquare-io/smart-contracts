@@ -90,15 +90,15 @@ contract CrowdsaleDps is Crowdsale {
         // require that reference exists
         _requireRegisteredReference(_beneficiary, _reference);
 
-        // calculate corresponding wei amount // TODO change with usdt
-        uint256 weiAmount = _getWeiAmount(_tokenAmount);
+        // calculate corresponding stablecoin amount
+        uint256 sbcAmount = _getStableCoinAmount(_tokenAmount);
 
         // update state
-        weiRaised = weiRaised.add(weiAmount);
+        sbcRaised = sbcRaised.add(sbcAmount);
 
         // purchase
         _processPurchase(_beneficiary, _tokenAmount);
-        emit TokensPurchased(_msgSender(), _beneficiary, weiAmount, _tokenAmount);
+        emit TokensPurchased(_msgSender(), _beneficiary, sbcAmount, _tokenAmount);
     }
 
     /**
@@ -114,12 +114,12 @@ contract CrowdsaleDps is Crowdsale {
      * restrictions before purchase
      * @param _beneficiary Address that buys tokens
      */
-    function _preValidatePurchase(address _beneficiary, uint256 _weiAmount)
+    function _preValidatePurchase(address _beneficiary, uint256 _sbcAmount)
         internal
         view
         override
     {
-        super._preValidatePurchase(_beneficiary, _weiAmount);
+        super._preValidatePurchase(_beneficiary, _sbcAmount);
         require(
             msg.sender != owner(),
             "CrowdsaleDps: caller cannot be the owner"

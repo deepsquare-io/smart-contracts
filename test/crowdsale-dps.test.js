@@ -204,6 +204,8 @@ describe("CrowdsaleDps contract", function () {
         );
         await crowdsaleDps.connect(addr1).setOwnReference("REFERENCE");
       });
+
+      it("set ratio correctly and test that it gives the right ratio 1 token = 0.40$");
       it("should transfer DPS according to USDT/DPS ratio and transfer USDT", async function () {
         // get sender and receiver balances
         const USDT = 3000;
