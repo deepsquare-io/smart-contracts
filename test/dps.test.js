@@ -8,11 +8,7 @@ const {
 } = require("../scripts/helpers/deep-square-token");
 
 const messageHelper = require("./messages.helper");
-
-// TODO put in a helper
-function describeRevert(callback) {
-  describe("should revert if", callback);
-}
+const { describeRevert, describeOk } = require("./test.helper");
 describe("DPS contract", function () {
   let deepSquareToken;
   let owner;
@@ -33,10 +29,10 @@ describe("DPS contract", function () {
 
   describe("#transfer", function () {
     describeRevert(function () {
-      it("executed from user not in whitelist", async function () {
+      it("caller is not in the allowList", async function () {
         await expect(
           deepSquareToken.connect(addr1).transfer(addr1.address, 2403)
-        ).to.be.revertedWith("DeepSquareToken: user not allowed to transfer");
+        ).to.be.revertedWith(messageHelper.ERROR_NON_ALLOW_LIST);
       });
     });
   });
@@ -46,56 +42,64 @@ describe("DPS contract", function () {
       // mint addresses
       await deepSquareToken.transfer(addr1.address, dpsToken(10000));
     });
-
-    it("gives access to transfer tokens", async function () {
-      // no access, reverted
-      await expect(
-        deepSquareToken.connect(addr1).transfer(addr2.address, 23)
-      ).to.be.revertedWith("DeepSquareToken: user not allowed to transfer");
-
-      // grant access
-      await deepSquareToken.grantAccess(addr1.address);
-      // access, not reverted
-      await deepSquareToken.connect(addr1).transfer(addr2.address, 1);
-      /*
-      await expect(deepSquareToken.connect(addr1).transfer(addr2.address, 23))
-        .not.be.reverted;
-        */
+    describeRevert(function () {
+      it("caller is not the owner", async function () {
+        await expect(
+          deepSquareToken.connect(addr1).grantAccess(addr2.address)
+        ).to.be.revertedWith(messageHelper.ERROR_NON_OWNER);
+      });
     });
-    it("can only be accessed by owner", async function () {
-      await expect(
-        deepSquareToken.connect(addr1).grantAccess(addr2.address)
-      ).to.be.revertedWith(messageHelper.ERROR_NON_OWNER);
+   
+    describeOk(function () {
+      it("gives access to transfer tokens", async function () {
+        // no access, reverted
+        await expect(
+          deepSquareToken.connect(addr1).transfer(addr2.address, 23)
+        ).to.be.revertedWith(messageHelper.ERROR_NON_ALLOW_LIST);
+
+        // grant access
+        await deepSquareToken.grantAccess(addr1.address);
+        // access, not reverted
+        await deepSquareToken.connect(addr1).transfer(addr2.address, 1);
+        /*
+      await expect(deepSquareToken.connect(addr1).transfer(addr2.address, 23))
+      .not.be.reverted;
+      */
+      });
     });
   });
   describe("#revokeAccess", async function () {
-    beforeEach(async function () { // TODO copy paste from line 45, make it better
+    beforeEach(async function () {
       // mint addresses
       await deepSquareToken.transfer(addr1.address, dpsToken(10000));
     });
-    it("revokes access to transfer tokens", async function () {
-      // gives access to user1, transfer is not reverted
-      await deepSquareToken.grantAccess(addr1.address);
-      await expect(deepSquareToken.connect(addr1).transfer(addr2.address, 23))
-        .not.be.reverted;
-
-      // revoke access
-      await deepSquareToken.revokeAccess(addr1.address);
-      // access, not reverted
-      await expect(
-        deepSquareToken.connect(addr1).transfer(addr2.address, 23)
-      ).to.be.revertedWith("DeepSquareToken: user not allowed to transfer");
+    describeRevert(function () {
+      it("caller is not the owner", async function () {
+        await expect(
+          deepSquareToken.connect(addr1).grantAccess(addr2.address)
+        ).to.be.revertedWith(messageHelper.ERROR_NON_OWNER);
+      });
+      it("owner revoke his own access", async function () {
+        await expect(
+          deepSquareToken.revokeAccess(owner.address)
+        ).to.be.revertedWith("DeepSquareToken: owner cannot be revoked");
+      });
     });
-    it("owner cannot revoke his own access", async function () {
-      await expect(
-        deepSquareToken.revokeAccess(owner.address)
-      ).to.be.revertedWith("DeepSquareToken: owner cannot be revoked");
-    });
+    describeOk(function () {
+      it("revokes access to transfer tokens", async function () {
+        // gives access to user1, transfer is not reverted
+        await deepSquareToken.grantAccess(addr1.address);
+        await expect(
+          deepSquareToken.connect(addr1).transfer(addr2.address, 23)
+        ).not.be.reverted;
 
-    it("can only be accessed by owner", async function () {
-      await expect(
-        deepSquareToken.connect(addr1).grantAccess(addr2.address)
-      ).to.be.revertedWith(messageHelper.ERROR_NON_OWNER);
+        // revoke access
+        await deepSquareToken.revokeAccess(addr1.address);
+        // access, not reverted
+        await expect(
+          deepSquareToken.connect(addr1).transfer(addr2.address, 23)
+        ).to.be.revertedWith(messageHelper.ERROR_NON_ALLOW_LIST);
+      });
     });
   });
 

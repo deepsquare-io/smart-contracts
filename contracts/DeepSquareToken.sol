@@ -9,33 +9,37 @@ import "hardhat/console.sol";
 
 contract DeepSquareToken is ERC20, Ownable {
     // whitelist allowed to transfer, mint, burn
-    mapping(address => bool) public transferWhitelist;
+    mapping(address => bool) public allowList;
 
     constructor() ERC20("DeepSquareToken", "DPS") {
-        transferWhitelist[msg.sender] = true;
+        allowList[msg.sender] = true;
         _mint(msg.sender, 210e24); // 210e6e18 = 210 millions token with 18 decimals
     }
 
-    function grantAccess(address _address) external onlyOwner {
-        transferWhitelist[_address] = true;
+    modifier onlyAllowList() {
+        require(
+            allowList[msg.sender] == true,
+            "DeepSquareToken: user not in allowList"
+        );
+        _;
     }
 
-    function revokeAccess(address _address) external onlyOwner {
+    function grantAccess(address _address) external onlyOwner {
+        // TODO only owner or onlyAllowList
+        allowList[_address] = true;
+    }
+
+    function revokeAccess(address _address) external {
         require(
             _address != owner(),
             "DeepSquareToken: owner cannot be revoked"
         );
-        transferWhitelist[_address] = false;
+        allowList[_address] = false;
     }
 
     function _beforeTokenTransfer(
         address from,
         address to,
         uint256 amount
-    ) internal view override {
-        require(
-            transferWhitelist[msg.sender] == true,
-            "DeepSquareToken: user not allowed to transfer"
-        );
-    }
+    ) internal view override onlyAllowList {}
 }

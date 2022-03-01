@@ -34,7 +34,9 @@ async function attach(address) {
   return (await factoryPromise).attach(address);
 }
 
+const ADDRESS_NOT_EXIST = "CrowdsaleDps: address does not exist";
 module.exports = {
   deploy,
   attach,
+  ADDRESS_NOT_EXIST,
 };

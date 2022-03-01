@@ -3,17 +3,12 @@ const { ethers } = require("hardhat");
 const crowdsaleDpsHelper = require("../scripts/helpers/crowdsale-dps");
 const {
   deployDeepSquareToken,
+  dpsToken,
 } = require("../scripts/helpers/deep-square-token");
 const usdtHelper = require("../scripts/helpers/usdt");
 const { faker } = require("@faker-js/faker");
 const messagesHelper = require("./messages.helper");
-function describeRevert(callback) {
-  describe("should revert if", callback);
-}
-
-function describeOk(callback) {
-  describe("if everything ok", callback);
-}
+const { describeRevert, describeOk } = require("./test.helper");
 
 describe("CrowdsaleDps contract", function () {
   let crowdsaleDps;
@@ -118,13 +113,33 @@ describe("CrowdsaleDps contract", function () {
             faker.finance.ethereumAddress(),
             REFERENCE
           )
-        ).to.be.revertedWith("Crowdsale: address does not exist");
+        ).to.be.revertedWith(crowdsaleDpsHelper.ADDRESS_NOT_EXIST);
       });
 
       it("reference does not exist", async function () {
         await expect(
           crowdsaleDps.removeReference(ADDRESS, faker.datatype.string())
-        ).to.be.revertedWith("Crowdsale: reference does not exist");
+        ).to.be.revertedWith("CrowdsaleDps: reference does not exist");
+      });
+    });
+
+    describeOk(function () {
+      it("should remove reference and address mappings", async function () {
+        expect(await crowdsaleDps.referenceFromAddress(ADDRESS)).to.equal(
+          REFERENCE
+        );
+        expect(await crowdsaleDps.addressFromReference(REFERENCE)).to.equal(
+          ADDRESS
+        );
+        // call removeReference
+        await crowdsaleDps.removeReference(ADDRESS, REFERENCE);
+        // reference and address mapping should be empty
+
+        expect(await crowdsaleDps.referenceFromAddress(ADDRESS)).to.equal("");
+
+        expect(await crowdsaleDps.addressFromReference(REFERENCE)).to.equal(
+          messagesHelper.ZERO_ADDRESS
+        );
       });
     });
   });
@@ -155,9 +170,9 @@ describe("CrowdsaleDps contract", function () {
       it("wei amount is 0", async function () {
         await expect(
           crowdsaleDps.buyTokens(addr2.address, 0)
-        ).to.be.revertedWith("ss");
+        ).to.be.revertedWith("ss"); // TODO
       });
-      it("caller is the owner TODO or not ? maybe it can help at the end ?", async function () {
+      it("caller is the owner", async function () {
         await expect(
           crowdsaleDps.buyTokens(owner.address, 23)
         ).to.be.revertedWith("CrowdsaleDps: caller cannot be the owner");
@@ -190,6 +205,7 @@ describe("CrowdsaleDps contract", function () {
         await crowdsaleDps.connect(addr1).setOwnReference("REFERENCE");
       });
       it("should transfer DPS according to USDT/DPS ratio and transfer USDT", async function () {
+        // get sender and receiver balances
         const USDT = 3000;
         const BALANCE_ADDR1_USDT = parseInt(
           await fakeUSDT.balanceOf(addr1.address)
@@ -197,18 +213,19 @@ describe("CrowdsaleDps contract", function () {
         const BALANCE_OWNER_USDT = parseInt(
           await fakeUSDT.balanceOf(owner.address)
         );
-
+        // buy tokens
         await fakeUSDT.connect(addr1).approve(crowdsaleDps.address, USDT);
         await crowdsaleDps.connect(addr1).buyTokens(addr1.address, USDT);
 
+        // check that DPS's sender and receiver balance is correct
+        const ratio = await crowdsaleDps._rate();
         expect(await deepSquareToken.balanceOf(addr1.address)).to.equal(
-          USDT * crowdsaleDpsRatio
+          USDT * ratio
         );
-
         expect(await deepSquareToken.balanceOf(crowdsaleDps.address)).to.equal(
-          CROWDSALE_DPS_FUND - USDT * crowdsaleDpsRatio
+          CROWDSALE_DPS_FUND - USDT * ratio
         );
-
+        // check that USDT's sender and receiver balance is correct
         expect(await fakeUSDT.balanceOf(addr1.address)).to.equal(
           BALANCE_ADDR1_USDT - USDT
         );
@@ -282,44 +299,65 @@ describe("CrowdsaleDps contract", function () {
         );
       });
     });
-    describe("#closeCrowdsale", function () {
-      describeRevert(function () {
-        it("caller is not the owner", async function () {
-          await expect(
-            crowdsaleDps.connect(addr1).closeCrowdsale()
-          ).to.be.revertedWith(messagesHelper.ERROR_NON_OWNER);
-        });
+  });
+  describe("#closeCrowdsale", function () {
+    describeRevert(function () {
+      it("caller is not the owner", async function () {
+        await expect(
+          crowdsaleDps.connect(addr1).closeCrowdsale()
+        ).to.be.revertedWith(messagesHelper.ERROR_NON_OWNER);
       });
-      describeOk(function () {
-        it(
-          "VERY IMPORTANT !! AFTER DISCUSSION WITH DIARMUID, HOW DO WE DO WITH KYC ? I NEED A KYC FROM DB, AND THEY MANAGE THE PROBLEM IN THE DB ?"
+    });
+    describeOk(function () {
+      let reference, address;
+      beforeEach(async function () {
+        // grant DPS access to CrowdsaleDps contract
+        await deepSquareToken.grantAccess(crowdsaleDps.address);
+        // add reference
+        reference = faker.datatype.string();
+        address = addr2.address;
+        await crowdsaleDps.setReference(address, reference);
+        // transfer money to Crowdsale contract
+        await deepSquareToken.transfer(crowdsaleDps.address, dpsToken(1000));
+      });
+      it(
+        "VERY IMPORTANT !! AFTER DISCUSSION WITH DIARMUID, HOW DO WE DO WITH KYC ? I NEED A KYC FROM DB, AND THEY MANAGE THE PROBLEM IN THE DB ?"
+      );
+      it("AND I KEEP IT VERY STRING ON THE REFERENCE ?");
+      it("should withdraw contract DPS tokens to owner account", async function () {
+        // check initial DPS funds on the contract
+        expect(
+          await deepSquareToken.balanceOf(crowdsaleDps.address)
+        ).to.be.above(0, "initial DPS fund should be 0");
+        // call close()
+        await crowdsaleDps.closeCrowdsale();
+        // check that there are 0 funds in the contract
+        expect(await deepSquareToken.balanceOf(crowdsaleDps.address)).to.equal(
+          0
         );
-        it("AND I KEEP IT VERY STRING ON THE REFERENCE ?");
-        it.skip("should withdraw contract DPS tokens to owner account", async function () {
-          // check initial DPS funds on the contract
-          expect(
-            await deepSquareToken.balanceOf(crowdsaleDps.address)
-          ).to.be.greaterThan(0);
-          // call close()
-          await crowdsaleDps.closeCrowdsale();
-          // check that there are 0 funds in the contract
-          expect(
-            await deepSquareToken.balanceOf(crowdsaleDps.address)
-          ).to.equal(0);
-        });
-        it.skip("should revoke its own access to DPS contract", async function () {
-          // check that we have access to transfer tokens
-          await expect(
-            deepSquareToken.transfer(addr2.address, 1)
-          ).not.be.reverted;
-          // call close()
-          await crowdsaleDps.closeCrowdsale();
-          // check that you cannot transfer tokens anymore
-          await expect(
-            deepSquareToken.transfer(addr2.address, 1)
-          ).to.be.reverted;
-        });
       });
+      it("should revoke its own access to DPS contract", async function () {
+        const transferFn = async function () {
+          return crowdsaleDps.transferTokensViaReference(
+            address,
+            faker.datatype.number({ min: 0 }),
+            reference
+          );
+        };
+        // check that we have access to transfer tokens
+        await expect(transferFn()).not.be.reverted;
+        // call close()
+        await crowdsaleDps.closeCrowdsale();
+        // check that you cannot transfer tokens anymore
+        await expect(transferFn()).to.be.revertedWith(
+          "DeepSquareToken: user not in allowList"
+        );
+      });
+
+      it("can add money two times with same reference");
+      it(
+        "Test the EVENT crowdsale.sol TokensPurchased(). I need to understand how it works"
+      );
     });
   });
 });

@@ -7,15 +7,18 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 // TODO remove console.sol later on
 import "hardhat/console.sol";
 
+import "./IDeepSquareToken.sol";
+
 contract CrowdsaleDps is Crowdsale, Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    // TODO is there a better way than two mappings ?
     mapping(address => string) public referenceFromAddress;
     mapping(string => address) public addressFromReference;
 
     IERC20 public stableCoinToken;
+
+    address dpsContractAddress;
 
     constructor(
         uint256 _rate,
@@ -23,6 +26,7 @@ contract CrowdsaleDps is Crowdsale, Ownable {
         address _stableCoinContractAddress
     ) Crowdsale(_rate, IERC20(_dpsContractAddress)) Ownable() {
         stableCoinToken = IERC20(_stableCoinContractAddress);
+        dpsContractAddress = _dpsContractAddress;
     }
 
     /**
@@ -40,13 +44,14 @@ contract CrowdsaleDps is Crowdsale, Ownable {
         onlyOwner
     {
         require(
-            addressFromReference[_reference]
-             ==address(0),
-            "Crowdsale: address does not exist"
+            addressFromReference[_reference] != address(0),
+            "CrowdsaleDps: reference does not exist"
         );
+
         require(
-            keccak256(abi.encode(referenceFromAddress[_to])) == keccak256(abi.encode("")),
-            "Crowdsale: reference does not exist"
+            keccak256(abi.encodePacked(referenceFromAddress[_to])) !=
+                keccak256(abi.encodePacked("")),
+            "CrowdsaleDps: address does not exist"
         );
 
         addressFromReference[_reference] = address(0);
@@ -87,7 +92,13 @@ contract CrowdsaleDps is Crowdsale, Ownable {
     }
 
     // TODO finish
-    function closeCrowdsale() public onlyOwner {}
+    function closeCrowdsale() public onlyOwner {
+        _token.safeTransfer(
+            dpsContractAddress,
+            _token.balanceOf(address(this))
+        );
+        IDeepSquareToken(dpsContractAddress).revokeAccess(address(this));
+    }
 
     /**
      * @notice Extends Crowdsale._prevalidatePurchase method in order to add
