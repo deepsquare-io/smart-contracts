@@ -15,7 +15,7 @@ async function main() {
   await fakeUSDTe.mint(
     owner.address,
     usdtToken(20000000),
-    owner.address, // TODO : I don't understand what this parameter is for yet
+    owner.address,
     0,
     randomBytes(32)
   );

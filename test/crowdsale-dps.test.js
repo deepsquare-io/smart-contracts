@@ -17,7 +17,6 @@ describe("CrowdsaleDps contract", function () {
   let owner;
   let addr1;
   let addr2;
-  const crowdsaleDpsRatio = 2;
   // `beforeEach` will run before each test, re-deploying the contract every
   // time. It receives a callback, which can be async.
   beforeEach(async function () {
@@ -27,17 +26,16 @@ describe("CrowdsaleDps contract", function () {
     // Deploy DPS
     deepSquareToken = await deployDeepSquareToken();
     // Deploy CrowdsaleDps
-    crowdsaleDps = await crowdsaleDpsHelper.deploy(
-      crowdsaleDpsRatio, // TODO: rate to change
+    crowdsaleDps = await crowdsaleDpsHelper.deployMarch22(
       deepSquareToken.address,
       fakeUSDT.address
     );
 
     // Fund owner account
-    await usdtHelper.mint(fakeUSDT, owner.address, usdtHelper.token(2201));
+    await usdtHelper.mint(fakeUSDT, owner.address, usdtHelper.token(10 ** 8));
     // Transfer some usdt to addr1 and addr2
-    await fakeUSDT.transfer(addr1.address, usdtHelper.token(100));
-    await fakeUSDT.transfer(addr2.address, usdtHelper.token(100));
+    await fakeUSDT.transfer(addr1.address, usdtHelper.token(10 ** 5));
+    await fakeUSDT.transfer(addr2.address, usdtHelper.token(10 ** 5));
   });
 
   describe("on initialization", function () {
@@ -54,8 +52,7 @@ describe("CrowdsaleDps contract", function () {
 
       it("token should not be the 0 address", async function () {
         await expect(
-          crowdsaleDpsHelper.deploy(
-            faker.datatype.number({ min: 1 }),
+          crowdsaleDpsHelper.deployMarch22(
             messagesHelper.ZERO_ADDRESS,
             fakeUSDT.address
           )
@@ -167,10 +164,13 @@ describe("CrowdsaleDps contract", function () {
           crowdsaleDps.buyTokens(messagesHelper.ZERO_ADDRESS, 23)
         ).to.be.revertedWith("Crowdsale: beneficiary is the zero address");
       });
-      it("wei amount is 0", async function () {
+      it("usdt amount is 0", async function () {
         await expect(
-          crowdsaleDps.buyTokens(addr2.address, 0)
-        ).to.be.revertedWith("ss"); // TODO
+          crowdsaleDps.buyTokens(
+            addr2.address,
+            faker.datatype.number({ max: 0 })
+          )
+        ).to.be.revertedWith("Crowdsale: stableCoin amount > 0");
       });
       it("caller is the owner", async function () {
         await expect(
@@ -180,24 +180,17 @@ describe("CrowdsaleDps contract", function () {
       it("caller is not KYC registered", async function () {
         await expect(
           crowdsaleDps.connect(addr1).buyTokens(addr2.address, 23)
-        ).to.be.revertedWith("CrowdsaleDps: caller is not KYC registered");
+        ).to.be.revertedWith(messagesHelper.REFERENCE_ADDRESS_MISMATCH);
       });
-
-      /* TODO !
-        it("amount exceeds contract balance", async function () {
-          await expect(
-            crowdsaleDps
-              .connect(addr1)
-              .buyTokens(addr2.address, dpsToken(100000))
-          ).to.be.revertedWith("no balance");
-        });
-        */
     });
+
     describeOk(function () {
       let CROWDSALE_DPS_FUND;
       beforeEach(async function () {
-        CROWDSALE_DPS_FUND = 303222222222;
+        // grant transfer DPS access to Crowdsale
         await deepSquareToken.grantAccess(crowdsaleDps.address);
+        // fund crowdsale contract
+        CROWDSALE_DPS_FUND = dpsToken(10 ** 7);
         await deepSquareToken.transfer(
           crowdsaleDps.address,
           CROWDSALE_DPS_FUND
@@ -205,35 +198,40 @@ describe("CrowdsaleDps contract", function () {
         await crowdsaleDps.connect(addr1).setOwnReference("REFERENCE");
       });
 
-      it("set ratio correctly and test that it gives the right ratio 1 token = 0.40$");
-      it("should transfer DPS according to USDT/DPS ratio and transfer USDT", async function () {
-        // get sender and receiver balances
-        const USDT = 3000;
-        const BALANCE_ADDR1_USDT = parseInt(
-          await fakeUSDT.balanceOf(addr1.address)
-        );
-        const BALANCE_OWNER_USDT = parseInt(
-          await fakeUSDT.balanceOf(owner.address)
-        );
-        // buy tokens
-        await fakeUSDT.connect(addr1).approve(crowdsaleDps.address, USDT);
-        await crowdsaleDps.connect(addr1).buyTokens(addr1.address, USDT);
+      describe("should transfer DPS according to USDT/DPS ratio and transfer USDT", function () {
+        const examples = [
+          { usdt: 400, dps: 1000 },
+          { usdt: 1000, dps: 2500 },
+          { usdt: 10000, dps: 25000 },
+        ];
+        examples.forEach(function (v) {
+          it(v.usdt + " USDT gives you " + v.dps + " DPS", async function () {
+            // get sender and receiver current balances
+            const BALANCE_ADDR1_USDT = await fakeUSDT.balanceOf(addr1.address);
+            const BALANCE_OWNER_USDT = await fakeUSDT.balanceOf(owner.address);
 
-        // check that DPS's sender and receiver balance is correct
-        const ratio = await crowdsaleDps.rate();
-        expect(await deepSquareToken.balanceOf(addr1.address)).to.equal(
-          USDT * ratio
-        );
-        expect(await deepSquareToken.balanceOf(crowdsaleDps.address)).to.equal(
-          CROWDSALE_DPS_FUND - USDT * ratio
-        );
-        // check that USDT's sender and receiver balance is correct
-        expect(await fakeUSDT.balanceOf(addr1.address)).to.equal(
-          BALANCE_ADDR1_USDT - USDT
-        );
-        expect(await fakeUSDT.balanceOf(owner.address)).to.equal(
-          BALANCE_OWNER_USDT + USDT
-        );
+            // buy tokens
+            const USDT = usdtHelper.token(v.usdt);
+            const DPS = dpsToken(v.dps);
+            await fakeUSDT.connect(addr1).approve(crowdsaleDps.address, USDT);
+            await crowdsaleDps.connect(addr1).buyTokens(addr1.address, USDT);
+
+            // check that DPS's sender and receiver balance is correct
+            expect(await deepSquareToken.balanceOf(addr1.address)).to.equal(
+              DPS
+            );
+            expect(
+              await deepSquareToken.balanceOf(crowdsaleDps.address)
+            ).to.equal(CROWDSALE_DPS_FUND.sub(DPS));
+            // check that USDT's sender and receiver balance is correct
+            expect(await fakeUSDT.balanceOf(addr1.address)).to.equal(
+              BALANCE_ADDR1_USDT.sub(USDT)
+            );
+            expect(await fakeUSDT.balanceOf(owner.address)).to.equal(
+              BALANCE_OWNER_USDT.add(USDT)
+            );
+          });
+        });
       });
       // TODO should revert all if one transaction goes wrong TODO"
       // TODO can we test the overflows / edge values ?
@@ -247,20 +245,38 @@ describe("CrowdsaleDps contract", function () {
     // add one reference
     beforeEach(async function () {
       REFERENCE = faker.datatype.string();
-      AMOUNT_DPS = faker.datatype.number();
-      // await crowdsaleDps.setOwnReference(REFERENCE);
+      AMOUNT_DPS = dpsToken(faker.datatype.number({ min: 1 }));
     });
     describeRevert(function () {
       it("caller is not the owner", async function () {
         await expect(
           crowdsaleDps
             .connect(addr1)
-            .transferTokensViaReference(
-              addr2.address,
-              faker.datatype.number(),
-              REFERENCE
-            )
+            .transferTokensViaReference(addr2.address, AMOUNT_DPS, REFERENCE)
         ).to.revertedWith(messagesHelper.ERROR_NON_OWNER);
+      });
+
+      it("beneficiary is the owner", async function () {
+        await deepSquareToken.grantAccess(crowdsaleDps.address);
+        await expect(
+          crowdsaleDps.transferTokensViaReference(
+            owner.address,
+            AMOUNT_DPS,
+            REFERENCE
+          )
+        ).to.be.revertedWith("CrowdsaleDps: caller cannot be the owner");
+      });
+
+      it("reference exist but do not match with address", async function () {
+        await deepSquareToken.grantAccess(crowdsaleDps.address);
+        await crowdsaleDps.setReference(addr1.address, "RANDOM");
+        await expect(
+          crowdsaleDps.transferTokensViaReference(
+            addr1.address,
+            AMOUNT_DPS,
+            faker.datatype.string()
+          )
+        ).to.be.revertedWith(messagesHelper.REFERENCE_ADDRESS_MISMATCH);
       });
 
       // TODO what happens if no same reference wants to add money twice ?")
@@ -268,12 +284,12 @@ describe("CrowdsaleDps contract", function () {
     describeOk(function () {
       let WEI_AMOUNT, CROWDSALE_DPS_FUND, BENEFICIARY;
       beforeEach(async function () {
-        WEI_AMOUNT = faker.datatype.number({ min: 1000000 });
-        CROWDSALE_DPS_FUND = faker.datatype.number({
-          min: WEI_AMOUNT + 100000000,
-        });
+        CROWDSALE_DPS_FUND = AMOUNT_DPS.add(
+          dpsToken(faker.datatype.number({ min: 1 }))
+        );
         BENEFICIARY = addr2.address;
 
+        // grant access to DPS transfer
         await deepSquareToken.grantAccess(crowdsaleDps.address);
         await deepSquareToken.transfer(
           crowdsaleDps.address,
@@ -282,7 +298,7 @@ describe("CrowdsaleDps contract", function () {
 
         await crowdsaleDps.transferTokensViaReference(
           addr2.address,
-          WEI_AMOUNT,
+          AMOUNT_DPS,
           REFERENCE
         );
       });
@@ -297,7 +313,7 @@ describe("CrowdsaleDps contract", function () {
 
       it("should send DPS tokens", async function () {
         expect(await deepSquareToken.balanceOf(crowdsaleDps.address)).to.equal(
-          CROWDSALE_DPS_FUND - WEI_AMOUNT
+          CROWDSALE_DPS_FUND.sub(AMOUNT_DPS)
         );
       });
     });
@@ -322,10 +338,10 @@ describe("CrowdsaleDps contract", function () {
         // transfer money to Crowdsale contract
         await deepSquareToken.transfer(crowdsaleDps.address, dpsToken(1000));
       });
+      it("BEFORE DEPLOY, THINK ABOUT GASLESS integration ?");
       it(
         "VERY IMPORTANT !! AFTER DISCUSSION WITH DIARMUID, HOW DO WE DO WITH KYC ? I NEED A KYC FROM DB, AND THEY MANAGE THE PROBLEM IN THE DB ?"
       );
-      it("AND I KEEP IT VERY STRING ON THE REFERENCE ?");
       it("should withdraw contract DPS tokens to owner account", async function () {
         // check initial DPS funds on the contract
         expect(

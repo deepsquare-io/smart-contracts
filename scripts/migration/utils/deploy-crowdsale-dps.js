@@ -1,17 +1,15 @@
 const crowdsaleDpsHelper = require("../../helpers/crowdsale-dps");
-const { dpsToken } = require("../../helpers/deep-square-token");
 
-async function setupCrowdsale(dbWallets, dps, usdtAddress, rate) {
+async function setupCrowdsale(dbWallets, dps, usdtAddress) {
   // deploy CrowdsaleDps
-  const crowdsaleDps = await crowdsaleDpsHelper.deploy(
-    rate,
+  const crowdsaleDps = await crowdsaleDpsHelper.deployMarch22(
     dps.address,
     usdtAddress,
     true
-    );
-    
-    // DPS grant access to Crowdsale address
-    await dps.grantAccess(crowdsaleDps.address);
+  );
+
+  // DPS grant access to Crowdsale address
+  await dps.grantAccess(crowdsaleDps.address);
   // add reference and send tokens to every wallet
   for (let i = 0; i < dbWallets.length; i++) {
     await crowdsaleDps.setReference(

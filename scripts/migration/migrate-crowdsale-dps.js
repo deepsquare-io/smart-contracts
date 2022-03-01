@@ -15,8 +15,6 @@ const { setupCrowdsale } = require("./utils/deploy-crowdsale-dps");
 const { getWallet } = require("./utils/get-wallet");
 
 async function main() {
-  // IMPORTANT CONSTANTS FOR DEPLOYMENT !
-  const RATE = 2; // TODO wrong rate
 
   const POSTCHECK_DATA_INTEGRITY = true;
   const SETUP_CROWDSALE = true;
@@ -26,7 +24,7 @@ async function main() {
 
   let USDT_ADDRESS = "";
   // DPS sends money to Crowdsale address
-  let dps; // dps contract TODO rename
+  let dps; // dps contract
 
   const wallets = getWallet();
   walletsMigrationUpdatePost(wallets);
@@ -70,7 +68,7 @@ async function main() {
   if (SETUP_CROWDSALE) {
     h1Separator();
     h1("LAUNCH CROWDSALE && SEND DPS TO WALLETS");
-    const crowdsaleDps = await setupCrowdsale(wallets, dps, USDT_ADDRESS, RATE);
+    const crowdsaleDps = await setupCrowdsale(wallets, dps, USDT_ADDRESS);
     await dps.transfer(crowdsaleDps.address, INITIAL_CROWDSALE_FUNDING_DPS);
     check(
       "Crowdsale DPS launched with " + INITIAL_CROWDSALE_FUNDING_DPS + " DPS"

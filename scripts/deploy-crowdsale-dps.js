@@ -4,9 +4,8 @@ const { crowdsaleDpsHelper } = require("./helpers/crowdsale-dps");
 async function main() {
   const USDT_ADDRESS = "";
   const DPS_ADDRESS = "";
-  const RATE = "";
   // deploy CrowdsaleDps
-  const crowdsaleDps = await crowdsaleDpsHelper.deploy(
+  const crowdsaleDps = await crowdsaleDpsHelper.deployMarch22(
     RATE,
     DPS_ADDRESS,
     USDT_ADDRESS,

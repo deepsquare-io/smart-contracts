@@ -82,6 +82,8 @@ contract CrowdsaleDps is Crowdsale {
         uint256 _tokenAmount, // TODO method is call transferTokens, but parameter does NOT represent tokens
         string memory _reference
     ) public payable onlyOwner {
+        // beneficiary cannot be the owner
+        require(_beneficiary != owner(), "CrowdsaleDps: caller cannot be the owner");
         // set reference if it does not exist yet
         if (_isAddressAndReferenceEmpty(_beneficiary, _reference)) {
             _setReference(_beneficiary, _reference);
@@ -161,7 +163,7 @@ contract CrowdsaleDps is Crowdsale {
     }
 
     /**
-     * @notice Reverts if reference is not registered correctly
+     * @notice Reverts if KYC reference does not match address
      * @param _to Address associated to KYC reference
      * @param _reference KYC reference associated to address
      */
@@ -174,7 +176,7 @@ contract CrowdsaleDps is Crowdsale {
 
         require(
             referenceMatch && addressMatch,
-            "CrowdsaleDps: caller is not KYC registered"
+            "CrowdsaleDps: KYC reference does not match address"
         );
     }
 

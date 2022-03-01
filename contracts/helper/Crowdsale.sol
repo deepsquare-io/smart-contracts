@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-
+import "hardhat/console.sol";
 // import "./ReentrancyGuard.sol";
 
 /**
@@ -34,7 +34,6 @@ contract Crowdsale is Context, Ownable {
     IERC20 public stableCoin;
 
     // How many token units a buyer gets per stableCoin unit. Watch out for the decimals difference.
-    // The rate is the conversion between the smallest stableCoin indivisible unit and the smallest and indivisible token unit.
     // So, if you are using a rate of 1 with a USDT token with 6 decimals, and a ERC20 token with 18 decimals
     // 10^-6 USDT will give you will give you 10^-18 Tokens
     // -> 1 USDT = 10^-12 tokens.
@@ -141,7 +140,7 @@ contract Crowdsale is Context, Ownable {
             _beneficiary != address(0),
             "Crowdsale: beneficiary is the zero address"
         );
-        require(_sbcAmount != 0, "Crowdsale: stableCoin amount is 0");
+        require(_sbcAmount > 0, "Crowdsale: stableCoin amount > 0");
         this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
         // TODO what is the line above ?
     }
