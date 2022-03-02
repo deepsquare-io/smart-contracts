@@ -1,13 +1,20 @@
-const { h1Separator, check } = require("../../helpers/misc");
+const {
+  h1Separator,
+  check,
+  e6,
+  e18,
+  bigNumberEqual,
+} = require("../../helpers/misc");
+const { BigNumber } = require("ethers");
 function precheckDataIntegrity(dbWallets, ethWallets, ethWalletContract) {
   h1Separator();
   console.log("\n*** CHECK DATA INTEGRITY ***\n");
   // check sum of DPS is 210 millions
-  const sumDps =
-    ethWallets.reduce((sum, item) => {
-      return sum + item.value;
-    }, 0) + ethWalletContract.value;
-  if (sumDps !== 210000000) {
+  const sumDps = ethWallets.reduce((sum, item) => {
+    return sum.add(item.value);
+  }, ethWalletContract.value);
+
+  if (!bigNumberEqual(sumDps, BigNumber.from(210).mul(e6).mul(e18))) {
     throw Error(
       "Check : sum of etherscan wallets is not 210 million tokens : " + sumDps
     );
@@ -51,7 +58,7 @@ function precheckDataIntegrity(dbWallets, ethWallets, ethWalletContract) {
   });
 
   dbWallets.forEach((v) => {
-    if (ethMap.get(v.address).value != v.value) {
+    if (ethMap.get(v.address).value.sub(v.value) === 0) {
       throw Error(
         "ETH / DB value mismatch on address " +
           v.address +

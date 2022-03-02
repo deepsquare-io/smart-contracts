@@ -17,6 +17,7 @@ const dpsToken = (value) => {
   return BigNumber.from(value).mul(e18);
 };
 
+
 module.exports = {
   deployDeepSquareToken,
   dpsToken,

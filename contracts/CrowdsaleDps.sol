@@ -4,8 +4,6 @@ pragma solidity ^0.8.1;
 import "./helper/Crowdsale.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-// TODO remove console.sol later on
-import "hardhat/console.sol";
 
 import "./IDeepSquareToken.sol";
 
@@ -79,7 +77,7 @@ contract CrowdsaleDps is Crowdsale {
      */
     function transferTokensViaReference(
         address _beneficiary,
-        uint256 _tokenAmount, // TODO method is call transferTokens, but parameter does NOT represent tokens
+        uint256 _tokenAmount,
         string memory _reference
     ) public payable onlyOwner {
         // beneficiary cannot be the owner

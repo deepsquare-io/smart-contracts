@@ -4,6 +4,9 @@ const { precheckDataIntegrity } = require("./precheck-data-integrity");
 const { walletsMigrationUpdatePre } = require("./wallets-migration-update");
 
 const { ethers } = require("hardhat");
+const { BigNumber } = require("ethers");
+const { e6 } = require("../../helpers/misc");
+const { dpsTokenDev } = require("./misc-migration");
 function getWallet() {
   const TEMP_UPDATES_MIGRATION = true;
 
@@ -11,7 +14,7 @@ function getWallet() {
     .map((v) => {
       return {
         address: ethers.utils.getAddress(v.address),
-        value: parseFloat(v.balance_uDPS) / 10 ** 6,
+        value: dpsTokenDev(BigNumber.from(v.balance_uDPS).div(e6)),
         reference: v.reference,
       };
     })
@@ -20,11 +23,11 @@ function getWallet() {
       return v.value != 0; // not !== because we deal with bigNumber
     });
 
-  // map with checkSum
+  // map with checkSum and BigNumber
   ethWalletsFile = ethWalletsFile.map((v) => {
     return {
       address: ethers.utils.getAddress(v.address),
-      value: v.value,
+      value: dpsTokenDev(v.value),
     };
   });
 
@@ -35,12 +38,12 @@ function getWallet() {
     walletsMigrationUpdatePre(dbWallets, ethWallets, ethWalletContract);
   }
 
-  const wallet = precheckDataIntegrity(
+  const wallets = precheckDataIntegrity(
     dbWallets,
     ethWallets,
     ethWalletContract
   );
-  return wallet;
+  return { wallets: wallets, owner: ethWalletContract };
 }
 
 module.exports = {

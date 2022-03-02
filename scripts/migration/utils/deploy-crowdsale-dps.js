@@ -1,6 +1,6 @@
 const crowdsaleDpsHelper = require("../../helpers/crowdsale-dps");
 
-async function setupCrowdsale(dbWallets, dps, usdtAddress) {
+async function setupCrowdsale(wallets, dps, usdtAddress, crowdsaleFunding) {
   // deploy CrowdsaleDps
   const crowdsaleDps = await crowdsaleDpsHelper.deployMarch22(
     dps.address,
@@ -10,17 +10,13 @@ async function setupCrowdsale(dbWallets, dps, usdtAddress) {
 
   // DPS grant access to Crowdsale address
   await dps.grantAccess(crowdsaleDps.address);
-  // add reference and send tokens to every wallet
-  for (let i = 0; i < dbWallets.length; i++) {
-    await crowdsaleDps.setReference(
-      dbWallets[i].address,
-      dbWallets[i].reference
-    );
+  // Transfer fundings
+  await dps.transfer(crowdsaleDps.address, crowdsaleFunding);
 
-    // transfer money
-    // TODO: WATCH OUT !!! MATHIEU DPS TOKENS HOW MANY DECIMALS ?
-
-    await dps.transfer(dbWallets[i].address, dbWallets[i].value);
+  // add reference and transfer tokens to every wallet
+  for (const address of wallets.keys()) {
+    await crowdsaleDps.setReference(address, wallets.get(address).reference);
+    await dps.transfer(address, wallets.get(address).value);
   }
 
   return crowdsaleDps;
