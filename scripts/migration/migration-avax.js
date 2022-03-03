@@ -27,7 +27,7 @@ const { BigNumber } = require("ethers");
 const { networkEnvironment } = require("./utils/network-environment");
 
 async function main() {
-  const INITIAL_CROWDSALE_FUNDING_DPS = dpsToken(7000000);
+  const INITIAL_CROWDSALE_FUNDING_DPS = dpsToken(7000000); // TODO MAINNET, I NEED THE CORRECT AMOUNT !!
   let USDT_ADDRESS = networkEnvironment()?.usdt;
   const DPS_ADDRESS = networkEnvironment()?.dps;
 

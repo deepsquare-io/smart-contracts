@@ -4,8 +4,8 @@ const networkEnvironment = function () {
   const networks = [
     {
       network: "fuji",
-      usdt: "0xAF82969ECF299c1f1Bb5e1D12dDAcc9027431160", // USDC.E testnet
-      dps: "0x0ecce311a56cf2529348cc43a33e13f6dc07ca06",
+      usdt: "",
+      dps: "", // "0x41393c11206c8996cf64ad46e80f0d1ad752b8df",
     },
     {
       network: "mainnet",
