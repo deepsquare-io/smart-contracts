@@ -1,7 +1,8 @@
 const { ethers } = require("hardhat");
 const { randomBytes } = require("ethers/lib/utils");
-
+const BigNumber = ethers.BigNumber;
 const FakeUSDT = ethers.getContractFactory("BridgeToken");
+const e6 = BigNumber.from(10).pow(6);
 
 // Deploy USDT contract
 async function deploy(showLogs = false) {
@@ -25,8 +26,14 @@ async function attach(address) {
 async function mint(usdtContract, address, amount) {
   return usdtContract.mint(address, amount, address, 0, randomBytes(32));
 }
+
+const token = (value) => {
+  return BigNumber.from(value).mul(e6);
+};
+
 module.exports = {
   deploy,
   attach,
   mint,
+  token,
 };
