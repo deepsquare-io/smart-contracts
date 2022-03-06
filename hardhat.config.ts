@@ -64,16 +64,16 @@ module.exports = {
         '0x750839e9dbbd2a0910efe40f50b2f3b2f2f59f5580bb4b83bd8c1201cf9a010a',
       ],
     },
-    fuji: {
-      url: 'https://api.avax-test.network/ext/bc/C/rpc', // Public Avalanche testnet
-      gasPrice: 225000000000,
-      chainId: 43113,
-      accounts: [
-        process.env.TEST_ACCOUNT_1_PRIVATE_KEY,
-        process.env.TEST_ACCOUNT_2_PRIVATE_KEY,
-        process.env.TEST_ACCOUNT_3_PRIVATE_KEY,
-      ], // Use your account private key on the Avalanche testnet
-    },
+    // fuji: {
+    //   url: 'https://api.avax-test.network/ext/bc/C/rpc', // Public Avalanche testnet
+    //   gasPrice: 225000000000,
+    //   chainId: 43113,
+    //   accounts: [
+    //     process.env.TEST_ACCOUNT_1_PRIVATE_KEY,
+    //     process.env.TEST_ACCOUNT_2_PRIVATE_KEY,
+    //     process.env.TEST_ACCOUNT_3_PRIVATE_KEY,
+    //   ], // Use your account private key on the Avalanche testnet
+    // },
     /*
     mainnet: {
       url: "https://api.avax.network/ext/bc/C/rpc", // Public Avalanche mainnet
