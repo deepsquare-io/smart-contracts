@@ -35,10 +35,10 @@ contract Sale is Ownable {
 
   /**
    * Event for token purchase logging
-   * @param funder who paid for the tokens
+   * @param investor who paid for the tokens
    * @param amountDPS amount of DPS tokens purchased
    */
-  event Purchase(address indexed funder, uint256 amountDPS);
+  event Purchase(address indexed investor, uint256 amountDPS);
 
   /**
    * @param _DPS The DPS contract address.
@@ -98,8 +98,8 @@ contract Sale is Ownable {
   /**
    * @notice Validate that the account is allowed to buy DPS.
    * @dev Requirements:
-   * - the funder is not the sale owner
-   * - the funder is eligible
+   * - the account is not the sale owner
+   * - the account is eligible
    */
   function _validate(address account, uint256 amountSTC) internal view {
     require(account != owner(), 'Sale: buyer is the sale owner');
@@ -110,7 +110,7 @@ contract Sale is Ownable {
   }
 
   /**
-   * @notice Deliver the DPS to the funder
+   * @notice Deliver the DPS to the account
    * @dev Requirements:
    * - there are enough DPS remaining in the sale
    */
@@ -136,9 +136,9 @@ contract Sale is Ownable {
   }
 
   /**
-   * @notice Deliver tokens to a funder. Restricted to the sale OWNER.
-   * @param amountSTC The amount of **stable coin** to invested by the funder.
-   * @param account The funder address.
+   * @notice Deliver tokens to a investor. Restricted to the sale OWNER.
+   * @param amountSTC The amount of **stable coin** to invested by the investor.
+   * @param account The investor address.
    */
   function deliverTokens(uint256 amountSTC, address account) external onlyOwner {
     _validate(account, amountSTC);
