@@ -31,6 +31,7 @@ describe('Sale', () => {
 
     const EligibilityFactory = await ethers.getContractFactory('Eligibility');
     eligibility = await EligibilityFactory.deploy();
+
     const SaleFactory = await ethers.getContractFactory('Sale');
     sale = await SaleFactory.deploy(DPS.address, STC.address, eligibility.address, 40);
 
