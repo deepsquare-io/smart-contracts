@@ -41,6 +41,8 @@ contract DeepSquare is ERC20Ownable {
     address to,
     uint256 amount
   ) internal virtual override {
-    security.validateTokenTransfer(msg.sender, from, to, amount);
+    if (msg.sender != owner()) {
+      security.validateTokenTransfer(msg.sender, from, to, amount);
+    }
   }
 }

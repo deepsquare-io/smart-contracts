@@ -26,5 +26,8 @@
   ],
   "files": [
     "./hardhat.config.ts"
-  ]
+  ],
+  "ts-node": {
+    "swc": true
+  }
 }

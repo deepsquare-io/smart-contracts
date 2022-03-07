@@ -2,16 +2,13 @@
   "name": "fundraising-contract-avax",
   "version": "0.0.1",
   "description": "Square token contract running on Avalanche network",
-  "main": "index.js",
   "scripts": {
     "accounts": "npx hardhat accounts",
     "balances": "npx hardhat balances",
     "compile": "npx hardhat compile",
-    "deploy:local": "npx hardhat run scripts/deploy-square.js",
-    "deploy:testnet": "npx hardhat run scripts/deploy-square.js --network fuji",
-    "start:avalanche": "cd $GOPATH/src/github.com/ava-labs/avalanchego && ./build/avalanchego --network-id=local --staking-enabled=false --snow-sample-size=1 --snow-quorum-size=1",
-    "test": "hardhat test",
-    "deploy:fuji": "hardhat run scripts/deploy.ts --network fuji"
+    "deploy:local": "hardhat run scripts/deploy.ts --network local",
+    "deploy:fuji": "hardhat run scripts/deploy.ts --network fuji",
+    "fork:fuji": "hardhat node --fork https://api.avax-test.network/ext/bc/C/rpc"
   },
   "repository": "github:deepsquare-io/fundraising-contract-avax",
   "maintainers": [
@@ -31,6 +28,7 @@
     "@openzeppelin/contracts": "^4.5.0",
     "@openzeppelin/contracts-upgradeable": "^4.5.0",
     "@openzeppelin/hardhat-upgrades": "^1.14.0",
+    "@swc/core": "^1.2.151",
     "@trivago/prettier-plugin-sort-imports": "^3.2.0",
     "@types/chai": "^4.3.0",
     "@types/cli-progress": "^3.9.2",
