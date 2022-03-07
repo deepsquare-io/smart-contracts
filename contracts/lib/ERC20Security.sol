@@ -2,26 +2,26 @@
 pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import './DeepSquare.sol';
+import './ERC20Ownable.sol';
 
 /**
  * @dev Basic interface which controls if a DPS transfer should be authorized.
  */
-abstract contract DeepSquareSecurity {
-  DeepSquare DPS;
+abstract contract ERC20Security {
+  ERC20Ownable token;
 
   /**
-   * @param _DPS The DPS contract.
+   * @param _token The ERC20Ownable contract.
    */
-  constructor(DeepSquare _DPS) {
-    DPS = _DPS;
+  constructor(ERC20Ownable _token) {
+    token = _token;
   }
 
   /**
    * @dev Restrict a call to the DeepSquare contract.
    */
-  modifier onlyDeepSquare() {
-    require(msg.sender == address(DPS), 'DeepSquareSecurity: only the DeepSquare contract can be the sender');
+  modifier onlyERC20() {
+    require(msg.sender == address(token), 'ERC20Security: only the configured ERC20 contract can be the sender');
     _;
   }
 

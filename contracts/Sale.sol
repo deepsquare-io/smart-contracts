@@ -6,6 +6,7 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import './Eligibility.sol';
+import './lib/ERC20Ownable.sol';
 
 /**
  * @title Sale
@@ -16,9 +17,10 @@ import './Eligibility.sol';
  */
 contract Sale is Ownable {
   using SafeERC20 for ERC20;
+  using SafeERC20 for ERC20Ownable;
 
   /// @dev The DPS contract being sold.
-  ERC20 public DPS;
+  ERC20Ownable public DPS;
 
   /// @dev The stable coin ERC contract.
   ERC20 public STC;
@@ -47,7 +49,7 @@ contract Sale is Ownable {
    * @param _initialSold How much DPS were already sold.
    */
   constructor(
-    ERC20 _DPS,
+    ERC20Ownable _DPS,
     ERC20 _STC,
     Eligibility _eligibility,
     uint8 _rate,
@@ -146,5 +148,10 @@ contract Sale is Ownable {
     require(DPS.balanceOf(address(this)) >= amountDPS, 'Sale: no enough tokens remaining');
 
     _transferDPS(account, amountDPS);
+  }
+
+  function close() external onlyOwner {
+    _transferDPS(DPS.owner(), DPS.balanceOf(address(this)));
+    renounceOwnership();
   }
 }
