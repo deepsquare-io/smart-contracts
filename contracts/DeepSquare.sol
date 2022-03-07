@@ -17,14 +17,14 @@ contract DeepSquare is ERC20Ownable {
   ERC20Security security;
 
   /**
-   * @dev Instantiate the contract. The deployer account is automatically granted the DEFAULT_ADMIN_ROLE and SPENDER roles.
+   * @notice Instantiate the contract.  The deployer is allowed to mint 210M DPS.
    */
   constructor() ERC20('DeepSquare', 'DPS') {
     _mint(msg.sender, 210 * 1e6 * 1e18); // 210,000,000 wei = 210 millions token with 18 decimals
   }
 
   /**
-   * @dev Set the security contract.
+   * @notice Set the security contract. Restricted to the owner.
    */
   function setSecurity(ERC20Security newSecurity) external onlyOwner {
     security = newSecurity;
@@ -32,6 +32,9 @@ contract DeepSquare is ERC20Ownable {
 
   /**
    * @dev Forward the _beforeTokenTransfer hook to the DeepSquareSecurity which will validate the token transfer.
+   * @param from The account from where the tokens will be taken.
+   * @param to The account where the tokens will be sent.
+   * @param amount The token amount.
    */
   function _beforeTokenTransfer(
     address from,

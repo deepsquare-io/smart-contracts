@@ -11,8 +11,7 @@ import './lib/ERC20Ownable.sol';
 /**
  * @title Sale
  * @author Julien Schneider, Mathieu Bour
- * @dev Initially based on the OpenZeppelin contract in v2.5.
- * This contract allows to conduct a sale which tokens are raised in exchange of stable coin (for example, USDT or
+ * @notice Allows to conduct a sale which tokens are raised in exchange of stable coin (for example, USDT or
  * USDC).
  */
 contract Sale is Ownable {
@@ -22,7 +21,7 @@ contract Sale is Ownable {
   /// @dev The DPS contract being sold.
   ERC20Ownable public DPS;
 
-  /// @dev The stable coin ERC contract.
+  /// @dev The stable coin ERC20 contract.
   ERC20 public STC;
 
   // @dev The eligibility contract
@@ -67,8 +66,8 @@ contract Sale is Ownable {
   }
 
   /**
-   * @dev Convert an amount of stable coin in DPS.
-   * Maximum possible working value is 210M DPS * 1e18 * 1e6 = 210e30
+   * @notice Convert an amount of stable coin in DPS.
+   * @dev Maximum possible working value is 210M DPS * 1e18 * 1e6 = 210e30
    * log2(210e30) ~= 107 => this should not overflow.
    */
   function convertSTCtoDPS(uint256 amountSTC) public view returns (uint256) {
@@ -76,7 +75,7 @@ contract Sale is Ownable {
   }
 
   /**
-   * @dev Convert an amount of DPS in stable coin.
+   * @notice Convert an amount of DPS in stable coin.
    */
   function convertDPStoSTC(uint256 amountDPS) public view returns (uint256) {
     return (amountDPS * (10**STC.decimals()) * rate) / 100 / (10**DPS.decimals());
@@ -97,8 +96,8 @@ contract Sale is Ownable {
   }
 
   /**
-   * @dev Validate that the account is allowed to buy DPS.
-   * Requirements:
+   * @notice Validate that the account is allowed to buy DPS.
+   * @dev Requirements:
    * - the funder is not the sale owner
    * - the funder is eligible
    */
@@ -111,8 +110,8 @@ contract Sale is Ownable {
   }
 
   /**
-   * @dev Deliver the DPS to the funder
-   * Requirements:
+   * @notice Deliver the DPS to the funder
+   * @dev Requirements:
    * - there are enough DPS remaining in the sale
    */
   function _transferDPS(address account, uint256 amountDPS) internal {
@@ -123,7 +122,7 @@ contract Sale is Ownable {
   }
 
   /**
-   * @dev Exchange stable coin with DPS tokens.
+   * @notice Exchange stable coin with DPS tokens.
    * @param amountSTC The amount of **stable coin** to invest.
    */
   function buyTokens(uint256 amountSTC) external {
@@ -137,7 +136,7 @@ contract Sale is Ownable {
   }
 
   /**
-   * @dev Deliver tokens to a funder. Restricted to the sale OWNER.
+   * @notice Deliver tokens to a funder. Restricted to the sale OWNER.
    * @param amountSTC The amount of **stable coin** to invested by the funder.
    * @param account The funder address.
    */
@@ -150,6 +149,9 @@ contract Sale is Ownable {
     _transferDPS(account, amountDPS);
   }
 
+  /**
+   * @notice Close the sale by sending the remaining tokens back to the owner and then renouncing ownership.
+   */
   function close() external onlyOwner {
     _transferDPS(DPS.owner(), DPS.balanceOf(address(this)));
     renounceOwnership();

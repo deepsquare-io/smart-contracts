@@ -16,22 +16,17 @@ contract Eligibility is AccessControl {
   }
 
   /**
-   * @dev Map KYC tiers with their limits in USD. Zero means no-limit.
+   * @notice Map KYC tiers with their limits in USD. Zero means no-limit.
    */
   mapping(uint8 => uint256) public limits;
 
   /**
-   * @dev Map accounts to a KYC tier.
+   * @notice Map accounts to a KYC tier.
    */
   mapping(address => Result) public results;
 
   /**
-   * @dev The OWNER role which defines which account is allowed to grant the WRITE role.
-   */
-  bytes32 public constant OWNER = keccak256('OWNER');
-
-  /**
-   * @dev The WRITER rol which defines which account is allowed to write the KYC information.
+   * @notice The WRITER rol which defines which account is allowed to write the KYC information.
    */
   bytes32 public constant WRITER = keccak256('WRITER');
 
@@ -40,8 +35,8 @@ contract Eligibility is AccessControl {
    */
   constructor() {
     // Define the roles
-    _setRoleAdmin(WRITER, OWNER);
-    _grantRole(OWNER, msg.sender);
+    _setRoleAdmin(WRITER, DEFAULT_ADMIN_ROLE);
+    _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     _grantRole(WRITER, msg.sender);
 
     // Configure the default limits
@@ -50,21 +45,21 @@ contract Eligibility is AccessControl {
   }
 
   /**
-   * @dev Get the limit of a KYC tier, zero means that there is no limit.
+   * @notice Get the limit of a KYC tier, zero means that there is no limit.
    */
   function limit(uint8 tier) external view returns (uint256) {
     return limits[tier];
   }
 
   /**
-   * @dev Set the limit of a KYC tier, zero means that there is no limit. Restricted to the OWNER role.
+   * @notice Set the limit of a KYC tier, zero means that there is no limit. Restricted to the OWNER role.
    */
-  function setLimit(uint8 tier, uint256 newLimit) public onlyRole(OWNER) {
+  function setLimit(uint8 tier, uint256 newLimit) public onlyRole(DEFAULT_ADMIN_ROLE) {
     limits[tier] = newLimit;
   }
 
   /**
-   * @dev Get the latest KYC result of an account.
+   * @notice Get the latest KYC result of an account.
    * @param account the account to check
    */
   function result(address account) external view returns (Result memory) {
@@ -72,7 +67,7 @@ contract Eligibility is AccessControl {
   }
 
   /**
-   * @dev Set the latest KYC result of an account. Restricted to the WRITER role.
+   * @notice Set the latest KYC result of an account. Restricted to the WRITER role.
    */
   function setResult(address account, Result memory _result) external onlyRole(WRITER) {
     results[account] = _result;
