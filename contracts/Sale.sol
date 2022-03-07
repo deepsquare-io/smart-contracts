@@ -44,12 +44,14 @@ contract Sale is Ownable {
    * @param _STC The stable coin ERC20 contract address (USDT, USDC, etc.).
    * @param _eligibility The eligibility contract.
    * @param _rate The DPS/STC rate in STC cents.
+   * @param _initialSold How much DPS were already sold.
    */
   constructor(
     ERC20 _DPS,
     ERC20 _STC,
     Eligibility _eligibility,
-    uint8 _rate
+    uint8 _rate,
+    uint256 _initialSold
   ) {
     require(address(_DPS) != address(0), 'Sale: token is the zero address');
     require(address(_STC) != address(0), 'Sale: stable coin is the zero address');
@@ -59,10 +61,7 @@ contract Sale is Ownable {
     STC = _STC;
     eligibility = _eligibility;
     rate = _rate;
-  }
-
-  function remaining() external view returns (uint256) {
-    return DPS.balanceOf(address(this));
+    sold = _initialSold;
   }
 
   /**
@@ -79,6 +78,20 @@ contract Sale is Ownable {
    */
   function convertDPStoSTC(uint256 amountDPS) public view returns (uint256) {
     return (amountDPS * (10**STC.decimals()) * rate) / 100 / (10**DPS.decimals());
+  }
+
+  /**
+   * @notice Get the raised stable coin amount.
+   */
+  function raised() external view returns (uint256) {
+    return convertDPStoSTC(sold);
+  }
+
+  /**
+   * @notice The remaining DPS in the sale.
+   */
+  function remaining() external view returns (uint256) {
+    return DPS.balanceOf(address(this));
   }
 
   /**
@@ -101,8 +114,6 @@ contract Sale is Ownable {
    * - there are enough DPS remaining in the sale
    */
   function _transferDPS(address account, uint256 amountDPS) internal {
-    require(DPS.balanceOf(address(this)) >= amountDPS, 'Sale: no enough tokens remaining');
-
     DPS.safeTransfer(account, amountDPS);
     sold += amountDPS;
 
@@ -115,7 +126,10 @@ contract Sale is Ownable {
    */
   function buyTokens(uint256 amountSTC) external {
     _validate(msg.sender, amountSTC);
+
     uint256 amountDPS = convertSTCtoDPS(amountSTC);
+    require(DPS.balanceOf(address(this)) >= amountDPS, 'Sale: no enough tokens remaining');
+
     STC.safeTransferFrom(msg.sender, owner(), amountSTC);
     _transferDPS(msg.sender, amountDPS);
   }
@@ -127,7 +141,10 @@ contract Sale is Ownable {
    */
   function deliverTokens(uint256 amountSTC, address account) external onlyOwner {
     _validate(account, amountSTC);
+
     uint256 amountDPS = convertSTCtoDPS(amountSTC);
+    require(DPS.balanceOf(address(this)) >= amountDPS, 'Sale: no enough tokens remaining');
+
     _transferDPS(account, amountDPS);
   }
 }

@@ -17,6 +17,7 @@ describe('Sale', () => {
   let agentSTC: ERC20Agent;
 
   const INITIAL_ROUND = ethers.utils.parseUnits('7000000', 18); // 7M DPS
+  const SPENDER_ROLE = ethers.utils.id('SPENDER');
 
   beforeEach(async () => {
     [owner, kycWriter, ...accounts] = await ethers.getSigners();
@@ -33,11 +34,11 @@ describe('Sale', () => {
     eligibility = await EligibilityFactory.deploy();
 
     const SaleFactory = await ethers.getContractFactory('Sale');
-    sale = await SaleFactory.deploy(DPS.address, STC.address, eligibility.address, 40);
+    sale = await SaleFactory.deploy(DPS.address, STC.address, eligibility.address, 40, 0);
 
     // Initial funding of the sale contract
     await DPS.transfer(sale.address, INITIAL_ROUND);
-    await DPS.grantRole(ethers.utils.id('SPENDER'), sale.address);
+    await DPS.grantRole(SPENDER_ROLE, sale.address);
   });
 
   describe('concertSTCtoDPS', () => {
@@ -69,6 +70,9 @@ describe('Sale', () => {
       // Prepare the account
       await agentSTC.transfer(accounts[0], 1000);
 
+      // Mark accounts as eligible
+      await eligibility.setResult({});
+
       // Approve the stableCoin
       await STC.connect(accounts[0]).approve(sale.address, agentSTC.parseUnit(100000));
 
@@ -81,5 +85,10 @@ describe('Sale', () => {
       await agentDPS.expectBalanceOf(accounts[0], 2500);
       await agentSTC.expectBalanceOf(accounts[0], 0);
     });
+  });
+
+  it('should prevent non-eligible accounts to buy DPS', async () => {
+    await agentSTC.transfer(accounts[0], 1000);
+    await STC.connect(accounts[0]).approve(sale.address, agentSTC.parseUnit(100000));
   });
 });
