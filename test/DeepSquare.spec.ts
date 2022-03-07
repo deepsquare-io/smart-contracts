@@ -19,11 +19,14 @@ describe('DeepSquare', async () => {
   beforeEach(async () => {
     [deployer, sale, ...accounts] = await ethers.getSigners();
 
+
+    const SecurityFactory = await ethers.getContractFactory('SpenderSecurity');
+    const security = await SecurityFactory.deploy();
+    
     const DeepSquareFactory = await ethers.getContractFactory('DeepSquare');
-    DPS = await DeepSquareFactory.deploy();
+    DPS = await DeepSquareFactory.deploy(security.address);
     agentDPS = createERC20Agent(DPS);
 
-    await DPS.grantRole(SPENDER_ROLE, deployer.address);
   });
 
   describe('constructor', () => {
@@ -31,9 +34,6 @@ describe('DeepSquare', async () => {
       await agentDPS.expectBalanceOf(deployer, DPS_TOTAL_SUPPLY);
     });
 
-    it('should grant the ADMIN role to the deployer', async () => {
-      expect(await DPS.hasRole(DEFAULT_ADMIN_ROLE, deployer.address)).to.be.true;
-    });
   });
 
   describe('transfer', () => {
