@@ -19,7 +19,8 @@ contract DeepSquare is ERC20Ownable {
   /**
    * @notice Instantiate the contract.  The deployer is allowed to mint 210M DPS.
    */
-  constructor() ERC20('DeepSquare', 'DPS') {
+  constructor(ERC20Security initialSecurity) ERC20('DeepSquare', 'DPS') {
+    security = initialSecurity;
     _mint(msg.sender, 210 * 1e6 * 1e18); // 210,000,000 wei = 210 millions token with 18 decimals
   }
 

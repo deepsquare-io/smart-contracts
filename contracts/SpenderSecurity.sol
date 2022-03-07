@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/access/AccessControl.sol';
-import './lib/ERC20Ownable.sol';
 import './lib/ERC20Security.sol';
 
 /**
@@ -14,10 +13,7 @@ contract SpenderSecurity is ERC20Security, AccessControl {
   /// @dev The spender is allow to send his tokens to someone else, but not to move someone else DPS tokens
   bytes32 public constant SPENDER = keccak256('SPENDER');
 
-  /**
-   * @param _token The ERC20Ownable token to work with.
-   */
-  constructor(ERC20Ownable _token) ERC20Security(_token) {
+  constructor() ERC20Security() {
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     _grantRole(SPENDER, msg.sender);
   }
@@ -35,14 +31,9 @@ contract SpenderSecurity is ERC20Security, AccessControl {
     address from,
     address, // to, might be unused in another security contract in the future
     uint256 // amount, might be unused in another security contract in the future
-  ) public view override onlyERC20 {
-    // owner is allowed to call transferFrom(from, to, amount)
+  ) public view override {
     // spenders are allowed to call transfer(to, amount)
-    require(
-      sender == token.owner() || sender == from,
-      'SpenderSecurity: sender is not the DPS owner and tries to move funds'
-    );
-
     _checkRole(SPENDER, sender);
+    require(sender == from, 'SpenderSecurity: cannot move tokens from another account');
   }
 }
