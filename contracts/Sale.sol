@@ -3,9 +3,8 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./Eligibility.sol";
 
 /**
@@ -15,65 +14,75 @@ import "./Eligibility.sol";
  * USDC).
  */
 contract Sale is Ownable {
-  using SafeMath for uint256;
-  using SafeERC20 for IERC20;
+  using SafeERC20 for ERC20;
 
-  // The token being sold
-  IERC20 public token;
+  /// @dev The DPS contract being sold.
+  ERC20 public DPS;
 
-  // The stable coin used
-  IERC20 public stableCoin;
+  /// @dev The stable coin ERC contract.
+  ERC20 public STC;
 
-  // How many token units a buyer gets per stableCoin unit. Watch out for the decimals difference.
-  // So, if you are using a rate of 1 with a USDT token with 6 decimals, and a ERC20 token with 18 decimals
-  // 10^-6 USDT will give you will give you 10^-18 Tokens
-  // -> 1 USDT = 10^-12 tokens.
-  uint256 public rate;
-
-  // The eligibility contract
+  // @dev The eligibility contract
   Eligibility public eligibility;
 
+  /// @dev How many cents costs a DPS (for example, 40 means that a DPS costs 0.40 STC).
+  uint8 public rate;
+
+  /// @dev How much DPS token were sold.
   uint256 public sold;
 
-  // Amount of stableCoins raised
-  uint256 public sbcRaised;
+  /// @dev How much STC were raised.
+  uint256 public raised;
+
 
   /**
    * Event for token purchase logging
-   * @param _purchaser who paid for the tokens
-     * @param _amount amount of tokens purchased
-     */
-  event TokenPurchased(
-    address indexed _purchaser,
-    uint256 _amount
+   * @param funder who paid for the tokens
+   * @param amountDPS amount of DPS tokens purchased
+   */
+  event Purchase(
+    address indexed funder,
+    uint256 amountDPS
   );
 
   /**
+   * @param _DPS The DPS contract address.
+   * @param _STC The stable coin ERC20 contract address (USDT, USDC, etc.).
+   * @param _eligibility The eligibility contract.
+   * @param _rate The DPS/STC rate in STC cents.
    */
   constructor(
-    IERC20 _token,
-    IERC20 _stableCoin,
-    Eligibility _eligible,
-    uint256 _rate
+    ERC20 _DPS,
+    ERC20 _STC,
+    Eligibility _eligibility,
+    uint8 _rate
   ) {
-    require(_rate > 0, "Crowdsale: rate is 0");
-    require(address(_token) != address(0), "Crowdsale: token is the zero address");
+    require(address(_DPS) != address(0), "Sale: token is the zero address");
+    require(address(_STC) != address(0), "Sale: stable coin is the zero address");
+    require(_rate > 0, "Sale: rate is 0");
 
-    token = _token;
-    stableCoin = _stableCoin;
-    eligibility = _eligible;
+    DPS = _DPS;
+    STC = _STC;
+    eligibility = _eligibility;
     rate = _rate;
   }
 
   function remaining() external view returns (uint) {
-    return token.balanceOf(address(this));
+    return DPS.balanceOf(address(this));
   }
 
   /**
    * @dev Convert an amount of stable coin in DPS.
    */
-  function convert(uint amountSTC) public view returns (uint) {
-    return amountSTC * rate;
+  function convertSTCtoDPS(uint amountSTC) public view returns (uint) {
+    return amountSTC * (10 ** DPS.decimals()) * 100 / rate / (10 ** STC.decimals());
+  }
+
+  /**
+   * @dev Convert an amount of DPS in stable coin.
+   */
+  function convertDPStoSTC(uint amountDPS) public view returns (uint) {
+    return amountDPS * (10 ** STC.decimals()) * rate / 100 / (10 ** DPS.decimals());
   }
 
   /**
@@ -83,16 +92,22 @@ contract Sale is Ownable {
   function buyTokens(uint256 amountSTC) external {
     address _funder = msg.sender;
     address _owner = owner();
+    uint256 amountDPS = convertSTCtoDPS(amountSTC);
 
     // Validate the sender
     require(_funder != _owner, "Sale: buyer is the sale owner");
 
-    // calculate token amount to be created
-    uint256 amountDPS = amountSTC.mul(rate);
-    require(token.balanceOf(address(this)) >= amountDPS, "Sale: sale has ended");
+    // Validate the KYC limits
+    // require(token.balanceOf(_funder) + )
 
-    stableCoin.safeTransferFrom(_funder, _owner, amountSTC);
-    token.safeTransfer(_funder, amountDPS);
-    emit TokenPurchased(_funder, amountDPS);
+    // Validate that we can deliver enough tokens
+    require(DPS.balanceOf(address(this)) >= amountDPS, "Sale: no enough tokens remaining");
+
+    STC.safeTransferFrom(_funder, _owner, amountSTC);
+    DPS.safeTransfer(_funder, amountDPS);
+    sold += amountDPS;
+    raised += amountSTC;
+
+    emit Purchase(_funder, amountDPS);
   }
 }

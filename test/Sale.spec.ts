@@ -1,8 +1,8 @@
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { BigNumber, Contract } from 'ethers';
 import { ethers } from 'hardhat';
-import { ether, usdc } from './utils';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { createERC20Agent, ERC20Agent } from './utils/ERC20';
 
 describe('Sale', () => {
   let owner: SignerWithAddress;
@@ -13,27 +13,48 @@ describe('Sale', () => {
   let eligibility: Contract;
   let sale: Contract;
 
+  let agentDPS: ERC20Agent;
+  let agentSTC: ERC20Agent;
+
   const INITIAL_ROUND = ethers.utils.parseUnits('7000000', 18); // 7M DPS
 
   beforeEach(async () => {
     [owner, kycWriter, ...accounts] = await ethers.getSigners();
 
-    const DeepSquareTokenFactory = await ethers.getContractFactory('DeepSquareToken');
-    DPS = await DeepSquareTokenFactory.deploy();
-    const ERC20Factory = await ethers.getContractFactory('TestERC20');
-    STC = await ERC20Factory.deploy(ether(10e9));
+    const DeepSquareFactory = await ethers.getContractFactory('DeepSquare');
+    DPS = await DeepSquareFactory.deploy();
+    agentDPS = createERC20Agent(DPS);
+
+    const TestERC20Factory = await ethers.getContractFactory('TestERC20');
+    STC = await TestERC20Factory.deploy(BigNumber.from(1e9).mul(1e6)); // 1 billion STC
+    agentSTC = createERC20Agent(STC);
+
     const EligibilityFactory = await ethers.getContractFactory('Eligibility');
     eligibility = await EligibilityFactory.deploy();
     const SaleFactory = await ethers.getContractFactory('Sale');
-    sale = await SaleFactory.deploy(DPS.address, STC.address, eligibility.address, BigNumber.from(2.5e12));
-
-    // 1000e6
-    // 2.5
-    // 2500e18
+    sale = await SaleFactory.deploy(DPS.address, STC.address, eligibility.address, 40);
 
     // Initial funding of the sale contract
-    await DPS.transferFrom(owner.address, sale.address, INITIAL_ROUND);
-    await DPS.addSpender(sale.address);
+    await DPS.transfer(sale.address, INITIAL_ROUND);
+    await DPS.grantRole(ethers.utils.id('SPENDER'), sale.address);
+  });
+
+  describe('concertSTCtoDPS', () => {
+    [
+      [1000, 2500],
+      [5000, 12500],
+    ].forEach(([amountSTC, amountDPS]) => {
+      const parsedSTC = ethers.utils.parseUnits(amountSTC.toString(), 6);
+      const parsedDPS = ethers.utils.parseUnits(amountDPS.toString(), 18);
+
+      it(`should convert ${amountSTC} STC to ${amountDPS} DPS`, async () => {
+        expect(await sale.convertSTCtoDPS(parsedSTC)).to.equals(parsedDPS);
+      });
+
+      it(`should convert ${amountDPS} DPS to ${amountSTC} STC`, async () => {
+        expect(await sale.convertDPStoSTC(parsedDPS)).to.equals(parsedSTC);
+      });
+    });
   });
 
   describe('remaining', () => {
@@ -44,16 +65,20 @@ describe('Sale', () => {
 
   describe('buyTokens', () => {
     it('should let accounts buy DPS tokens', async () => {
-      // prepare the account
-      await STC.transfer(accounts[0].address, usdc(1000));
-      expect(await STC.balanceOf(accounts[0].address)).to.equal(usdc(1000));
+      // Prepare the account
+      await agentSTC.transfer(accounts[0], 1000);
 
-      // approve the stableCoin
-      await STC.connect(accounts[0]).approve(sale.address, usdc(100000));
+      // Approve the stableCoin
+      await STC.connect(accounts[0]).approve(sale.address, agentSTC.parseUnit(100000));
 
-      // buy tokens
-      await sale.connect(accounts[0]).buyTokens(usdc(1000));
-      expect(await DPS.balanceOf(accounts[0].address)).to.equal(ether(2500));
+      // Buy tokens
+      await agentDPS.expectBalanceOf(accounts[0], 0);
+      await agentSTC.expectBalanceOf(accounts[0], 1000);
+
+      await sale.connect(accounts[0]).buyTokens(agentSTC.parseUnit(1000));
+
+      await agentDPS.expectBalanceOf(accounts[0], 2500);
+      await agentSTC.expectBalanceOf(accounts[0], 0);
     });
   });
 });

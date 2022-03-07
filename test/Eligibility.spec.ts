@@ -3,11 +3,22 @@ import { randomBytes } from 'crypto';
 import { Contract } from 'ethers';
 import { ethers } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { MissingRoleError } from './utils/AccessControl';
+
+function makeResult(tier: 0 | 1 | 2 | 3 = 1) {
+  return {
+    tier,
+    validator: 'Jumio Corporation',
+    transactionId: randomBytes(16).toString('hex'),
+  };
+}
 
 describe('Eligibility', () => {
   let admin: SignerWithAddress;
   let accounts: SignerWithAddress[];
   let eligibility: Contract;
+
+  const OWNER_ROLE = ethers.utils.id('OWNER');
   const WRITER_ROLE = ethers.utils.id('WRITER');
 
   beforeEach(async () => {
@@ -16,43 +27,20 @@ describe('Eligibility', () => {
     eligibility = await EligibilityFactory.deploy();
   });
 
-  it('should grant deployer the admin role', async () => {
-    expect(await eligibility.hasRole(await eligibility.getRoleAdmin(WRITER_ROLE), admin.address)).to.be.true;
+  it('should grant deployer the OWNER and the WRITER roles', async () => {
+    expect(await eligibility.hasRole(OWNER_ROLE, admin.address)).to.be.true;
+    expect(await eligibility.hasRole(WRITER_ROLE, admin.address)).to.be.true;
   });
 
-  describe('addWriter', () => {
-    it('should allow the admin to grant the WRITER role', async () => {
-      await eligibility.addWriter(accounts[0].address);
-      expect(await eligibility.hasRole(WRITER_ROLE, accounts[0].address)).to.be.true;
-    });
-
-    it('should revert if a non-admin tries to self-grant the WRITER role', async () => {
-      await expect(eligibility.connect(accounts[0]).addWriter(accounts[0].address)).to.revertedWith(
-        `AccessControl: account ${accounts[0].address.toLowerCase()} is missing role 0x0000000000000000000000000000000000000000000000000000000000000000`,
-      );
-    });
-  });
-
-  describe('removeWriter', () => {
+  describe('setResult', () => {
     beforeEach(async () => {
-      await eligibility.addWriter(accounts[0].address);
+      await eligibility.grantRole(WRITER_ROLE, accounts[0].address);
     });
 
-    it('should allow the admin to revoke the WRITER role', async () => {
-      await eligibility.removeWriter(accounts[0].address);
-      expect(await eligibility.hasRole(WRITER_ROLE, accounts[0].address)).to.be.false;
-    });
-
-    it('should revert if a non-admin tries to revoke the WRITER role to someone else', async () => {
-      await expect(eligibility.connect(accounts[1]).addWriter(accounts[0].address)).to.revertedWith(
-        `AccessControl: account ${accounts[1].address.toLowerCase()} is missing role 0x0000000000000000000000000000000000000000000000000000000000000000`,
+    it('should revert if a non-WRITER tries to set a result', async () => {
+      await expect(eligibility.connect(accounts[3]).setResult(accounts[0].address, makeResult())).to.be.revertedWith(
+        MissingRoleError(accounts[3], 'WRITER'),
       );
-    });
-  });
-
-  describe('setResult/result', () => {
-    beforeEach(async () => {
-      await eligibility.addWriter(accounts[0].address);
     });
 
     [1, 2].forEach((tier) => {
@@ -70,18 +58,6 @@ describe('Eligibility', () => {
           expect(writtenR[key]).to.equal(value);
         }
       });
-    });
-
-    it('should revert if the admin tries to write a KYC tier', async () => {
-      await expect(
-        eligibility.connect(admin).setResult(accounts[1].address, {
-          tier: 1,
-          validator: 'Jumio Corporation',
-          transactionId: randomBytes(16).toString('hex'),
-        }),
-      ).to.revertedWith(
-        `AccessControl: account ${admin.address.toLowerCase()} is missing role ${ethers.utils.id('WRITER')}`,
-      );
     });
   });
 });

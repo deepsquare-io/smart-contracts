@@ -1,10 +1,10 @@
-import '@nomiclabs/hardhat-etherscan';
-import '@nomiclabs/hardhat-waffle';
-import '@openzeppelin/hardhat-upgrades';
 import 'dotenv/config';
 import 'hardhat-gas-reporter';
 import { task } from 'hardhat/config';
 import 'solidity-coverage';
+import '@nomiclabs/hardhat-etherscan';
+import '@nomiclabs/hardhat-waffle';
+import '@openzeppelin/hardhat-upgrades';
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -22,17 +22,13 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
  *
  * Prints out an array of strings containing the address Hex and balance in Wei
  */
-task(
-  'balances',
-  'Prints the list of AVAX account balances',
-  async (args, hre) => {
-    const accounts = await hre.ethers.getSigners();
-    for (const account of accounts) {
-      const balance = await hre.ethers.provider.getBalance(account.address);
-      console.log(`${account.address} has balance ${balance.toString()}`);
-    }
-  },
-);
+task('balances', 'Prints the list of AVAX account balances', async (args, hre) => {
+  const accounts = await hre.ethers.getSigners();
+  for (const account of accounts) {
+    const balance = await hre.ethers.provider.getBalance(account.address);
+    console.log(`${account.address} has balance ${balance.toString()}`);
+  }
+});
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
@@ -42,7 +38,7 @@ task(
  */
 module.exports = {
   solidity: {
-    compilers: [{ version: '0.8.9' }], // same as smart contracts solidity version
+    compilers: [{ version: '0.8.12' }], // same as smart contracts solidity version
   },
   networks: {
     // Configure each network to the respective Avalanche instances
