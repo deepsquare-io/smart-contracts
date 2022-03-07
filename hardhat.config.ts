@@ -64,7 +64,7 @@ module.exports = {
       url: 'https://api.avax-test.network/ext/bc/C/rpc',
       chainId: 43113,
       accounts: [process.env.FUJI_PRIVATE_KEY],
-      gasPrice: 300000000000,
+      gasPrice: 500000000000,
     },
     /*
     mainnet: {

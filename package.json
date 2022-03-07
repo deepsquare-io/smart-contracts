@@ -53,12 +53,11 @@
     "hardhat": "^2.8.3",
     "hardhat-gas-reporter": "^1.0.7",
     "prettier": "^2.5.1",
-    "prettier-plugin-solidity": "^1.0.0-beta.13",
+    "prettier-plugin-solidity": "^1.0.0-beta.19",
     "solhint": "^3.3.7",
     "solidity-coverage": "^0.7.20",
     "ts-node": "^10.6.0",
     "typescript": "^4.6.2",
     "web3": "^1.7.0"
-  },
-  "prettier": "@deepsquare/prettier-config"
+  }
 }

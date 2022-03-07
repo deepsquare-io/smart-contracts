@@ -13,6 +13,8 @@ interface Account {
 async function main() {
   const DPS = await ethers.getContractFactory('DeepSquare').then((factory) => factory.attach(process.env.DPS_ADDRESS!));
   const [owner] = await ethers.getSigners();
+
+  console.log('Restoring DPS balances');
   const balance = new SingleBar({}, Presets.shades_classic);
   balance.start(accounts.length, 0);
 
