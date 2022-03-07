@@ -45,7 +45,13 @@ describe('Sale', () => {
     await DPS.transfer(sale.address, INITIAL_ROUND);
   });
 
-  describe('concertSTCtoDPS', () => {
+  describe('on initialization', () => {
+    it('should revert if dps contract is the zero address', async () => {});
+    it('should revert if stablecoin contract is the zero address', async () => {});
+    it('should revert if rate is not greather than 0', async () => {});
+  });
+
+  describe('convertSTCtoDPS, convertDPStoSTC', () => {
     [
       [1000, 2500],
       [5000, 12500],
@@ -64,31 +70,44 @@ describe('Sale', () => {
   });
 
   describe('remaining', () => {
-    it('should display the initial sale amount', async () => {
+    it('should display the remaining DPS amount', async () => {
       expect(await sale.remaining()).to.equal(INITIAL_ROUND);
     });
   });
 
   describe('buyTokens', () => {
+    it('should revert if sender is the owner', async () => {});
+    it('should revert if SBC amount is greater than tier limit', async () => {});
+    it('should revert if dps amount exceeds contract dps amount', async () => {});
+    it('should increase the "sold DPS" amount variable', async () => {});
+    it('should emit a Purchase event', async () => {});
     it.skip('should let accounts buy DPS tokens', async () => {
       // Prepare the account
       await agentSTC.transfer(accounts[0], 1000);
-
+      
       // Mark accounts as eligible
       await eligibility.setResult({});
-
+      
       // Approve the stableCoin
       await STC.connect(accounts[0]).approve(sale.address, agentSTC.parseUnit(100000));
-
+      
       // Buy tokens
       await agentDPS.expectBalanceOf(accounts[0], 0);
       await agentSTC.expectBalanceOf(accounts[0], 1000);
-
+      
       await sale.connect(accounts[0]).buyTokens(agentSTC.parseUnit(1000));
-
+      
       await agentDPS.expectBalanceOf(accounts[0], 2500);
       await agentSTC.expectBalanceOf(accounts[0], 0);
     });
+  });
+  
+  describe('deliverTokens', () => {
+    it('should revert if sender is the owner', async () => {});
+    it('should revert if dps amount exceeds contract dps amount', async () => {});
+    it('should revert if SBC amount is greater than tier limit', async () => {});
+    it('should increase the "sold DPS" amount variable', async () => {});
+    it('should emit a Purchase event', async () => {});
   });
 
   it.skip('should prevent non-eligible accounts to buy DPS', async () => {
