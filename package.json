@@ -10,17 +10,15 @@
     "deploy:local": "npx hardhat run scripts/deploy-square.js",
     "deploy:testnet": "npx hardhat run scripts/deploy-square.js --network fuji",
     "start:avalanche": "cd $GOPATH/src/github.com/ava-labs/avalanchego && ./build/avalanchego --network-id=local --staking-enabled=false --snow-sample-size=1 --snow-quorum-size=1",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "deploy:fuji": "hardhat run scripts/deploy.ts --network fuji"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/deepsquare-io/fundraising-contract-avax.git"
-  },
-  "author": "Julien Schneider, Florin Dzeladini",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/deepsquare-io/fundraising-contract-avax/issues"
-  },
+  "repository": "github:deepsquare-io/fundraising-contract-avax",
+  "maintainers": [
+    "Julien Schneider <julien@squarefactory.io>",
+    "Mathieu Bour <mathieu@squarefactory.io>"
+  ],
+  "license": "https://github.com/deepsquare-io/fundraising-contract-avax/issues",
   "homepage": "https://github.com/deepsquare-io/fundraising-contract-avax#readme",
   "devDependencies": {
     "@deepsquare/prettier-config": "^1.0.3",

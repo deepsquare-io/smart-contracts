@@ -87,7 +87,7 @@ contract Sale is Ownable {
    * - the funder is not the sale owner
    * - the funder is eligible
    */
-  function _validate(address account, uint256 amountSTC) internal {
+  function _validate(address account, uint256 amountSTC) internal view {
     require(account != owner(), 'Sale: buyer is the sale owner');
 
     uint256 investmentSTC = convertDPStoSTC(DPS.balanceOf(account) + amountSTC);
@@ -126,8 +126,8 @@ contract Sale is Ownable {
    * @param account The funder address.
    */
   function deliverTokens(uint256 amountSTC, address account) external onlyOwner {
-    _validate(msg.sender, amountSTC);
+    _validate(account, amountSTC);
     uint256 amountDPS = convertSTCtoDPS(amountSTC);
-    _transferDPS(msg.sender, amountDPS);
+    _transferDPS(account, amountDPS);
   }
 }

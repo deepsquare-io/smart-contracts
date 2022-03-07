@@ -32,5 +32,5 @@ contract DeepSquare is ERC20, AccessControl {
     address from,
     address to,
     uint256 amount
-  ) onlyRole(SPENDER) {}
+  ) internal virtual override onlyRole(SPENDER) {}
 }
