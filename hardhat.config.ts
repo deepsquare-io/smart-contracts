@@ -9,7 +9,16 @@ import '@openzeppelin/hardhat-upgrades';
 
 const config: HardhatUserConfig = {
   solidity: {
-    compilers: [{ version: '0.8.9' }],
+    compilers: [
+      {
+        version: '0.8.9',
+        settings: {
+          optimizer: {
+            enabled: true,
+          },
+        },
+      },
+    ],
   },
   networks: {
     local: {
@@ -23,6 +32,7 @@ const config: HardhatUserConfig = {
     excludeContracts: ['vendor/'],
     token: 'AVAX',
     gasPriceApi: 'https://api.snowtrace.io/api?module=proxy&action=eth_gasPrice',
+    coinmarketcap: process.env.COINTMARKETCAP_KEY,
   },
   etherscan: {
     apiKey: {
