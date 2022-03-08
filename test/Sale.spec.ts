@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import exp from 'constants';
 import { randomBytes } from 'crypto';
 import { BigNumber, Contract } from 'ethers';
 import { ethers } from 'hardhat';
