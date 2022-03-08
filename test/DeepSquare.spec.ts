@@ -29,7 +29,7 @@ describe('DeepSquare', async () => {
 
   });
 
-  describe('constructor', () => {
+  describe('on initialization', () => {
     it('should mint 210M DPS to the deployer', async () => {
       await agentDPS.expectBalanceOf(deployer, DPS_TOTAL_SUPPLY);
     });
@@ -37,13 +37,17 @@ describe('DeepSquare', async () => {
   });
 
   describe('transfer', () => {
-    it('should let deployer transfer DPS to another account', async () => {
+    describe('if sender is the contract owner', () => {
+    it('should let transfer its own DPS to another account', async () => {
       const amount = await agentDPS.parseUnit(randomInt(10, 50) * 1000);
       await agentDPS.transfer(accounts[0], amount);
       await agentDPS.expectBalanceOf(accounts[0], amount);
     });
-
-    it('should revert if the account is not the deployer nor a spender', async () => {
+    it('should not be able to transfer other people money without their consent (ERC20)', async() => {});
+  });
+  describe('if sender is not the contract owner', () => {
+    it('should revert if sender is not in the SPENDER allowList', async () => {
+      // TODO test changed
       const initialBalance = await DPS.balanceOf(deployer.address);
       const amount = await agentDPS.parseUnit(randomInt(10, 50) * 1000);
 
@@ -52,25 +56,13 @@ describe('DeepSquare', async () => {
       );
       await agentDPS.expectBalanceOf(deployer.address, initialBalance, 'wei');
     });
+    it('should revert if sender transfers DPS from someone else\'s account', async() => {});
+    it('should transfer funds', async () => {});
   });
+});
 
-  describe('transferFrom', () => {
-    it('should revert if the deployer has not the account allowance', async () => {
-      await agentDPS.transfer(accounts[0].address, 42);
-      await agentDPS.expectBalanceOf(accounts[0], 42);
-
-      await expect(DPS.transferFrom(accounts[0].address, accounts[1].address, agentDPS.parseUnit(12))).to.revertedWith(
-        'ERC20: insufficient allowance',
-      );
-    });
-
-    it('should revert if the account is not the deployer', async () => {
-      await agentDPS.transfer(accounts[0].address, 42);
-      await agentDPS.expectBalanceOf(accounts[0], 42);
-
-      await expect(DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.parseUnit(12))).to.be.revertedWith(
-        MissingRoleError(accounts[0], 'SPENDER'),
-      );
-    });
-  });
+describe('setSecurity', () => {
+  it('should revert if caller is not the owner', async() => {});
+  it('should add a new security (to change transfer rules)', async() => {});
+})
 });

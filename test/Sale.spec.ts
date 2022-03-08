@@ -49,39 +49,17 @@ describe('Sale', () => {
     it('should revert if dps contract is the zero address', async () => {});
     it('should revert if stablecoin contract is the zero address', async () => {});
     it('should revert if rate is not greather than 0', async () => {});
+    it('should set initial sold amount', async () => {});
   });
 
-  describe('convertSTCtoDPS, convertDPStoSTC', () => {
-    [
-      [1000, 2500],
-      [5000, 12500],
-    ].forEach(([amountSTC, amountDPS]) => {
-      const parsedSTC = ethers.utils.parseUnits(amountSTC.toString(), 6);
-      const parsedDPS = ethers.utils.parseUnits(amountDPS.toString(), 18);
-
-      it(`should convert ${amountSTC} STC to ${amountDPS} DPS`, async () => {
-        expect(await sale.convertSTCtoDPS(parsedSTC)).to.equals(parsedDPS);
-      });
-
-      it(`should convert ${amountDPS} DPS to ${amountSTC} STC`, async () => {
-        expect(await sale.convertDPStoSTC(parsedDPS)).to.equals(parsedSTC);
-      });
-    });
-  });
-
-  describe('remaining', () => {
-    it('should display the remaining DPS amount', async () => {
-      expect(await sale.remaining()).to.equal(INITIAL_ROUND);
-    });
-  });
 
   describe('buyTokens', () => {
     it('should revert if sender is the owner', async () => {});
+    it('should revert if sender has not passed KYC', async () => {});
     it('should revert if SBC amount is greater than tier limit', async () => {});
     it('should revert if dps amount exceeds contract dps amount', async () => {});
-    it('should increase the "sold DPS" amount variable', async () => {});
-    it('should emit a Purchase event', async () => {});
-    it.skip('should let accounts buy DPS tokens', async () => {
+    
+    it.skip('should let user buy DPS tokens against its stablecoin', async () => {
       // Prepare the account
       await agentSTC.transfer(accounts[0], 1000);
       
@@ -100,18 +78,57 @@ describe('Sale', () => {
       await agentDPS.expectBalanceOf(accounts[0], 2500);
       await agentSTC.expectBalanceOf(accounts[0], 0);
     });
+    it('should increase the "sold DPS" amount variable', async () => {});
+    it('should emit a Purchase event', async () => {});
   });
   
   describe('deliverTokens', () => {
-    it('should revert if sender is the owner', async () => {});
-    it('should revert if dps amount exceeds contract dps amount', async () => {});
+    it('should revert if caller is not the owner', async () => {});
+    it('should revert if beneficiary is the owner', async () => {});
+    it('should revert if beneficiary has not passed KYC', async () => {});
+    it('should revert if DPS amount exceeds contract DPS amount', async () => {});
     it('should revert if SBC amount is greater than tier limit', async () => {});
     it('should increase the "sold DPS" amount variable', async () => {});
     it('should emit a Purchase event', async () => {});
   });
 
-  it.skip('should prevent non-eligible accounts to buy DPS', async () => {
-    await agentSTC.transfer(accounts[0], 1000);
-    // await STC.connect(accounts[0]).approve(sale.address, agentSTC.parseUnit(100000));
+  describe('close', () => {
+    it('should transfer all its DPS to DPS owner', async () => {});
+    it('should renounce ownership of the contract', async () => {});
+  });
+
+
+  describe('convertDPStoSTC', () => {
+    [
+      [1000, 2500],
+      [5000, 12500],
+    ].forEach(([amountSTC, amountDPS]) => {
+      const parsedSTC = ethers.utils.parseUnits(amountSTC.toString(), 6);
+      const parsedDPS = ethers.utils.parseUnits(amountDPS.toString(), 18);
+
+      it(`should convert ${amountDPS} DPS to ${amountSTC} STC`, async () => {
+        expect(await sale.convertDPStoSTC(parsedDPS)).to.equals(parsedSTC);
+      });
+    });
+  });
+
+  describe('convertSTCtoDPS', () => {
+    [
+      [1000, 2500],
+      [5000, 12500],
+    ].forEach(([amountSTC, amountDPS]) => {
+      const parsedSTC = ethers.utils.parseUnits(amountSTC.toString(), 6);
+      const parsedDPS = ethers.utils.parseUnits(amountDPS.toString(), 18);
+
+      it(`should convert ${amountSTC} STC to ${amountDPS} DPS`, async () => {
+        expect(await sale.convertSTCtoDPS(parsedSTC)).to.equals(parsedDPS);
+      });
+    });
+  });
+
+  describe('remaining', () => {
+    it('should display the remaining DPS amount', async () => {
+      expect(await sale.remaining()).to.equal(INITIAL_ROUND);
+    });
   });
 });
