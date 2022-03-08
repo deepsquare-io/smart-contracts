@@ -135,8 +135,8 @@ contract Sale is Ownable {
   }
 
   /**
-   * @notice Deliver tokens to a investor. Restricted to the sale OWNER.
-   * @param amountSTC The amount of **stablecoin** to invested by the investor.
+   * @notice Deliver tokens to an investor. Restricted to the sale OWNER.
+   * @param amountSTC The amount of stablecoins invested.
    * @param account The investor address.
    */
   function deliverTokens(uint256 amountSTC, address account) external onlyOwner {
