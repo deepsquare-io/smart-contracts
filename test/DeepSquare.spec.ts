@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { BigNumber, Contract } from 'ethers';
-import { ethers } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { createERC20Agent, ERC20Agent } from './utils/ERC20';
+import { setupDeepSquare } from './utils/DeepSquare';
+import { ERC20Agent } from './utils/ERC20';
 import { DPS_TOTAL_SUPPLY } from './utils/constants';
 import { randomInt } from './utils/random';
 
@@ -13,14 +13,7 @@ describe('DeepSquare', async () => {
   let agentDPS: ERC20Agent;
 
   beforeEach(async () => {
-    [owner, ...accounts] = await ethers.getSigners();
-
-    const SecurityFactory = await ethers.getContractFactory('SpenderSecurity');
-    const security = await SecurityFactory.deploy();
-
-    const DeepSquareFactory = await ethers.getContractFactory('DeepSquare');
-    DPS = await DeepSquareFactory.deploy(security.address);
-    agentDPS = await createERC20Agent(DPS);
+    ({ owner, accounts, DPS, agentDPS } = await setupDeepSquare());
   });
 
   describe('on initialization', () => {
