@@ -17,8 +17,8 @@ jobs:
         uses: ./.github/actions/setup
       - name: Run the tests
         run: pnpm solhint
-  test:
-    name: Runs the tests
+  gas:
+    name: Runs the gas estimator with the tests
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
@@ -27,3 +27,18 @@ jobs:
         uses: ./.github/actions/setup
       - name: Run the tests
         run: pnpm hardhat test
+  coverage:
+    name: Compute the coverage with the tests
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup environment
+        uses: ./.github/actions/setup
+      - name: Run the tests
+        run: pnpm hardhat coverage
+      - name: Send the coverage results to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info

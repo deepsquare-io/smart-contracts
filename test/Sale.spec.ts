@@ -130,6 +130,12 @@ describe('Sale', () => {
     });
   });
 
+  describe('raised', () => {
+    it('should display the raised stablecoin amount', async () => {
+      expect(await sale.raised()).to.equal(0);
+    });
+  });
+
   describe('buyTokens', () => {
     it('should let user buy DPS tokens against stablecoin and emit a Purchase event', async () => {
       const initialSold: BigNumber = await sale.sold();

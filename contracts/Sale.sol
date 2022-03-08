@@ -82,17 +82,17 @@ contract Sale is Ownable {
     }
 
     /**
-     * @notice Get the raised stablecoin amount.
-     */
-    function raised() external view returns (uint256) {
-        return convertDPStoSTC(sold);
-    }
-
-    /**
      * @notice Get the remaining DPS tokens to sell.
      */
     function remaining() external view returns (uint256) {
         return DPS.balanceOf(address(this));
+    }
+
+    /**
+     * @notice Get the raised stablecoin amount.
+     */
+    function raised() external view returns (uint256) {
+        return convertDPStoSTC(sold);
     }
 
     /**
