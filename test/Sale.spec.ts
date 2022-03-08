@@ -71,28 +71,28 @@ describe('Sale', () => {
     it('should revert if the DPS contract is the zero address', async () => {
       const SaleFactory = await ethers.getContractFactory('Sale');
       await expect(SaleFactory.deploy(ZERO_ADDRESS, STC.address, eligibility.address, 40, 0)).to.be.revertedWith(
-        'Sale: token is the zero address',
+        'Sale: token is zero',
       );
     });
 
     it('should revert if the stable coin contract is the zero address', async () => {
       const SaleFactory = await ethers.getContractFactory('Sale');
       await expect(SaleFactory.deploy(DPS.address, ZERO_ADDRESS, eligibility.address, 40, 0)).to.be.revertedWith(
-        'Sale: stablecoin is the zero address',
+        'Sale: stablecoin is zero',
       );
     });
 
     it('should revert if the eligibility contract is the zero address', async () => {
       const SaleFactory = await ethers.getContractFactory('Sale');
       await expect(SaleFactory.deploy(DPS.address, STC.address, ZERO_ADDRESS, 40, 0)).to.be.revertedWith(
-        'Sale: eligibility contract is the zero address',
+        'Sale: eligibility is zero',
       );
     });
 
     it('should revert if the rate is not greater than zero', async () => {
       const SaleFactory = await ethers.getContractFactory('Sale');
       await expect(SaleFactory.deploy(DPS.address, STC.address, eligibility.address, 0, 0)).to.be.revertedWith(
-        'Sale: rate must be greater than zero',
+        'Sale: rate is not positive',
       );
     });
   });
@@ -167,7 +167,7 @@ describe('Sale', () => {
 
       // tier 1 is 15k STC
       await expect(sale.connect(accounts[0]).buyTokens(agentSTC.unit(16000))).to.be.revertedWith(
-        'Sale: investment exceeds tier limit',
+        'Sale: exceeds tier limit',
       );
     });
 
@@ -177,7 +177,7 @@ describe('Sale', () => {
       await expect(sale.connect(accounts[0]).buyTokens(agentSTC.unit(8000))).to.not.be.reverted;
       await expect(sale.connect(accounts[0]).buyTokens(agentSTC.unit(7000))).to.not.be.reverted;
       await expect(sale.connect(accounts[0]).buyTokens(agentSTC.unit(1000))).to.be.revertedWith(
-        'Sale: investment exceeds tier limit',
+        'Sale: exceeds tier limit',
       );
     });
 
@@ -243,7 +243,7 @@ describe('Sale', () => {
         .to.emit(sale, 'Purchase')
         .withArgs(accounts[0].address, agentDPS.unit(20000));
       await expect(sale.deliverTokens(agentSTC.unit(1000), accounts[0].address)).to.be.revertedWith(
-        'Sale: investment exceeds tier limit',
+        'Sale: exceeds tier limit',
       );
     });
 

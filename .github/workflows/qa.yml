@@ -1,0 +1,29 @@
+name: Quality assessment
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, reopened, synchronize]
+env:
+  SNOWTRACE_API_KEY: ${{ secrets.SNOWTRACE_API_KEY }}
+jobs:
+  solhint:
+    name: Lint with Solhint
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup environment
+        uses: ./.github/actions/setup
+      - name: Run the tests
+        run: pnpm solhint
+  test:
+    name: Runs the tests
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup environment
+        uses: ./.github/actions/setup
+      - name: Run the tests
+        run: pnpm hardhat test

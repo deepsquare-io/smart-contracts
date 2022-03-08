@@ -1,0 +1,21 @@
+name: Setup environment
+description: Setup Node and install dependencies
+runs:
+  using: composite
+  steps:
+    - name: Get the latest pnpm version
+      id: pnpm
+      run: echo "::set-output name=latest-version::$(npm show pnpm version)"
+      shell: bash
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2.0.1
+      with:
+        version: ${{ steps.pnpm.outputs.latest-version }}
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16.x'
+        cache: pnpm
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile # equivalent to npm ci
+      shell: bash

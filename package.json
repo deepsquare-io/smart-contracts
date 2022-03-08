@@ -10,7 +10,8 @@
     "deploy:local": "hardhat run scripts/deploy.ts --network local",
     "deploy:fuji": "hardhat run scripts/deploy.ts --network fuji",
     "fork:fuji": "hardhat node --fork https://api.avax-test.network/ext/bc/C/rpc",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "lint": "solhint 'contracts/**/*.sol'"
   },
   "repository": "github:deepsquare-io/fundraising-contract-avax",
   "maintainers": [
@@ -21,12 +22,10 @@
   "homepage": "https://github.com/deepsquare-io/fundraising-contract-avax#readme",
   "devDependencies": {
     "@deepsquare/prettier-config": "^1.0.3",
-    "@faker-js/faker": "^6.0.0-alpha.6",
-    "@fakerjs/faker": "^3.0.0",
     "@nomiclabs/hardhat-ethers": "^2.0.4",
     "@nomiclabs/hardhat-etherscan": "^3.0.1",
+    "@nomiclabs/hardhat-solhint": "^2.0.0",
     "@nomiclabs/hardhat-waffle": "^2.0.2",
-    "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "^4.5.0",
     "@openzeppelin/contracts-upgradeable": "^4.5.0",
     "@openzeppelin/hardhat-upgrades": "^1.14.0",
@@ -55,7 +54,6 @@
     "solhint": "^3.3.7",
     "solidity-coverage": "^0.7.20",
     "ts-node": "^10.6.0",
-    "typescript": "^4.6.2",
-    "web3": "^1.7.0"
+    "typescript": "^4.6.2"
   }
 }
