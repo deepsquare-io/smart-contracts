@@ -5,14 +5,15 @@ import '@openzeppelin/contracts/access/AccessControl.sol';
 import '@openzeppelin/contracts/utils/Context.sol';
 
 /**
+ * @title Eligibility.
  * @author Mathieu Bour, Julien Schneider
  * @dev Basic implementation of a KYC storage.
  */
 contract Eligibility is AccessControl {
   struct Result {
-    uint8 tier;
-    string validator; // Jumio, etc.
-    string transactionId;
+    uint8 tier; // The KYC tier.
+    string validator; // The KYC validator.
+    string transactionId; // The KYC transaction id.
   }
 
   /**
@@ -26,12 +27,12 @@ contract Eligibility is AccessControl {
   mapping(address => Result) public results;
 
   /**
-   * @notice The WRITER rol which defines which account is allowed to write the KYC information.
+   * @notice The WRITER role which defines which account is allowed to write the KYC information.
    */
   bytes32 public constant WRITER = keccak256('WRITER');
 
   /**
-   * @dev Grant the OWNER and WRITER roles to the deployer.
+   * @dev Grant the OWNER and WRITER roles to the contract deployer.
    */
   constructor() {
     // Define the roles
@@ -39,20 +40,22 @@ contract Eligibility is AccessControl {
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     _grantRole(WRITER, msg.sender);
 
-    // Configure the default limits
+    // Set the default KYC limits.
     setLimit(1, 15000);
     setLimit(2, 100000);
   }
 
   /**
-   * @notice Get the limit of a KYC tier, zero means that there is no limit.
+   * @notice Get the limit of a given KYC tier. Zero means there is no limit.
    */
   function limit(uint8 tier) external view returns (uint256) {
     return limits[tier];
   }
 
   /**
-   * @notice Set the limit of a KYC tier, zero means that there is no limit. Restricted to the OWNER role.
+   * @notice Set the limit of a given KYC tier. Zero means there is no limit. Restricted to the OWNER role.
+   * @param tier The KYC tier.
+   * @param newLimit The KYC tier limit.
    */
   function setLimit(uint8 tier, uint256 newLimit) public onlyRole(DEFAULT_ADMIN_ROLE) {
     limits[tier] = newLimit;
@@ -60,7 +63,7 @@ contract Eligibility is AccessControl {
 
   /**
    * @notice Get the latest KYC result of an account.
-   * @param account the account to check
+   * @param account The account to check.
    */
   function result(address account) external view returns (Result memory) {
     return results[account];
@@ -68,6 +71,8 @@ contract Eligibility is AccessControl {
 
   /**
    * @notice Set the latest KYC result of an account. Restricted to the WRITER role.
+   * @param account The account to check.
+   * @param _result The account KYC result.
    */
   function setResult(address account, Result memory _result) external onlyRole(WRITER) {
     results[account] = _result;

@@ -9,10 +9,9 @@ import './Eligibility.sol';
 import './lib/ERC20Ownable.sol';
 
 /**
- * @title Sale
+ * @title Token sale.
  * @author Julien Schneider, Mathieu Bour
- * @notice Allows to conduct a sale which tokens are raised in exchange of stable coin (for example, USDT or
- * USDC).
+ * @notice Conduct a token sale in exchange for a stablecoin (STC), e.g. USDC.
  */
 contract Sale is Ownable {
   using SafeERC20 for ERC20;
@@ -21,31 +20,31 @@ contract Sale is Ownable {
   /// @dev The DPS contract being sold.
   ERC20Ownable public DPS;
 
-  /// @dev The stable coin ERC20 contract.
+  /// @dev The stablecoin ERC20 contract.
   ERC20 public STC;
 
   // @dev The eligibility contract
   Eligibility public eligibility;
 
-  /// @dev How many cents costs a DPS (for example, 40 means that a DPS costs 0.40 STC).
+  /// @dev How many cents costs a DPS (e.g., 40 means a single DPS token costs 0.40 STC).
   uint8 public rate;
 
-  /// @dev How much DPS token were sold.
+  /// @dev How many DPS tokens were sold during the sale.
   uint256 public sold;
 
   /**
-   * Event for token purchase logging
-   * @param investor who paid for the tokens
-   * @param amountDPS amount of DPS tokens purchased
+   * Token purchase event.
+   * @param investor The investor address.
+   * @param amountDPS Amount of DPS tokens purchased.
    */
   event Purchase(address indexed investor, uint256 amountDPS);
 
   /**
    * @param _DPS The DPS contract address.
-   * @param _STC The stable coin ERC20 contract address (USDT, USDC, etc.).
+   * @param _STC The ERC20 stablecoin contract address (e.g, USDT, USDC, etc.).
    * @param _eligibility The eligibility contract.
    * @param _rate The DPS/STC rate in STC cents.
-   * @param _initialSold How much DPS were already sold.
+   * @param _initialSold How many DPS tokens were already sold.
    */
   constructor(
     ERC20Ownable _DPS,
@@ -55,7 +54,7 @@ contract Sale is Ownable {
     uint256 _initialSold
   ) {
     require(address(_DPS) != address(0), 'Sale: token is the zero address');
-    require(address(_STC) != address(0), 'Sale: stable coin is the zero address');
+    require(address(_STC) != address(0), 'Sale: stablecoin is the zero address');
     require(_rate > 0, 'Sale: rate is 0');
 
     DPS = _DPS;
@@ -66,7 +65,7 @@ contract Sale is Ownable {
   }
 
   /**
-   * @notice Convert an amount of stable coin in DPS.
+   * @notice Convert a stablecoin amount in DPS.
    * @dev Maximum possible working value is 210M DPS * 1e18 * 1e6 = 210e30
    * log2(210e30) ~= 107 => this should not overflow.
    */
@@ -75,21 +74,21 @@ contract Sale is Ownable {
   }
 
   /**
-   * @notice Convert an amount of DPS in stable coin.
+   * @notice Convert a DPS amount in stablecoin.
    */
   function convertDPStoSTC(uint256 amountDPS) public view returns (uint256) {
     return (amountDPS * (10**STC.decimals()) * rate) / 100 / (10**DPS.decimals());
   }
 
   /**
-   * @notice Get the raised stable coin amount.
+   * @notice Get the raised stablecoin amount.
    */
   function raised() external view returns (uint256) {
     return convertDPStoSTC(sold);
   }
 
   /**
-   * @notice The remaining DPS in the sale.
+   * @notice Get the remaining DPS tokens to sell.
    */
   function remaining() external view returns (uint256) {
     return DPS.balanceOf(address(this));
@@ -98,8 +97,8 @@ contract Sale is Ownable {
   /**
    * @notice Validate that the account is allowed to buy DPS.
    * @dev Requirements:
-   * - the account is not the sale owner
-   * - the account is eligible
+   * - the account is not the sale owner.
+   * - the account is eligible.
    */
   function _validate(address account, uint256 amountSTC) internal view {
     require(account != owner(), 'Sale: buyer is the sale owner');
@@ -110,9 +109,9 @@ contract Sale is Ownable {
   }
 
   /**
-   * @notice Deliver the DPS to the account
+   * @notice Deliver the DPS to the account.
    * @dev Requirements:
-   * - there are enough DPS remaining in the sale
+   * - there are enough DPS remaining in the sale.
    */
   function _transferDPS(address account, uint256 amountDPS) internal {
     DPS.safeTransfer(account, amountDPS);
@@ -122,8 +121,8 @@ contract Sale is Ownable {
   }
 
   /**
-   * @notice Exchange stable coin with DPS tokens.
-   * @param amountSTC The amount of **stable coin** to invest.
+   * @notice Buy DPS with stablecoins.
+   * @param amountSTC The amount of stablecoin to invest.
    */
   function buyTokens(uint256 amountSTC) external {
     _validate(msg.sender, amountSTC);
@@ -136,8 +135,8 @@ contract Sale is Ownable {
   }
 
   /**
-   * @notice Deliver tokens to a investor. Restricted to the sale OWNER.
-   * @param amountSTC The amount of **stable coin** to invested by the investor.
+   * @notice Deliver tokens to an investor. Restricted to the sale OWNER.
+   * @param amountSTC The amount of stablecoins invested.
    * @param account The investor address.
    */
   function deliverTokens(uint256 amountSTC, address account) external onlyOwner {

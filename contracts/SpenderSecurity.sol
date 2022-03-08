@@ -7,10 +7,10 @@ import './lib/ERC20Security.sol';
 /**
  * @title SpenderSecurity
  * @author Mathieu Bour
- * @notice Only SPENDER accounts transfer their DPS to someone else account.
+ * @notice Only accounts with the SPENDER role can transfer their DPS.
  */
 contract SpenderSecurity is ERC20Security, AccessControl {
-  /// @dev The spender is allow to send his tokens to someone else, but not to move someone else DPS tokens
+  /// @dev The spender is allow to transfer his own tokens, but cannot move someone else's DPS tokens.
   bytes32 public constant SPENDER = keccak256('SPENDER');
 
   constructor() ERC20Security() {
@@ -23,8 +23,8 @@ contract SpenderSecurity is ERC20Security, AccessControl {
    * @param sender The account which triggered the transfer.
    * @param from The account from where the tokens will be taken.
    * @dev Requirements:
-   * - the sender is the DeepSquare contract
-   * - the sender is the owner OR the sender account is the same as the from account
+   * - the sender must have the SPENDER role which the contract owner has.
+   * - the senders can only transfer their own tokens. 
    */
   function validateTokenTransfer(
     address sender,
