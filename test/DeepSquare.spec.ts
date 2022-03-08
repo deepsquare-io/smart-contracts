@@ -1,68 +1,87 @@
 import { expect } from 'chai';
-import { Contract } from 'ethers';
+import { BigNumber, Contract } from 'ethers';
 import { ethers } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { DEFAULT_ADMIN_ROLE, MissingRoleError } from './utils/AccessControl';
 import { createERC20Agent, ERC20Agent } from './utils/ERC20';
 import { DPS_TOTAL_SUPPLY } from './utils/constants';
 import { randomInt } from './utils/random';
 
 describe('DeepSquare', async () => {
-  let deployer: SignerWithAddress;
-  let sale: SignerWithAddress;
+  let owner: SignerWithAddress;
   let accounts: SignerWithAddress[];
   let DPS: Contract;
   let agentDPS: ERC20Agent;
 
-  const SPENDER_ROLE = ethers.utils.id('SPENDER');
-
   beforeEach(async () => {
-    [deployer, sale, ...accounts] = await ethers.getSigners();
-
+    [owner, ...accounts] = await ethers.getSigners();
 
     const SecurityFactory = await ethers.getContractFactory('SpenderSecurity');
     const security = await SecurityFactory.deploy();
-    
+
     const DeepSquareFactory = await ethers.getContractFactory('DeepSquare');
     DPS = await DeepSquareFactory.deploy(security.address);
-    agentDPS = createERC20Agent(DPS);
-
+    agentDPS = await createERC20Agent(DPS);
   });
 
   describe('on initialization', () => {
     it('should mint 210M DPS to the deployer', async () => {
-      await agentDPS.expectBalanceOf(deployer, DPS_TOTAL_SUPPLY);
+      await agentDPS.expectBalanceOf(owner, DPS_TOTAL_SUPPLY);
     });
 
+    it('should promote the deployer the contract owner', async () => {
+      expect(await DPS.owner()).to.equals(owner.address);
+    });
   });
 
   describe('transfer', () => {
     describe('if sender is the contract owner', () => {
-    it('should let transfer its own DPS to another account', async () => {
-      const amount = await agentDPS.parseUnit(randomInt(10, 50) * 1000);
-      await agentDPS.transfer(accounts[0], amount);
-      await agentDPS.expectBalanceOf(accounts[0], amount);
+      it('should let transfer its own DPS to another account', async () => {
+        const initialBalance: BigNumber = await DPS.balanceOf(owner.address);
+        const amount = agentDPS.unit(randomInt(10, 50) * 1000);
+        await agentDPS.transfer(accounts[0], amount);
+        await agentDPS.expectBalanceOf(accounts[0], amount);
+        await agentDPS.expectBalanceOf(owner, initialBalance.sub(amount));
+      });
     });
-    it('should not be able to transfer other people money without their consent (ERC20)', async() => {});
   });
-  describe('if sender is not the contract owner', () => {
-    it('should revert if sender is not in the SPENDER allowList', async () => {
-      // TODO test changed
-      const initialBalance = await DPS.balanceOf(deployer.address);
-      const amount = await agentDPS.parseUnit(randomInt(10, 50) * 1000);
 
-      await expect(DPS.connect(accounts[0]).transfer(accounts[1].address, amount)).to.be.revertedWith(
-        MissingRoleError(accounts[0], 'SPENDER'),
+  describe('transferFrom', () => {
+    describe('the account is the owner', () => {
+      it('should let the owner transfer DPS from other accounts with their consent', async () => {
+        const amount = agentDPS.unit(randomInt(10, 50) * 1000);
+        await agentDPS.transfer(accounts[0], amount);
+
+        await DPS.connect(accounts[0]).approve(owner.address, amount);
+        expect(await DPS.allowance(accounts[0].address, owner.address)).to.equals(amount);
+
+        await DPS.transferFrom(accounts[0].address, accounts[1].address, amount);
+        expect(await DPS.allowance(accounts[0].address, owner.address)).to.equals(0);
+        await agentDPS.expectBalanceOf(accounts[0], 0);
+        await agentDPS.expectBalanceOf(accounts[1], amount);
+      });
+
+      it('should prevent the owner from transferring DPS from other accounts with their consent', async () => {
+        const amount = agentDPS.unit(randomInt(10, 50) * 1000);
+        await agentDPS.transfer(accounts[0], amount);
+        await expect(DPS.transferFrom(accounts[0].address, accounts[1].address, amount)).to.revertedWith(
+          'ERC20: insufficient allowance',
+        );
+      });
+    });
+  });
+
+  describe('setSecurity', () => {
+    it('should revert if caller is not the owner', async () => {
+      const initialSecurity = await DPS.security();
+      await expect(DPS.connect(accounts[0]).setSecurity(accounts[1].address)).to.revertedWith(
+        'Ownable: caller is not the owner',
       );
-      await agentDPS.expectBalanceOf(deployer.address, initialBalance, 'wei');
+      expect(await DPS.security()).to.equals(initialSecurity);
     });
-    it('should revert if sender transfers DPS from someone else\'s account', async() => {});
-    it('should transfer funds', async () => {});
-  });
-});
 
-describe('setSecurity', () => {
-  it('should revert if caller is not the owner', async() => {});
-  it('should add a new security (to change transfer rules)', async() => {});
-})
+    it('should add a new security (to change transfer rules)', async () => {
+      await expect(DPS.setSecurity(accounts[1].address));
+      expect(await DPS.security()).to.equals(accounts[1].address);
+    });
+  });
 });

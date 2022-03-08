@@ -23,7 +23,7 @@ contract Sale is Ownable {
   /// @dev The stablecoin ERC20 contract.
   ERC20 public STC;
 
-  // @dev The eligibility contract
+  // @dev The eligibility contract.
   Eligibility public eligibility;
 
   /// @dev How many cents costs a DPS (e.g., 40 means a single DPS token costs 0.40 STC).
@@ -55,7 +55,8 @@ contract Sale is Ownable {
   ) {
     require(address(_DPS) != address(0), 'Sale: token is the zero address');
     require(address(_STC) != address(0), 'Sale: stablecoin is the zero address');
-    require(_rate > 0, 'Sale: rate is 0');
+    require(address(_eligibility) != address(0), 'Sale: eligibility contract is the zero address');
+    require(_rate > 0, 'Sale: rate must be greater than zero');
 
     DPS = _DPS;
     STC = _STC;
@@ -101,11 +102,19 @@ contract Sale is Ownable {
    * - the account is eligible.
    */
   function _validate(address account, uint256 amountSTC) internal view {
-    require(account != owner(), 'Sale: buyer is the sale owner');
+    require(account != owner(), 'Sale: investor is the sale owner');
 
-    uint256 investmentSTC = convertDPStoSTC(DPS.balanceOf(account) + amountSTC);
-    uint256 limitSTC = eligibility.limit(eligibility.result(account).tier);
-    require(investmentSTC <= limitSTC, 'Sale: investment exceeds tier limit');
+    uint8 tier = eligibility.result(account).tier;
+
+    require(tier > 0, 'Sale: account is not eligible');
+
+    uint256 investmentSTC = convertDPStoSTC(DPS.balanceOf(account)) + amountSTC;
+    uint256 limitSTC = eligibility.limit(eligibility.result(account).tier) * (10**STC.decimals());
+
+    if (limitSTC != 0) {
+      // zero limit means that the tier has no restrictions
+      require(investmentSTC <= limitSTC, 'Sale: investment exceeds tier limit');
+    }
   }
 
   /**

@@ -3,22 +3,14 @@ import { randomBytes } from 'crypto';
 import { Contract } from 'ethers';
 import { ethers } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { MissingRoleError } from './utils/AccessControl';
-
-function makeResult(tier: 0 | 1 | 2 | 3 = 1) {
-  return {
-    tier,
-    validator: 'Jumio Corporation',
-    transactionId: randomBytes(16).toString('hex'),
-  };
-}
+import { DEFAULT_ADMIN_ROLE, MissingRoleError } from './utils/AccessControl';
+import { makeResult } from './utils/Eligibility';
 
 describe('Eligibility', () => {
   let admin: SignerWithAddress;
   let accounts: SignerWithAddress[];
   let eligibility: Contract;
 
-  const OWNER_ROLE = ethers.utils.id('OWNER');
   const WRITER_ROLE = ethers.utils.id('WRITER');
 
   beforeEach(async () => {
@@ -27,9 +19,11 @@ describe('Eligibility', () => {
     eligibility = await EligibilityFactory.deploy();
   });
 
-  it.skip('should grant deployer the WRITER role, TODO', async () => {
-    expect(await eligibility.hasRole(OWNER_ROLE, admin.address)).to.be.true;
-    expect(await eligibility.hasRole(WRITER_ROLE, admin.address)).to.be.true;
+  describe('constructor', () => {
+    it('should grant deployer the DEFAULT_ADMIN_ROLE and WRITER role', async () => {
+      expect(await eligibility.hasRole(DEFAULT_ADMIN_ROLE, admin.address)).to.be.true;
+      expect(await eligibility.hasRole(WRITER_ROLE, admin.address)).to.be.true;
+    });
   });
 
   describe('setResult', () => {

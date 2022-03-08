@@ -6,9 +6,11 @@
     "accounts": "npx hardhat accounts",
     "balances": "npx hardhat balances",
     "compile": "npx hardhat compile",
+    "format": "prettier --write '{contracts,test}/**/*.{sol,ts}'",
     "deploy:local": "hardhat run scripts/deploy.ts --network local",
     "deploy:fuji": "hardhat run scripts/deploy.ts --network fuji",
-    "fork:fuji": "hardhat node --fork https://api.avax-test.network/ext/bc/C/rpc"
+    "fork:fuji": "hardhat node --fork https://api.avax-test.network/ext/bc/C/rpc",
+    "test": "hardhat test"
   },
   "repository": "github:deepsquare-io/fundraising-contract-avax",
   "maintainers": [

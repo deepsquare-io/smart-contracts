@@ -14,7 +14,7 @@ import './lib/ERC20Security.sol';
  */
 contract DeepSquare is ERC20Ownable {
   /// @dev The security which controls the token transfers.
-  ERC20Security security;
+  ERC20Security public security;
 
   constructor(ERC20Security initialSecurity) ERC20('DeepSquare', 'DPS') {
     security = initialSecurity;

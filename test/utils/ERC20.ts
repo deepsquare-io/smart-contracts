@@ -3,18 +3,25 @@ import { BigNumber, BigNumberish, Contract } from 'ethers';
 import { ethers } from 'hardhat';
 import { Account, getAddress } from './Account';
 
-export function createERC20Agent(contract: Contract) {
-  const parseUnit = async (amount: BigNumberish, unit?: BigNumberish) => {
+export interface ERC20Agent {
+  unit: (amount: BigNumberish, unit?: BigNumberish) => BigNumber;
+  transfer: (account: Account, balance: BigNumberish, unit?: BigNumberish) => Promise<any>;
+  expectBalanceOf: (account: Account, balance: BigNumberish, unit?: BigNumberish) => Promise<any>;
+}
+
+export async function createERC20Agent(contract: Contract): Promise<ERC20Agent> {
+  const decimals = await contract.decimals();
+
+  const parseUnit = (amount: BigNumberish, unit?: BigNumberish) => {
     if (amount instanceof BigNumber) {
       return amount;
     }
 
-    const _unit = unit ?? (await contract.decimals());
-    return ethers.utils.parseUnits(amount.toString(), _unit);
+    return ethers.utils.parseUnits(amount.toString(), unit ?? decimals);
   };
 
   return {
-    parseUnit,
+    unit: parseUnit,
     transfer: async (account: Account, balance: BigNumberish, unit?: BigNumberish) => {
       const address = getAddress(account);
       return contract.transfer(address, await parseUnit(balance, unit));
@@ -26,5 +33,3 @@ export function createERC20Agent(contract: Contract) {
     },
   };
 }
-
-export type ERC20Agent = ReturnType<typeof createERC20Agent>;

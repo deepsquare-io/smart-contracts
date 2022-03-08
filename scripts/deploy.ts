@@ -23,7 +23,7 @@ async function main() {
   const sale = await SaleFactory.deploy(DPS.address, STC.address, eligibility.address, 40, 0);
   console.log('Sale deployed to', sale.address);
 
-  const agent = createERC20Agent(DeepSquareFactory.attach(DPS.address));
+  const agent = await createERC20Agent(DeepSquareFactory.attach(DPS.address));
   await agent.transfer(sale.address, 7000000);
   console.log('DPS transferred to the Sale contract');
 }
