@@ -20,6 +20,7 @@ describe('Sale', () => {
   let agentSTC: ERC20Agent;
 
   const INITIAL_ROUND = ethers.utils.parseUnits('7000000', 18); // 7M DPS
+  let MINIMUM_PURCHASE_STC: BigNumber; // 7M DPS
 
   async function setupAccount(
     account: SignerWithAddress,
@@ -50,11 +51,13 @@ describe('Sale', () => {
     agentSTC = await createERC20Agent(STC);
     await STC.mint(owner.address, agentSTC.unit(1e9), ZERO_ADDRESS, 0, ethers.utils.id('genesis'));
 
+    MINIMUM_PURCHASE_STC = agentSTC.unit(250);
+
     const EligibilityFactory = await ethers.getContractFactory('Eligibility');
     Eligibility = await EligibilityFactory.deploy();
 
     const SaleFactory = await ethers.getContractFactory('Sale');
-    Sale = await SaleFactory.deploy(DPS.address, STC.address, Eligibility.address, 40, 0);
+    Sale = await SaleFactory.deploy(DPS.address, STC.address, Eligibility.address, 40, MINIMUM_PURCHASE_STC, 0);
     await Security.grantRole(ethers.utils.id('SPENDER'), Sale.address);
 
     // Initial funding of the sale contract
@@ -64,30 +67,30 @@ describe('Sale', () => {
   describe('constructor', () => {
     it('should revert if the DPS contract is the zero address', async () => {
       const SaleFactory = await ethers.getContractFactory('Sale');
-      await expect(SaleFactory.deploy(ZERO_ADDRESS, STC.address, Eligibility.address, 40, 0)).to.be.revertedWith(
-        'Sale: token is zero',
-      );
+      await expect(
+        SaleFactory.deploy(ZERO_ADDRESS, STC.address, Eligibility.address, 40, MINIMUM_PURCHASE_STC, 0),
+      ).to.be.revertedWith('Sale: token is zero');
     });
 
     it('should revert if the stable coin contract is the zero address', async () => {
       const SaleFactory = await ethers.getContractFactory('Sale');
-      await expect(SaleFactory.deploy(DPS.address, ZERO_ADDRESS, Eligibility.address, 40, 0)).to.be.revertedWith(
-        'Sale: stablecoin is zero',
-      );
+      await expect(
+        SaleFactory.deploy(DPS.address, ZERO_ADDRESS, Eligibility.address, 40, MINIMUM_PURCHASE_STC, 0),
+      ).to.be.revertedWith('Sale: stablecoin is zero');
     });
 
     it('should revert if the eligibility contract is the zero address', async () => {
       const SaleFactory = await ethers.getContractFactory('Sale');
-      await expect(SaleFactory.deploy(DPS.address, STC.address, ZERO_ADDRESS, 40, 0)).to.be.revertedWith(
-        'Sale: eligibility is zero',
-      );
+      await expect(
+        SaleFactory.deploy(DPS.address, STC.address, ZERO_ADDRESS, 40, MINIMUM_PURCHASE_STC, 0),
+      ).to.be.revertedWith('Sale: eligibility is zero');
     });
 
     it('should revert if the rate is not greater than zero', async () => {
       const SaleFactory = await ethers.getContractFactory('Sale');
-      await expect(SaleFactory.deploy(DPS.address, STC.address, Eligibility.address, 0, 0)).to.be.revertedWith(
-        'Sale: rate is not positive',
-      );
+      await expect(
+        SaleFactory.deploy(DPS.address, STC.address, Eligibility.address, 0, MINIMUM_PURCHASE_STC, 0),
+      ).to.be.revertedWith('Sale: rate is not positive');
     });
   });
 
@@ -131,13 +134,13 @@ describe('Sale', () => {
     });
   });
 
-  describe('buyTokens', () => {
+  describe('purchaseDPS', () => {
     it('should let user buy DPS tokens against stablecoin and emit a Purchase event', async () => {
       const initialSold: BigNumber = await Sale.sold();
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 1 });
 
       await agentDPS.expectBalanceOf(accounts[0], 0);
-      await expect(Sale.connect(accounts[0]).buyTokens(agentSTC.unit(1000)))
+      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(1000)))
         .to.emit(Sale, 'Purchase')
         .withArgs(accounts[0].address, agentDPS.unit(2500));
 
@@ -150,14 +153,18 @@ describe('Sale', () => {
       );
     });
 
-    it('should revert if owner is the owner', async () => {
-      await expect(Sale.buyTokens(agentSTC.unit(1000))).to.be.revertedWith('Sale: investor is the sale owner');
+    it('should revert if investor is the owner', async () => {
+      await expect(Sale.purchaseDPS(agentSTC.unit(1000))).to.be.revertedWith('Sale: investor is the sale owner');
     });
 
-    it('should revert if owner is not eligible', async () => {
+    it('should revert if investor tries to buy less that the minimum purchase', async () => {
+      await expect(Sale.purchaseDPS(agentSTC.unit(100))).to.be.revertedWith('Sale: amount lower than minimum');
+    });
+
+    it('should revert if investor is not eligible', async () => {
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 0 });
 
-      await expect(Sale.connect(accounts[0]).buyTokens(agentSTC.unit(1000))).to.be.revertedWith(
+      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(1000))).to.be.revertedWith(
         'Sale: account is not eligible',
       );
     });
@@ -166,7 +173,7 @@ describe('Sale', () => {
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 1 });
 
       // tier 1 is 15k STC
-      await expect(Sale.connect(accounts[0]).buyTokens(agentSTC.unit(16000))).to.be.revertedWith(
+      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(16000))).to.be.revertedWith(
         'Sale: exceeds tier limit',
       );
     });
@@ -174,9 +181,9 @@ describe('Sale', () => {
     it('should revert if investor tries to buy more tokens than its tier in multiple transactions', async () => {
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 1 });
 
-      await expect(Sale.connect(accounts[0]).buyTokens(agentSTC.unit(8000))).to.not.be.reverted;
-      await expect(Sale.connect(accounts[0]).buyTokens(agentSTC.unit(7000))).to.not.be.reverted;
-      await expect(Sale.connect(accounts[0]).buyTokens(agentSTC.unit(1000))).to.be.revertedWith(
+      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(8000))).to.not.be.reverted;
+      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(7000))).to.not.be.reverted;
+      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(1000))).to.be.revertedWith(
         'Sale: exceeds tier limit',
       );
     });
@@ -184,7 +191,7 @@ describe('Sale', () => {
     it('should revert if the sender has not given enough allowance', async () => {
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 500, tier: 1 });
 
-      await expect(Sale.connect(accounts[0]).buyTokens(agentSTC.unit(1000))).to.be.revertedWith(
+      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(1000))).to.be.revertedWith(
         'ERC20: transfer amount exceeds allowance',
       );
     });
@@ -193,42 +200,42 @@ describe('Sale', () => {
       // accounts[1] will buy all the tokens except 800 STC
       await setupAccount(accounts[1], { balanceSTC: 1e8, approved: 1e8, tier: 3 });
       const remainingSTC: BigNumber = await Sale.convertDPStoSTC(await Sale.remaining());
-      await Sale.connect(accounts[1]).buyTokens(remainingSTC.sub(agentSTC.unit(800)));
+      await Sale.connect(accounts[1]).purchaseDPS(remainingSTC.sub(agentSTC.unit(800)));
       expect(await Sale.convertDPStoSTC(await Sale.remaining())).to.equals(agentSTC.unit(800));
 
       // accounts[0] attempts to buy for 1000 STC
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 1 });
 
-      await expect(Sale.connect(accounts[0]).buyTokens(agentSTC.unit(1000))).to.be.revertedWith(
+      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(1000))).to.be.revertedWith(
         'Sale: no enough tokens remaining',
       );
     });
   });
 
-  describe('deliverTokens', () => {
+  describe('deliverDPS', () => {
     it('should deliver tokens to the investor and emit a Purchase event', async () => {
       await setupAccount(accounts[0], { tier: 1 });
-      await expect(Sale.deliverTokens(agentSTC.unit(1000), accounts[0].address))
+      await expect(Sale.deliverDPS(agentSTC.unit(1000), accounts[0].address))
         .to.emit(Sale, 'Purchase')
         .withArgs(accounts[0].address, agentDPS.unit(2500));
     });
 
     it('should revert if caller is not the owner', async () => {
       await setupAccount(accounts[0], { tier: 1 });
-      await expect(
-        Sale.connect(accounts[0]).deliverTokens(agentSTC.unit(1000), accounts[0].address),
-      ).to.be.revertedWith('Ownable: caller is not the owner');
+      await expect(Sale.connect(accounts[0]).deliverDPS(agentSTC.unit(1000), accounts[0].address)).to.be.revertedWith(
+        'Ownable: caller is not the owner',
+      );
     });
 
     it('should revert if beneficiary is the owner', async () => {
       await setupAccount(owner, { tier: 1 });
-      await expect(Sale.deliverTokens(agentSTC.unit(1000), owner.address)).to.be.revertedWith(
+      await expect(Sale.deliverDPS(agentSTC.unit(1000), owner.address)).to.be.revertedWith(
         'Sale: investor is the sale owner',
       );
     });
 
     it('should revert if beneficiary is not eligible', async () => {
-      await expect(Sale.deliverTokens(agentSTC.unit(1000), accounts[0].address)).to.be.revertedWith(
+      await expect(Sale.deliverDPS(agentSTC.unit(1000), accounts[0].address)).to.be.revertedWith(
         'Sale: account is not eligible',
       );
     });
@@ -236,13 +243,13 @@ describe('Sale', () => {
     it('should revert if beneficiary max investment is reached', async () => {
       await setupAccount(accounts[0], { tier: 1 });
 
-      await expect(Sale.deliverTokens(agentSTC.unit(7000), accounts[0].address))
+      await expect(Sale.deliverDPS(agentSTC.unit(7000), accounts[0].address))
         .to.emit(Sale, 'Purchase')
         .withArgs(accounts[0].address, agentDPS.unit(17500));
-      await expect(Sale.deliverTokens(agentSTC.unit(8000), accounts[0].address))
+      await expect(Sale.deliverDPS(agentSTC.unit(8000), accounts[0].address))
         .to.emit(Sale, 'Purchase')
         .withArgs(accounts[0].address, agentDPS.unit(20000));
-      await expect(Sale.deliverTokens(agentSTC.unit(1000), accounts[0].address)).to.be.revertedWith(
+      await expect(Sale.deliverDPS(agentSTC.unit(1000), accounts[0].address)).to.be.revertedWith(
         'Sale: exceeds tier limit',
       );
     });
@@ -250,10 +257,10 @@ describe('Sale', () => {
     it('should revert if there are not enough DPS tokens left', async () => {
       await setupAccount(accounts[3], { tier: 3 });
       const remainingSTC: BigNumber = await Sale.convertDPStoSTC(await Sale.remaining());
-      await Sale.deliverTokens(remainingSTC, accounts[3].address);
+      await Sale.deliverDPS(remainingSTC, accounts[3].address);
 
       await setupAccount(accounts[0], { tier: 1 });
-      await expect(Sale.deliverTokens(agentSTC.unit(1000), accounts[0].address)).to.be.revertedWith(
+      await expect(Sale.deliverDPS(agentSTC.unit(1000), accounts[0].address)).to.be.revertedWith(
         'Sale: no enough tokens remaining',
       );
     });

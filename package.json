@@ -1,25 +1,23 @@
 {
-  "name": "fundraising-contract-avax",
+  "name": "@deepsquare/blockchain",
   "version": "0.0.1",
   "description": "Square token contract running on Avalanche network",
   "scripts": {
-    "accounts": "npx hardhat accounts",
-    "balances": "npx hardhat balances",
-    "compile": "npx hardhat compile",
-    "format": "prettier --write '{contracts,test}/**/*.{sol,ts}'",
+    "format": "prettier --write '{contracts,scripts,test}/**/*.{sol,ts}'",
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "lint": "solhint 'contracts/**/*.sol'",
     "deploy:local": "hardhat run scripts/deploy.ts --network local",
     "deploy:fuji": "hardhat run scripts/deploy.ts --network fuji",
-    "fork:fuji": "hardhat node --fork https://api.avax-test.network/ext/bc/C/rpc",
-    "test": "hardhat test",
-    "lint": "solhint 'contracts/**/*.sol'"
+    "fork:fuji": "hardhat node --fork https://api.avax-test.network/ext/bc/C/rpc"
   },
   "repository": "github:deepsquare-io/fundraising-contract-avax",
   "maintainers": [
-    "Julien Schneider <julien@squarefactory.io>",
-    "Mathieu Bour <mathieu@squarefactory.io>"
+    "Mathieu Bour <mathieu@squarefactory.io>",
+    "Julien Schneider <julien@squarefactory.io>"
   ],
-  "license": "https://github.com/deepsquare-io/fundraising-contract-avax/issues",
-  "homepage": "https://github.com/deepsquare-io/fundraising-contract-avax#readme",
+  "license": "https://github.com/deepsquare-io/blockchain/issues",
+  "homepage": "https://github.com/deepsquare-io/blockchain#readme",
   "devDependencies": {
     "@deepsquare/prettier-config": "^1.0.3",
     "@nomiclabs/hardhat-ethers": "^2.0.4",

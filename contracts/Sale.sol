@@ -17,19 +17,22 @@ contract Sale is Ownable {
     using SafeERC20 for ERC20;
     using SafeERC20 for ERC20Ownable;
 
-    /// @dev The DPS contract being sold.
+    /// @notice The DPS token contract being sold.
     ERC20Ownable public DPS;
 
-    /// @dev The stablecoin ERC20 contract.
+    /// @notice The stablecoin ERC20 contract.
     ERC20 public STC;
 
-    // @dev The eligibility contract.
+    // @notice The eligibility contract.
     Eligibility public eligibility;
 
-    /// @dev How many cents costs a DPS (e.g., 40 means a single DPS token costs 0.40 STC).
+    /// @notice How many cents costs a DPS (e.g., 40 means a single DPS token costs 0.40 STC).
     uint8 public rate;
 
-    /// @dev How many DPS tokens were sold during the sale.
+    /// @notice The minimum DPS purchase amount in stablecoin.
+    uint256 public minimumPurchaseSTC;
+
+    /// @notice How many DPS tokens were sold during the sale.
     uint256 public sold;
 
     /**
@@ -51,6 +54,7 @@ contract Sale is Ownable {
         ERC20 _STC,
         Eligibility _eligibility,
         uint8 _rate,
+        uint256 _minimumPurchaseSTC,
         uint256 _initialSold
     ) {
         require(address(_DPS) != address(0), "Sale: token is zero");
@@ -62,6 +66,7 @@ contract Sale is Ownable {
         STC = _STC;
         eligibility = _eligibility;
         rate = _rate;
+        minimumPurchaseSTC = _minimumPurchaseSTC;
         sold = _initialSold;
     }
 
@@ -133,7 +138,8 @@ contract Sale is Ownable {
      * @notice Buy DPS with stablecoins.
      * @param amountSTC The amount of stablecoin to invest.
      */
-    function buyTokens(uint256 amountSTC) external {
+    function purchaseDPS(uint256 amountSTC) external {
+        require(amountSTC >= minimumPurchaseSTC, "Sale: amount lower than minimum");
         _validate(msg.sender, amountSTC);
 
         uint256 amountDPS = convertSTCtoDPS(amountSTC);
@@ -144,11 +150,11 @@ contract Sale is Ownable {
     }
 
     /**
-     * @notice Deliver tokens to an investor. Restricted to the sale OWNER.
-     * @param amountSTC The amount of stablecoins invested.
+     * @notice Deliver DPS tokens to an investor. Restricted to the sale OWNER.
+     * @param amountSTC The amount of stablecoins invested, no minimum amount.
      * @param account The investor address.
      */
-    function deliverTokens(uint256 amountSTC, address account) external onlyOwner {
+    function deliverDPS(uint256 amountSTC, address account) external onlyOwner {
         _validate(account, amountSTC);
 
         uint256 amountDPS = convertSTCtoDPS(amountSTC);
