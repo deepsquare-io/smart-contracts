@@ -10,7 +10,7 @@ import "./lib/ERC20Ownable.sol";
 
 /**
  * @title Token sale.
- * @author Julien Schneider, Mathieu Bour
+ * @author Mathieu Bour, Julien Schneider
  * @notice Conduct a token sale in exchange for a stablecoin (STC), e.g. USDC.
  */
 contract Sale is Ownable {
@@ -68,7 +68,7 @@ contract Sale is Ownable {
     /**
      * @notice Convert a stablecoin amount in DPS.
      * @dev Maximum possible working value is 210M DPS * 1e18 * 1e6 = 210e30
-     * log2(210e30) ~= 107 => this should not overflow.
+     * Since log2(210e30) ~= 107,this should not overflow an uint256.
      */
     function convertSTCtoDPS(uint256 amountSTC) public view returns (uint256) {
         return (amountSTC * (10**DPS.decimals()) * 100) / rate / (10**STC.decimals());
@@ -104,12 +104,12 @@ contract Sale is Ownable {
     function _validate(address account, uint256 amountSTC) internal view {
         require(account != owner(), "Sale: investor is the sale owner");
 
-        uint8 tier = eligibility.result(account).tier;
+        (uint8 tier, , ) = eligibility.results(account);
 
         require(tier > 0, "Sale: account is not eligible");
 
         uint256 investmentSTC = convertDPStoSTC(DPS.balanceOf(account)) + amountSTC;
-        uint256 limitSTC = eligibility.limit(eligibility.result(account).tier) * (10**STC.decimals());
+        uint256 limitSTC = eligibility.limits(tier) * (10**STC.decimals());
 
         if (limitSTC != 0) {
             // zero limit means that the tier has no restrictions

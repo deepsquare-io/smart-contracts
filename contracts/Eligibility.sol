@@ -46,27 +46,12 @@ contract Eligibility is AccessControl {
     }
 
     /**
-     * @notice Get the limit of a given KYC tier. Zero means there is no limit.
-     */
-    function limit(uint8 tier) external view returns (uint256) {
-        return limits[tier];
-    }
-
-    /**
      * @notice Set the limit of a given KYC tier. Zero means there is no limit. Restricted to the OWNER role.
      * @param tier The KYC tier.
      * @param newLimit The KYC tier limit.
      */
     function setLimit(uint8 tier, uint256 newLimit) public onlyRole(DEFAULT_ADMIN_ROLE) {
         limits[tier] = newLimit;
-    }
-
-    /**
-     * @notice Get the latest KYC result of an account.
-     * @param account The account to check.
-     */
-    function result(address account) external view returns (Result memory) {
-        return results[account];
     }
 
     /**

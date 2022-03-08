@@ -46,7 +46,7 @@ describe('Eligibility', () => {
         };
 
         await eligibility.connect(accounts[0]).setResult(accounts[1].address, result);
-        const writtenR = await eligibility.connect(accounts[2]).result(accounts[1].address);
+        const writtenR = await eligibility.connect(accounts[2]).results(accounts[1].address);
 
         for (const [key, value] of Object.entries(result)) {
           expect(writtenR[key]).to.equal(value);

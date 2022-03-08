@@ -8,7 +8,7 @@ import "./lib/ERC20Security.sol";
 
 /**
  * @title DeepSquare DPS token.
- * @author Julien Schneider, Mathieu Bour.
+ * @author Mathieu Bour, Julien Schneider.
  * @notice The DPS token is the DeepSquare ERC-20 security token.
  * @dev Since this a security token, transfers are restricted to the authorized accounts of the contract.
  */
