@@ -1,23 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./Eligibility.sol";
-import "./lib/ERC20Ownable.sol";
 
 /**
  * @title Token sale.
- * @author Mathieu Bour, Julien Schneider
+ * @author Mathieu Bour, Julien Schneider and Charly Mancel for the DeepSquare Association.
  * @notice Conduct a token sale in exchange for a stablecoin (STC), e.g. USDC.
  */
 contract Sale is Ownable {
-    /// @notice The DPS token contract being sold.
-    ERC20Ownable public immutable DPS;
+    /// @notice The DPS token contract being sold. It must have an owner() function in order to let the sale be closed.
+    IERC20Metadata public immutable DPS;
 
     /// @notice The stablecoin ERC20 contract.
-    ERC20 public immutable STC;
+    IERC20Metadata public immutable STC;
 
     // @notice The eligibility contract.
     Eligibility public immutable eligibility;
@@ -46,8 +44,8 @@ contract Sale is Ownable {
      * @param _initialSold How many DPS tokens were already sold.
      */
     constructor(
-        ERC20Ownable _DPS,
-        ERC20 _STC,
+        IERC20Metadata _DPS,
+        IERC20Metadata _STC,
         Eligibility _eligibility,
         uint8 _rate,
         uint256 _minimumPurchaseSTC,
@@ -163,7 +161,12 @@ contract Sale is Ownable {
      * @notice Close the sale by sending the remaining tokens back to the owner and then renouncing ownership.
      */
     function close() external onlyOwner {
-        _transferDPS(DPS.owner(), DPS.balanceOf(address(this)));
+        // Call the DPS owner() function
+        (bool success, bytes memory data) = address(DPS).staticcall(abi.encodeWithSignature("owner()"));
+        require(success);
+        address owner = abi.decode(data, (address));
+
+        _transferDPS(owner, DPS.balanceOf(address(this)));
         renounceOwnership();
     }
 }

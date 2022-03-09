@@ -2,18 +2,18 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "./lib/ERC20Security.sol";
+import "./interfaces/ISecurity.sol";
 
 /**
  * @title SpenderSecurity
- * @author Mathieu Bour
+ * @author Mathieu Bour, Julien Schneider and Charly Mancel for the DeepSquare Association.
  * @notice Only accounts with the SPENDER role can transfer their DPS.
  */
-contract SpenderSecurity is ERC20Security, AccessControl {
+contract SpenderSecurity is ISecurity, AccessControl {
     /// @dev The spender is allow to transfer his own tokens, but cannot move someone else's DPS tokens.
     bytes32 public constant SPENDER = keccak256("SPENDER");
 
-    constructor() ERC20Security() {
+    constructor() ISecurity() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(SPENDER, msg.sender);
     }

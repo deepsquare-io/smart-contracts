@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 
 /**
  * @title Eligibility.
- * @author Mathieu Bour, Julien Schneider
+ * @author Mathieu Bour, Julien Schneider and Charly Mancel for the DeepSquare Association.
  * @dev Basic implementation of a KYC storage.
  */
 contract Eligibility is AccessControl {

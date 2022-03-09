@@ -2,12 +2,12 @@
 pragma solidity ^0.8.0;
 
 /**
- * @title ERC20Security
- * @author Mathieu Bour
+ * @title ISecurity
+ * @author Mathieu Bour, Julien Schneider and Charly Mancel for the DeepSquare Association.
  * @notice Expose a validation function to restrict ERC20 transfers.
  * @dev This contract must be inherit and the validateTokenTransfer function overloaded with the appropriate logic.
  */
-interface ERC20Security {
+interface ISecurity {
     /**
      * @notice Check if the transfer triggered by `sender` of `amount` can occur from `from` to `to`.
      * @param sender The account which triggered the transfer.
