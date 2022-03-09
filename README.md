@@ -14,30 +14,23 @@ are considered as a security standard.
   <tr>
     <td align="center">
       <a href="https://github.com/mathieu-bour">
-        <img src="https://avatars.githubusercontent.com/u/21281702?v=3?s=100" width="100px;" alt=""/>
+        <img src="https://avatars.githubusercontent.com/u/21281702?v=3?s=150" width="150px;" alt=""/>
         <br />
-        <sub><b>Mathieu Bour</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/mathieu-bour">
-        <img src="https://avatars.githubusercontent.com/u/21281702?v=3?s=100" width="100px;" alt=""/>
-        <br />
-        <sub><b>Mathieu Bour</b></sub>
+        <b>Mathieu Bour</b>
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/derschnee68">
-        <img src="https://avatars.githubusercontent.com/u/12176105?v=3?s=100" width="100px;" alt=""/>
+        <img src="https://avatars.githubusercontent.com/u/12176105?v=3?s=150" width="150px;" alt=""/>
         <br />
-        <sub><b>Julien Schneider</b></sub>
+        <b>Julien Schneider</b>
       </a>
     </td>
     <td align="center">
       <a href="https://github.com/Lymnah">
-        <img src="https://avatars.githubusercontent.com/u/29931035?v=3?s=100" width="100px;" alt=""/>
+        <img src="https://avatars.githubusercontent.com/u/29931035?v=3?s=150" width="150px;" alt=""/>
         <br />
-        <sub><b>Charly Mancel</b></sub>
+        <b>Charly Mancel</b>
       </a>
     </td>
   </tr>
