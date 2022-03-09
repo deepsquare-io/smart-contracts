@@ -67,7 +67,7 @@ contract Sale is Ownable {
     /**
      * @notice Convert a stablecoin amount in DPS.
      * @dev Maximum possible working value is 210M DPS * 1e18 * 1e6 = 210e30
-     * Since log2(210e30) ~= 107,this should not overflow an uint256.
+     * Since log2(210e30) ~= 107,this cannot not overflow an uint256.
      */
     function convertSTCtoDPS(uint256 amountSTC) public view returns (uint256) {
         return (amountSTC * (10**DPS.decimals()) * 100) / rate / (10**STC.decimals());
@@ -75,6 +75,8 @@ contract Sale is Ownable {
 
     /**
      * @notice Convert a DPS amount in stablecoin.
+     * @dev Maximum possible working value is 210M DPS * 1e18 * 1e6 = 210e30
+     * Since log2(210e30) ~= 107,this cannot not overflow an uint256.
      */
     function convertDPStoSTC(uint256 amountDPS) public view returns (uint256) {
         return (amountDPS * (10**STC.decimals()) * rate) / 100 / (10**DPS.decimals());
