@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./Eligibility.sol";
 import "./lib/ERC20Ownable.sol";
 
@@ -14,23 +13,20 @@ import "./lib/ERC20Ownable.sol";
  * @notice Conduct a token sale in exchange for a stablecoin (STC), e.g. USDC.
  */
 contract Sale is Ownable {
-    using SafeERC20 for ERC20;
-    using SafeERC20 for ERC20Ownable;
-
     /// @notice The DPS token contract being sold.
-    ERC20Ownable public DPS;
+    ERC20Ownable public immutable DPS;
 
     /// @notice The stablecoin ERC20 contract.
-    ERC20 public STC;
+    ERC20 public immutable STC;
 
     // @notice The eligibility contract.
-    Eligibility public eligibility;
+    Eligibility public immutable eligibility;
 
     /// @notice How many cents costs a DPS (e.g., 40 means a single DPS token costs 0.40 STC).
-    uint8 public rate;
+    uint8 public immutable rate;
 
     /// @notice The minimum DPS purchase amount in stablecoin.
-    uint256 public minimumPurchaseSTC;
+    uint256 public immutable minimumPurchaseSTC;
 
     /// @notice How many DPS tokens were sold during the sale.
     uint256 public sold;
@@ -128,7 +124,7 @@ contract Sale is Ownable {
      * - there are enough DPS remaining in the sale.
      */
     function _transferDPS(address account, uint256 amountDPS) internal {
-        DPS.safeTransfer(account, amountDPS);
+        DPS.transfer(account, amountDPS);
         sold += amountDPS;
 
         emit Purchase(account, amountDPS);
@@ -145,7 +141,7 @@ contract Sale is Ownable {
         uint256 amountDPS = convertSTCtoDPS(amountSTC);
         require(DPS.balanceOf(address(this)) >= amountDPS, "Sale: no enough tokens remaining");
 
-        STC.safeTransferFrom(msg.sender, owner(), amountSTC);
+        STC.transferFrom(msg.sender, owner(), amountSTC);
         _transferDPS(msg.sender, amountDPS);
     }
 
