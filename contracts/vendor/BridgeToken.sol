@@ -527,7 +527,7 @@ library Roles {
     }
 }
 
-// File: contracts/WrappedUSDT.sol
+// File: contracts/WrappedUSDC.sol
 
 pragma solidity ^0.8.0;
 
@@ -536,15 +536,14 @@ contract BridgeToken is ERC20Burnable {
 
     Roles.Role private bridgeRoles;
 
-    string private constant TOKEN_NAME = "Tether USD";
-    string private constant TOKEN_SYMBOL = "USDT.e";
+    string private constant TOKEN_NAME = "USD Coin";
+    string private constant TOKEN_SYMBOL = "USDC.e";
     uint8 private constant TOKEN_DECIMALS = 6;
 
     struct SwapToken {
         address tokenContract;
         uint256 supply;
     }
-
     mapping(address => SwapToken) swapTokens;
 
     mapping(uint256 => bool) public chainIds;
