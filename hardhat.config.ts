@@ -3,9 +3,7 @@ import 'hardhat-gas-reporter';
 import { HardhatUserConfig } from 'hardhat/config';
 import 'solidity-coverage';
 import '@nomiclabs/hardhat-etherscan';
-import '@nomiclabs/hardhat-solhint';
 import '@nomiclabs/hardhat-waffle';
-import '@openzeppelin/hardhat-upgrades';
 
 const config: HardhatUserConfig = {
   solidity: {

@@ -278,5 +278,16 @@ describe('Sale', () => {
       expect(await DPS.balanceOf(await Sale.address)).to.equals(0);
       expect(await DPS.balanceOf(saleOwner)).to.equals(initialBalance.add(remaining));
     });
+
+    it('should revert if the DPS contract does not have the owner function', async () => {
+      // Configure a new Sale contract with a dummy ERC20 token
+      const ERC20Factory = await ethers.getContractFactory('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20');
+      const ERC20 = await ERC20Factory.deploy('DeepSquare no owner', 'DPS');
+      const SaleFactory = await ethers.getContractFactory('Sale');
+      Sale = await SaleFactory.deploy(ERC20.address, STC.address, Eligibility.address, 40, MINIMUM_PURCHASE_STC, 0);
+      await Security.grantRole(ethers.utils.id('SPENDER'), Sale.address);
+
+      await expect(Sale.close()).to.be.revertedWith('Sale: unable to determine owner');
+    });
   });
 });

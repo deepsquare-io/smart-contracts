@@ -122,8 +122,8 @@ contract Sale is Ownable {
      * - there are enough DPS remaining in the sale.
      */
     function _transferDPS(address account, uint256 amountDPS) internal {
-        DPS.transfer(account, amountDPS);
         sold += amountDPS;
+        DPS.transfer(account, amountDPS);
 
         emit Purchase(account, amountDPS);
     }
@@ -163,7 +163,7 @@ contract Sale is Ownable {
     function close() external onlyOwner {
         // Call the DPS owner() function
         (bool success, bytes memory data) = address(DPS).staticcall(abi.encodeWithSignature("owner()"));
-        require(success);
+        require(success, "Sale: unable to determine owner");
         address owner = abi.decode(data, (address));
 
         _transferDPS(owner, DPS.balanceOf(address(this)));
