@@ -36,7 +36,9 @@ are considered as a security standard.
   </tr>
 </table>
 
-## Exposed tokens
+## ERC-20 tokens
+
+### DPS security token
 
 The [DeepSquare.sol](contracts/DeepSquare.sol) contract represents ERC-20-compatible DPS token.
 The DPS token has currently restricted transfer options, as described in the [DeepSquare whitepaper](https://github.com/deepsquare-io/Whitepaper/releases/latest/download/DeepSquare-WhitePaper.pdf).
