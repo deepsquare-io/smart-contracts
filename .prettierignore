@@ -1,5 +1,5 @@
-/node_modules
 /artifacts
 /cache
 /coverage*
-/gasReporterOutput.json
+/node_modules
+/pnpm-lock.yaml

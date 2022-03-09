@@ -1,23 +1,45 @@
 # DeepSquare blockchain
 
-[![Whitepaper](https://img.shields.io/static/v1?label=download&message=whitepaper&color=cd45FF&style=for-the-badge)](https://github.com/deepsquare-io/Whitepaper/releases/latest/download/DeepSquare-WhitePaper.pdf)
-[![Codecov](https://img.shields.io/codecov/c/gh/deepsquare-io/blockchain?style=for-the-badge&token=7GE7USOW1S)](https://app.codecov.io/gh/deepsquare-io/blockchain)
+[![License](https://img.shields.io/static/v1?label=license&message=MIT&color=blue&style=flat-square)](https://github.com/deepsquare-io/blockchain/blob/main/LICENSE.md)
+[![Whitepaper](https://img.shields.io/static/v1?label=download&message=whitepaper&color=cd45FF&style=flat-square)](https://github.com/deepsquare-io/Whitepaper/releases/latest/download/DeepSquare-WhitePaper.pdf)
+[![Codecov](https://img.shields.io/codecov/c/gh/deepsquare-io/blockchain?style=flat-square&token=7GE7USOW1S)](https://app.codecov.io/gh/deepsquare-io/blockchain)
 
-DeepSquare smart contracts running on the [Avalanche C-chain](https://www.avax.network).
+DeepSquare smart contracts running on the [Avalanche C-chain](https://www.avax.network). The contracts are mainly based
+on the OpenZeppelin smart contracts ([@openzeppelin/contracts v4](https://docs.openzeppelin.com/contracts/4.x/)) which
+are considered as a security standard.
 
 ## Maintainers
 
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/mathieu-bour"><img
-      src="https://avatars.githubusercontent.com/u/21281702?v=3?s=100" width="100px;" alt=""/><br
-    /><sub><b>Mathieu Bour</b></sub></a></td>
-    <td align="center"><a href="https://github.com/derschnee68"><img
-      src="https://avatars.githubusercontent.com/u/12176105?v=3?s=100" width="100px;" alt=""/><br
-    /><sub><b>Julien Schneider</b></sub></a></td>
-    <td align="center"><a href="https://github.com/Lymnah"><img
-      src="https://avatars.githubusercontent.com/u/29931035?v=3?s=100" width="100px;" alt=""/><br
-    /><sub><b>Charly Mancel</b></sub></a></td>
+    <td align="center">
+      <a href="https://github.com/mathieu-bour">
+        <img src="https://avatars.githubusercontent.com/u/21281702?v=3?s=100" width="100px;" alt=""/>
+        <br />
+        <sub><b>Mathieu Bour</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/mathieu-bour">
+        <img src="https://avatars.githubusercontent.com/u/21281702?v=3?s=100" width="100px;" alt=""/>
+        <br />
+        <sub><b>Mathieu Bour</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/derschnee68">
+        <img src="https://avatars.githubusercontent.com/u/12176105?v=3?s=100" width="100px;" alt=""/>
+        <br />
+        <sub><b>Julien Schneider</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Lymnah">
+        <img src="https://avatars.githubusercontent.com/u/29931035?v=3?s=100" width="100px;" alt=""/>
+        <br />
+        <sub><b>Charly Mancel</b></sub>
+      </a>
+    </td>
   </tr>
 </table>
 
