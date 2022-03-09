@@ -5,6 +5,22 @@
 
 DeepSquare smart contracts running on the [Avalanche C-chain](https://www.avax.network).
 
+## Maintainers
+
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/mathieu-bour"><img
+      src="https://avatars.githubusercontent.com/u/21281702?v=3?s=100" width="100px;" alt=""/><br
+    /><sub><b>Mathieu Bour</b></sub></a></td>
+    <td align="center"><a href="https://github.com/derschnee68"><img
+      src="https://avatars.githubusercontent.com/u/12176105?v=3?s=100" width="100px;" alt=""/><br
+    /><sub><b>Julien Schneider</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Lymnah"><img
+      src="https://avatars.githubusercontent.com/u/29931035?v=3?s=100" width="100px;" alt=""/><br
+    /><sub><b>Charly Mancel</b></sub></a></td>
+  </tr>
+</table>
+
 ## Exposed tokens
 
 The [DeepSquare.sol](contracts/DeepSquare.sol) contract represents ERC-20-compatible DPS token.
@@ -18,5 +34,5 @@ The [DeepSquare.sol](contracts/DeepSquare.sol) contract allows to conduct the DP
 
 ## References
 
-- [DeepSquare](https://github.com/deepsquare-io/Whitepaper/releases/latest/download/DeepSquare-WhitePaper.pdf)
+- [DeepSquare whitepaper](https://github.com/deepsquare-io/Whitepaper/releases/latest/download/DeepSquare-WhitePaper.pdf)
 - [Avalanche whitepapers](https://www.avalabs.org/whitepapers)
