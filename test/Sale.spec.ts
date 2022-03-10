@@ -20,7 +20,7 @@ describe('Sale', () => {
   let agentSTC: ERC20Agent;
 
   const INITIAL_ROUND = ethers.utils.parseUnits('7000000', 18); // 7M DPS
-  let MINIMUM_PURCHASE_STC: BigNumber; // 7M DPS
+  let MINIMUM_PURCHASE_STC: BigNumber; // $250
 
   async function setupAccount(
     account: SignerWithAddress,

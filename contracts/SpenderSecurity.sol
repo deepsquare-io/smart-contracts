@@ -29,8 +29,8 @@ contract SpenderSecurity is ISecurity, AccessControl {
     function validateTokenTransfer(
         address sender,
         address from,
-        address, // to, might be unused in another security contract in the future
-        uint256 // amount, might be unused in another security contract in the future
+        address, // to, might be used in another security contract in the future
+        uint256 // amount, might be used in another security contract in the future
     ) public view override {
         // spenders are allowed to call transfer(to, amount)
         _checkRole(SPENDER, sender);
