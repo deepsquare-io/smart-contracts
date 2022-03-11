@@ -1,5 +1,5 @@
 import { BigNumber, Contract, providers, utils } from 'ethers';
-import SquareFundRaiseABI from '../../scripts/SquareFundRaiser.abi.json';
+import SquareFundRaiseABI from '../SquareFundRaiser.abi.json';
 
 const LEGACY_DPS = '0x8DFFCD9a2F392451e0cE7A1F0D73D65C5807ECd3';
 const RPC_URL = 'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'; // MetaMask
