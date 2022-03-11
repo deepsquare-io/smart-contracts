@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { Contract } from 'ethers';
 import { ethers } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { MissingRoleError } from './utils/AccessControl';
+import { MissingRoleError } from '../lib/testing/AccessControl';
 
 describe('SpenderSecurity', () => {
   let deployer: SignerWithAddress;

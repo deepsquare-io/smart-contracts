@@ -16,3 +16,6 @@ wallets_etherscan.json
 # IDEs
 /.idea
 /.vscode
+
+/state/*
+!/state/state.dist.json

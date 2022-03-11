@@ -3,9 +3,9 @@ import { randomBytes } from 'crypto';
 import { BigNumber, Contract } from 'ethers';
 import { ethers } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { setupDeepSquare } from './utils/DeepSquare';
-import { createERC20Agent, ERC20Agent } from './utils/ERC20';
-import { ZERO_ADDRESS } from './utils/constants';
+import { ZERO_ADDRESS } from '../lib/constants';
+import { setupDeepSquare } from '../lib/testing/DeepSquare';
+import { createERC20Agent, ERC20Agent } from '../lib/testing/ERC20';
 
 describe('Sale', () => {
   let owner: SignerWithAddress;
@@ -20,7 +20,7 @@ describe('Sale', () => {
   let agentSTC: ERC20Agent;
 
   const INITIAL_ROUND = ethers.utils.parseUnits('7000000', 18); // 7M DPS
-  let MINIMUM_PURCHASE_STC: BigNumber; // 7M DPS
+  let MINIMUM_PURCHASE_STC: BigNumber; // $250
 
   async function setupAccount(
     account: SignerWithAddress,

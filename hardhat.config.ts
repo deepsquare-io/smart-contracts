@@ -19,9 +19,11 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    local: {
-      url: 'http://127.0.0.1:8545/',
+    hardhat: {
       chainId: 31337,
+      forking: {
+        url: 'https://api.avax-test.network/ext/bc/C/rpc',
+      },
     },
   },
   gasReporter: {
@@ -48,7 +50,6 @@ if (process.env.FUJI_PRIVATE_KEY) {
       url: 'https://api.avax-test.network/ext/bc/C/rpc',
       chainId: 43113,
       accounts: [process.env.FUJI_PRIVATE_KEY],
-      gasPrice: 500000000000,
     },
   };
 }

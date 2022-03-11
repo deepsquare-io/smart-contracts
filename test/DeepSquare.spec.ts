@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 import { BigNumber, Contract } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { setupDeepSquare } from './utils/DeepSquare';
-import { ERC20Agent } from './utils/ERC20';
-import { DPS_TOTAL_SUPPLY } from './utils/constants';
-import { randomInt } from './utils/random';
+import { DPS_TOTAL_SUPPLY } from '../lib/constants';
+import { setupDeepSquare } from '../lib/testing/DeepSquare';
+import { ERC20Agent } from '../lib/testing/ERC20';
+import { randomInt } from '../lib/testing/random';
 
 describe('DeepSquare', async () => {
   let owner: SignerWithAddress;
@@ -21,14 +21,14 @@ describe('DeepSquare', async () => {
       await agentDPS.expectBalanceOf(owner, DPS_TOTAL_SUPPLY);
     });
 
-    it('should promote the deployer the contract owner', async () => {
+    it('should promote the deployer to be the contract owner', async () => {
       expect(await DPS.owner()).to.equals(owner.address);
     });
   });
 
   describe('transfer', () => {
-    describe('if sender is the contract owner', () => {
-      it('should let transfer its own DPS to another account', async () => {
+    describe('if the sender is the contract owner', () => {
+      it('should let him transfer its own DPS to another account', async () => {
         const initialBalance: BigNumber = await DPS.balanceOf(owner.address);
         const amount = agentDPS.unit(randomInt(10, 50) * 1000);
         await agentDPS.transfer(accounts[0], amount);

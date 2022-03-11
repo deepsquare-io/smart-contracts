@@ -4,11 +4,8 @@ import { createERC20Agent } from './ERC20';
 export async function setupDeepSquare() {
   const [owner, ...accounts] = await ethers.getSigners();
 
-  const SecurityFactory = await ethers.getContractFactory('SpenderSecurity');
-  const Security = await SecurityFactory.deploy();
-
-  const DeepSquareFactory = await ethers.getContractFactory('DeepSquare');
-  const DPS = await DeepSquareFactory.deploy(Security.address);
+  const Security = await (await ethers.getContractFactory('SpenderSecurity')).deploy();
+  const DPS = await (await ethers.getContractFactory('DeepSquare')).deploy(Security.address);
   const agentDPS = await createERC20Agent(DPS);
 
   return {

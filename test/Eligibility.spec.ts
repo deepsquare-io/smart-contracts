@@ -3,8 +3,8 @@ import { randomBytes } from 'crypto';
 import { Contract } from 'ethers';
 import { ethers } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { DEFAULT_ADMIN_ROLE, MissingRoleError } from './utils/AccessControl';
-import { makeResult } from './utils/Eligibility';
+import { DEFAULT_ADMIN_ROLE, MissingRoleError } from '../lib/testing/AccessControl';
+import { makeResult } from '../lib/testing/Eligibility';
 
 describe('Eligibility', () => {
   let admin: SignerWithAddress;

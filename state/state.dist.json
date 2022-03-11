@@ -1,0 +1,7 @@
+{
+  "config": {
+    "gnosis": "0x0000000000000000000000000000000000000000",
+    "cafe": "0xCAFEFbC500ef20b0c75198C74bbef6C17a19d793"
+  },
+  "contracts": {}
+}
