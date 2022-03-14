@@ -1,4 +1,4 @@
 module.exports = {
-  skipFiles: ['vendor/BridgeToken.sol'],
+  skipFiles: ['vendor/BridgeToken.sol', 'Initializer.sol'],
   silent: false,
 };
