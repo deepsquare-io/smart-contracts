@@ -16,7 +16,7 @@ contract Initializer is Ownable {
 
     /**
      * @dev Set multiple results in the Eligibility contract at once.
-     * @param recipients The accounts to validate.
+     * @param accounts The accounts to validate.
      * @param batch The results batch.
      */
     function setResults(address[] memory accounts, Result[] memory batch) external onlyOwner {

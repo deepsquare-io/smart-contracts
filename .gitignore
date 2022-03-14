@@ -9,13 +9,8 @@ cache
 artifacts
 .openzeppelin
 
-# migration
-wallets_db.json
-wallets_etherscan.json
-
 # IDEs
 /.idea
 /.vscode
 
 /state/*
-!/state/state.dist.json

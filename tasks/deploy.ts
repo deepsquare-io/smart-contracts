@@ -263,8 +263,8 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
 
   progressT.stop();
 
-  // Post-aidrop checks
-  await state.contracts.Initializer.destruct();
+  // Post-airdrop checks
+  await waitTx(state.contracts.Initializer.destruct());
 
   if (runChecks) {
     // Compare the balances between the Ethereum blockchain and the Avalanche blockchain

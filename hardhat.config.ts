@@ -2,9 +2,11 @@ import 'dotenv/config';
 import 'hardhat-gas-reporter';
 import { HardhatUserConfig } from 'hardhat/config';
 import 'solidity-coverage';
+import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
 import './tasks/deploy';
+import './tasks/verify2';
 
 const config: HardhatUserConfig = {
   solidity: {
