@@ -7,6 +7,7 @@ import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types/runtime';
 import { chunk } from 'lodash';
 import { join } from 'path';
+import BridgeTokenABI from '../lib/abi/BridgeToken.abi.json';
 import { DPS_TOTAL_SUPPLY, ZERO_ADDRESS } from '../lib/constants';
 import logger from '../lib/logger';
 import { DEFAULT_ADMIN_ROLE } from '../lib/testing/AccessControl';
@@ -78,9 +79,14 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
   );
 
   // Display what we will do
+  logger.info('Network:       ', chalk.redBright(hre.network.name), `(chaidId ${hre.network.config.chainId})`);
   logger.info('Deployer:      ', chalk.magenta(deployer.address), `(${initialDeployerBalance} AVAX)`);
   logger.info('Café (backend):', chalk.magenta(cafe));
   logger.info('Gnosis safe:   ', chalk.magenta(GNOSIS_SAFE));
+
+  if (taskArgs.stablecoin) {
+    logger.info('USDC.e:        ', chalk.magenta(taskArgs.stablecoin));
+  }
 
   if (harden) {
     logger.info(`The deployment will be hardened and the permissions transferred to ${GNOSIS_SAFE}`);
@@ -100,7 +106,9 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
       balance: await deployer.getBalance(),
     },
     contracts: {
-      USDCe: await hre.run('deploy:contract', { name: 'BridgeToken' }),
+      USDCe: taskArgs.stablecoin
+        ? await hre.ethers.getContractAt(BridgeTokenABI, taskArgs.stablecoin)
+        : await hre.run('deploy:contract', { name: 'BridgeToken' }),
       Eligibility: await hre.run('deploy:contract', { name: 'Eligibility' }),
       SpenderSecurity: await hre.run('deploy:contract', { name: 'SpenderSecurity' }),
     },
@@ -130,7 +138,9 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
   await waitTx(state.contracts.DPS.transfer(state.contracts.Sale.address, remaining));
   logger.info('Sale contract funded with', remaining.div(e(18)).toNumber(), 'DPS');
 
-  if (mint.gt(0)) {
+  if (taskArgs.stablecoin) {
+    logger.info('Skipping mint when stablecoin is defined');
+  } else if (mint.gt(0)) {
     const mint_STC = mint.mul(e(await state.contracts.USDCe.decimals()));
     await waitTx(
       state.contracts.USDCe.mint(
@@ -253,8 +263,8 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
 
   progressT.stop();
 
-  // Post-aidrop checks
-  await state.contracts.Initializer.destruct();
+  // Post-airdrop checks
+  await waitTx(state.contracts.Initializer.destruct());
 
   if (runChecks) {
     // Compare the balances between the Ethereum blockchain and the Avalanche blockchain
@@ -265,10 +275,10 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
   }
 
   if (harden) {
-    // Step 6: transfer all privileges to the gnosis
     logger.info('Hardening: transferring all permissions to', chalk.magenta(GNOSIS_SAFE));
 
-    // DeepSquare
+    // DeepSquare: transfer ownership to the GNOSIS_SAFE
+    // =================================================
     await waitTx(state.contracts.DPS.transferOwnership(GNOSIS_SAFE));
     assert.equal(
       await state.contracts.DPS.owner(),
@@ -277,7 +287,8 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
       `DPS owner is not ${GNOSIS_SAFE}`,
     );
 
-    // Sale
+    // Sale: transfer ownership to the GNOSIS_SAFE
+    // ===========================================
     await waitTx(state.contracts.Sale.transferOwnership(GNOSIS_SAFE));
     assert.equal(
       await state.contracts.Sale.owner(),
@@ -286,7 +297,8 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
       `Sale owner is not ${GNOSIS_SAFE}`,
     );
 
-    // Make gnosis spender admin
+    // SpenderSecurity (1/2): grant DEFAULT_ADMIN_ROLE and SPENDER to gnosis on contract
+    // =================================================================================
     await grantRole(state.contracts.SpenderSecurity, DEFAULT_ADMIN_ROLE, GNOSIS_SAFE);
     assert.ok(
       await state.contracts.SpenderSecurity.hasRole(DEFAULT_ADMIN_ROLE, GNOSIS_SAFE),
@@ -294,7 +306,6 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
       `${GNOSIS_SAFE} has not the DEFAULT_ADMIN_ROLE role`,
     );
 
-    // Make gnosis eligibility WRITER
     await grantRole(state.contracts.SpenderSecurity, 'SPENDER', GNOSIS_SAFE);
     assert.ok(
       await state.contracts.SpenderSecurity.hasRole(SPENDER_ROLE, GNOSIS_SAFE),
@@ -302,10 +313,13 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
       `${GNOSIS_SAFE} has not the SPENDER role`,
     );
 
+    // SpenderSecurity (2/2): make the deployer renounce to all roles
+    // ==============================================================
     await waitTx(state.contracts.SpenderSecurity.renounceRole(DEFAULT_ADMIN_ROLE, deployer.address));
     await waitTx(state.contracts.SpenderSecurity.renounceRole(SPENDER_ROLE, deployer.address));
 
-    // Make gnosis eligibility admin
+    // Eligibility (1/2): grant DEFAULT_ADMIN_ROLE and WRITER to gnosis on contract
+    // ============================================================================
     await grantRole(state.contracts.Eligibility, DEFAULT_ADMIN_ROLE, GNOSIS_SAFE);
     assert.ok(
       await state.contracts.Eligibility.hasRole(DEFAULT_ADMIN_ROLE, GNOSIS_SAFE),
@@ -319,16 +333,15 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
       `${GNOSIS_SAFE} has the WRITER role`,
       `${GNOSIS_SAFE} has not the WRITER role`,
     );
-    assert.ok(
-      await state.contracts.Eligibility.hasRole(WRITER_ROLE, GNOSIS_SAFE),
-      `${GNOSIS_SAFE} has not the WRITER role`,
-      `${GNOSIS_SAFE} has not the WRITER role`,
-    );
 
+    // Eligibility (2/2): make the deployer renounce to all roles
+    // ==========================================================
     await waitTx(state.contracts.Eligibility.renounceRole(DEFAULT_ADMIN_ROLE, deployer.address));
     await waitTx(state.contracts.Eligibility.renounceRole(WRITER_ROLE, deployer.address));
   }
 
+  // Deployment statistics
+  // =====================
   const duration = Math.floor((Date.now() - state.intial.time) / 1000);
   const used = (
     state.intial.balance
@@ -348,7 +361,7 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
 })
   .addOptionalParam('stablecoin', 'Address of the existing stablecoin contract')
   .addOptionalParam('mint', 'Mint stablecoin to the deployer')
-  .addOptionalParam('cafe', 'The café account address', '0xCAFEFbC500ef20b0c75198C74bbef6C17a19d793')
+  .addOptionalParam('cafe', 'The café account address', '0xCAFE0e6ac3384cb18344e57710B61F26654Dd347')
   .addFlag('skipChecks', 'Do not run the integrity checks against the Ethereum blockchain')
   .addFlag('noHarden', 'Do not harden the deployment by transferring privileges to the gnosis')
   .addFlag('yes', 'Skip the checks');

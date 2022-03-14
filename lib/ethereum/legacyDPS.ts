@@ -1,7 +1,7 @@
 import { Contract } from 'ethers';
+import SquareFundRaiserABI from '../abi/SquareFundRaiser.abi.json';
 import IERC20 from '../types/openzeppelin/IERC20';
 import Ownable from '../types/openzeppelin/Ownable';
-import SquareFundRaiserABI from './SquareFundRaiser.abi.json';
 import ethereum from './ethereum';
 
 /** @type {string} The legacy DPS contract on the Ethereum blockchain. */

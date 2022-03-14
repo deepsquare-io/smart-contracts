@@ -16,7 +16,9 @@
     "Julien Schneider <julien@squarefactory.io>"
   ],
   "contributors": [
-    "Charly Mancel <charly@squarefactory.io>"
+    "Charly Mancel <charly@squarefactory.io>",
+    "Valentin Pollart <valentin@squarefactory.io>",
+    "Clarisse Tarrou <clarisse@squarefactory.io>"
   ],
   "funding": "https://deepsquare.io",
   "scripts": {
