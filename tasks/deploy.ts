@@ -7,6 +7,7 @@ import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types/runtime';
 import { chunk } from 'lodash';
 import { join } from 'path';
+import BridgeTokenABI from '../lib/abi/BridgeToken.abi.json';
 import { DPS_TOTAL_SUPPLY, ZERO_ADDRESS } from '../lib/constants';
 import logger from '../lib/logger';
 import { DEFAULT_ADMIN_ROLE } from '../lib/testing/AccessControl';
@@ -78,9 +79,14 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
   );
 
   // Display what we will do
+  logger.info('Network:       ', chalk.redBright(hre.network.name), `(chaidId ${hre.network.config.chainId})`);
   logger.info('Deployer:      ', chalk.magenta(deployer.address), `(${initialDeployerBalance} AVAX)`);
   logger.info('Café (backend):', chalk.magenta(cafe));
   logger.info('Gnosis safe:   ', chalk.magenta(GNOSIS_SAFE));
+
+  if (taskArgs.stablecoin) {
+    logger.info('USDC.e:        ', chalk.magenta(taskArgs.stablecoin));
+  }
 
   if (harden) {
     logger.info(`The deployment will be hardened and the permissions transferred to ${GNOSIS_SAFE}`);
@@ -100,7 +106,9 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
       balance: await deployer.getBalance(),
     },
     contracts: {
-      USDCe: await hre.run('deploy:contract', { name: 'BridgeToken' }),
+      USDCe: taskArgs.stablecoin
+        ? await hre.ethers.getContractAt(BridgeTokenABI, taskArgs.stablecoin)
+        : await hre.run('deploy:contract', { name: 'BridgeToken' }),
       Eligibility: await hre.run('deploy:contract', { name: 'Eligibility' }),
       SpenderSecurity: await hre.run('deploy:contract', { name: 'SpenderSecurity' }),
     },
@@ -130,7 +138,9 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
   await waitTx(state.contracts.DPS.transfer(state.contracts.Sale.address, remaining));
   logger.info('Sale contract funded with', remaining.div(e(18)).toNumber(), 'DPS');
 
-  if (mint.gt(0)) {
+  if (taskArgs.stablecoin) {
+    logger.info('Skipping mint when stablecoin is defined');
+  } else if (mint.gt(0)) {
     const mint_STC = mint.mul(e(await state.contracts.USDCe.decimals()));
     await waitTx(
       state.contracts.USDCe.mint(
@@ -348,7 +358,7 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
 })
   .addOptionalParam('stablecoin', 'Address of the existing stablecoin contract')
   .addOptionalParam('mint', 'Mint stablecoin to the deployer')
-  .addOptionalParam('cafe', 'The café account address', '0xCAFEFbC500ef20b0c75198C74bbef6C17a19d793')
+  .addOptionalParam('cafe', 'The café account address', '0xCAFE0e6ac3384cb18344e57710B61F26654Dd347')
   .addFlag('skipChecks', 'Do not run the integrity checks against the Ethereum blockchain')
   .addFlag('noHarden', 'Do not harden the deployment by transferring privileges to the gnosis')
   .addFlag('yes', 'Skip the checks');

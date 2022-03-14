@@ -12,7 +12,7 @@ interface DeployContractArgs {
 subtask<DeployContractArgs>(
   'deploy:contract',
   'Deploy an individual contract and verify it at the same time',
-  async ({ name, args = [], verify = false }, { network, run, ethers }) => {
+  async ({ name, args = [], verify = true }, { network, run, ethers }) => {
     const factory: ContractFactory = await ethers.getContractFactory(name);
     const contract = await factory.deploy(...args);
     await contract.deployed();

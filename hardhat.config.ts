@@ -22,10 +22,20 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       chainId: 31337,
-      // forking: {
-      //   url: 'https://api.avax-test.network/ext/bc/C/rpc',
-      // },
+      forking: {
+        url: 'https://api.avax.network/ext/bc/C/rpc',
+      },
       gas: 8000000,
+    },
+    fuji: {
+      url: 'https://api.avax-test.network/ext/bc/C/rpc',
+      chainId: 43113,
+      accounts: process.env.FUJI_PRIVATE_KEY ? [process.env.FUJI_PRIVATE_KEY] : [],
+    },
+    mainnet: {
+      url: 'https://api.avax.network/ext/bc/C/rpc',
+      chainId: 43114,
+      accounts: process.env.MAINNET_PRIVATE_KEY ? [process.env.MAINNET_PRIVATE_KEY] : [],
     },
   },
   gasReporter: {
@@ -43,18 +53,6 @@ const config: HardhatUserConfig = {
     },
   },
 };
-
-if (process.env.FUJI_PRIVATE_KEY) {
-  // Add the Avalanche Fuji network if there is a FUJI private key
-  config.networks = {
-    ...config.networks,
-    fuji: {
-      url: 'https://api.avax-test.network/ext/bc/C/rpc',
-      chainId: 43113,
-      accounts: [process.env.FUJI_PRIVATE_KEY],
-    },
-  };
-}
 
 // noinspection JSUnusedGlobalSymbols
 export default config;
