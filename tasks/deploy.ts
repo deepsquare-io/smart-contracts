@@ -273,7 +273,7 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
     assert.equal(
       await state.contracts.DPS.owner(),
       GNOSIS_SAFE,
-      `DPS owner is now ${GNOSIS_SAFE}`,
+      `DPS owner is now ${chalk.magenta(GNOSIS_SAFE)}`,
       `DPS owner is not ${GNOSIS_SAFE}`,
     );
 
@@ -282,24 +282,24 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
     assert.equal(
       await state.contracts.Sale.owner(),
       GNOSIS_SAFE,
-      `DPS owner is now ${harden}`,
-      `DPS owner is not ${harden}`,
+      `Sale owner is now ${chalk.magenta(GNOSIS_SAFE)}`,
+      `Sale owner is not ${GNOSIS_SAFE}`,
     );
 
     // Make gnosis spender admin
     await grantRole(state.contracts.SpenderSecurity, DEFAULT_ADMIN_ROLE, GNOSIS_SAFE);
     assert.ok(
       await state.contracts.SpenderSecurity.hasRole(DEFAULT_ADMIN_ROLE, GNOSIS_SAFE),
-      `${harden} has the DEFAULT_ADMIN_ROLE role`,
-      `${harden} has not the DEFAULT_ADMIN_ROLE role`,
+      `${GNOSIS_SAFE} has the DEFAULT_ADMIN_ROLE role`,
+      `${GNOSIS_SAFE} has not the DEFAULT_ADMIN_ROLE role`,
     );
 
     // Make gnosis eligibility WRITER
     await grantRole(state.contracts.SpenderSecurity, 'SPENDER', GNOSIS_SAFE);
     assert.ok(
       await state.contracts.SpenderSecurity.hasRole(SPENDER_ROLE, GNOSIS_SAFE),
-      `${harden} has the SPENDER role`,
-      `${harden} has not the SPENDER role`,
+      `${GNOSIS_SAFE} has the SPENDER role`,
+      `${GNOSIS_SAFE} has not the SPENDER role`,
     );
 
     await waitTx(state.contracts.SpenderSecurity.renounceRole(DEFAULT_ADMIN_ROLE, deployer.address));
@@ -309,20 +309,20 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
     await grantRole(state.contracts.Eligibility, DEFAULT_ADMIN_ROLE, GNOSIS_SAFE);
     assert.ok(
       await state.contracts.Eligibility.hasRole(DEFAULT_ADMIN_ROLE, GNOSIS_SAFE),
-      `${harden} has the DEFAULT_ADMIN_ROLE role`,
-      `${harden} has not the DEFAULT_ADMIN_ROLE role`,
+      `${GNOSIS_SAFE} has the DEFAULT_ADMIN_ROLE role`,
+      `${GNOSIS_SAFE} has not the DEFAULT_ADMIN_ROLE role`,
     );
 
     await grantRole(state.contracts.Eligibility, 'WRITER', GNOSIS_SAFE); // Make gnosis eligibility WRITER
     assert.ok(
       await state.contracts.Eligibility.hasRole(WRITER_ROLE, GNOSIS_SAFE),
-      `${harden} has the WRITER role`,
-      `${harden} has not the WRITER role`,
+      `${GNOSIS_SAFE} has the WRITER role`,
+      `${GNOSIS_SAFE} has not the WRITER role`,
     );
     assert.ok(
       await state.contracts.Eligibility.hasRole(WRITER_ROLE, GNOSIS_SAFE),
-      `${harden} has not the WRITER role`,
-      `${harden} has not the WRITER role`,
+      `${GNOSIS_SAFE} has not the WRITER role`,
+      `${GNOSIS_SAFE} has not the WRITER role`,
     );
 
     await waitTx(state.contracts.Eligibility.renounceRole(DEFAULT_ADMIN_ROLE, deployer.address));
