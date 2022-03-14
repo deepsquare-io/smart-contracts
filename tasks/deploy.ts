@@ -31,6 +31,7 @@ interface DeployArgs {
   stablecoin: string;
   mint: string;
   cafe: string;
+  skipChecks: boolean;
   noHarden: boolean;
   yes: boolean;
 }
@@ -63,6 +64,7 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
   const mint = BigNumber.from(taskArgs.mint ?? 0);
   const harden = !taskArgs.noHarden;
   const cafe = taskArgs.cafe;
+  const runChecks = !taskArgs.skipChecks;
 
   const [deployer] = await hre.ethers.getSigners();
   const initialDeployerBalance = await getHumanBalance(deployer);
@@ -81,7 +83,7 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
   logger.info('Gnosis safe:   ', chalk.magenta(GNOSIS_SAFE));
 
   if (harden) {
-    logger.info(`The deployment will be hardened and the permissions transferred to ${harden}`);
+    logger.info(`The deployment will be hardened and the permissions transferred to ${GNOSIS_SAFE}`);
   } else {
     logger.info(`The deployment will not be hardened`);
   }
@@ -254,11 +256,13 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
   // Post-aidrop checks
   await state.contracts.Initializer.destruct();
 
-  // Integrity check
-  await checkBalances(
-    state.contracts.DPS,
-    transfers.map((t) => t.metadata.to),
-  );
+  if (runChecks) {
+    // Compare the balances between the Ethereum blockchain and the Avalanche blockchain
+    await checkBalances(
+      state.contracts.DPS,
+      transfers.map((t) => t.metadata.to),
+    );
+  }
 
   if (harden) {
     // Step 6: transfer all privileges to the gnosis
@@ -268,7 +272,7 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
     await waitTx(state.contracts.DPS.transferOwnership(GNOSIS_SAFE));
     assert.equal(
       await state.contracts.DPS.owner(),
-      harden,
+      GNOSIS_SAFE,
       `DPS owner is now ${GNOSIS_SAFE}`,
       `DPS owner is not ${GNOSIS_SAFE}`,
     );
@@ -277,7 +281,7 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
     await waitTx(state.contracts.Sale.transferOwnership(GNOSIS_SAFE));
     assert.equal(
       await state.contracts.Sale.owner(),
-      harden,
+      GNOSIS_SAFE,
       `DPS owner is now ${harden}`,
       `DPS owner is not ${harden}`,
     );
@@ -345,5 +349,6 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
   .addOptionalParam('stablecoin', 'Address of the existing stablecoin contract')
   .addOptionalParam('mint', 'Mint stablecoin to the deployer')
   .addOptionalParam('cafe', 'The café account address', '0xCAFEFbC500ef20b0c75198C74bbef6C17a19d793')
+  .addFlag('skipChecks', 'Do not run the integrity checks against the Ethereum blockchain')
   .addFlag('noHarden', 'Do not harden the deployment by transferring privileges to the gnosis')
   .addFlag('yes', 'Skip the checks');

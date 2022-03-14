@@ -1,10 +1,10 @@
 import assert, { AssertionError } from 'assert';
 import { Presets, SingleBar } from 'cli-progress';
 import { BigNumber } from 'ethers';
+import legacyDPS from '../../lib/ethereum/legacyDPS';
 import logger from '../../lib/logger';
 import DeepSquare from '../../lib/types/DeepSquare';
 import e from '../../lib/utils/e';
-import { legacyDPS } from './ethereum';
 
 /**
  * @type {string[]} Some DeepSquare investors has changed/merged their wallets, and we have manually checked them.
