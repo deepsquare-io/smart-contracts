@@ -275,10 +275,10 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
   }
 
   if (harden) {
-    // Step 6: transfer all privileges to the gnosis
     logger.info('Hardening: transferring all permissions to', chalk.magenta(GNOSIS_SAFE));
 
-    // DeepSquare
+    // DeepSquare: transfer ownership to the GNOSIS_SAFE
+    // =================================================
     await waitTx(state.contracts.DPS.transferOwnership(GNOSIS_SAFE));
     assert.equal(
       await state.contracts.DPS.owner(),
@@ -287,7 +287,8 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
       `DPS owner is not ${GNOSIS_SAFE}`,
     );
 
-    // Sale
+    // Sale: transfer ownership to the GNOSIS_SAFE
+    // ===========================================
     await waitTx(state.contracts.Sale.transferOwnership(GNOSIS_SAFE));
     assert.equal(
       await state.contracts.Sale.owner(),
@@ -296,7 +297,8 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
       `Sale owner is not ${GNOSIS_SAFE}`,
     );
 
-    // Make gnosis spender admin
+    // SpenderSecurity (1/2): grant DEFAULT_ADMIN_ROLE and SPENDER to gnosis on contract
+    // =================================================================================
     await grantRole(state.contracts.SpenderSecurity, DEFAULT_ADMIN_ROLE, GNOSIS_SAFE);
     assert.ok(
       await state.contracts.SpenderSecurity.hasRole(DEFAULT_ADMIN_ROLE, GNOSIS_SAFE),
@@ -304,7 +306,6 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
       `${GNOSIS_SAFE} has not the DEFAULT_ADMIN_ROLE role`,
     );
 
-    // Make gnosis eligibility WRITER
     await grantRole(state.contracts.SpenderSecurity, 'SPENDER', GNOSIS_SAFE);
     assert.ok(
       await state.contracts.SpenderSecurity.hasRole(SPENDER_ROLE, GNOSIS_SAFE),
@@ -312,10 +313,13 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
       `${GNOSIS_SAFE} has not the SPENDER role`,
     );
 
+    // SpenderSecurity (2/2): make the deployer renounce to all roles
+    // ==============================================================
     await waitTx(state.contracts.SpenderSecurity.renounceRole(DEFAULT_ADMIN_ROLE, deployer.address));
     await waitTx(state.contracts.SpenderSecurity.renounceRole(SPENDER_ROLE, deployer.address));
 
-    // Make gnosis eligibility admin
+    // Eligibility (1/2): grant DEFAULT_ADMIN_ROLE and WRITER to gnosis on contract
+    // ============================================================================
     await grantRole(state.contracts.Eligibility, DEFAULT_ADMIN_ROLE, GNOSIS_SAFE);
     assert.ok(
       await state.contracts.Eligibility.hasRole(DEFAULT_ADMIN_ROLE, GNOSIS_SAFE),
@@ -329,16 +333,15 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
       `${GNOSIS_SAFE} has the WRITER role`,
       `${GNOSIS_SAFE} has not the WRITER role`,
     );
-    assert.ok(
-      await state.contracts.Eligibility.hasRole(WRITER_ROLE, GNOSIS_SAFE),
-      `${GNOSIS_SAFE} has not the WRITER role`,
-      `${GNOSIS_SAFE} has not the WRITER role`,
-    );
 
+    // Eligibility (2/2): make the deployer renounce to all roles
+    // ==========================================================
     await waitTx(state.contracts.Eligibility.renounceRole(DEFAULT_ADMIN_ROLE, deployer.address));
     await waitTx(state.contracts.Eligibility.renounceRole(WRITER_ROLE, deployer.address));
   }
 
+  // Deployment statistics
+  // =====================
   const duration = Math.floor((Date.now() - state.intial.time) / 1000);
   const used = (
     state.intial.balance
