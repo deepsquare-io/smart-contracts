@@ -2,7 +2,7 @@ import hre, { ethers } from 'hardhat';
 import DeepSquare from '../lib/types/DeepSquare';
 import { Sale } from '../lib/types/Sale';
 
-const SALE_ADDRESS = '0x097Fa777340d456E3cD46C4dFAA6c2706b8A40CB'; // change it
+const SALE_ADDRESS = '0xeA3b1079161826cBD9dA7e744c6c6C6E17C1b812'; // change it
 
 async function verify(address: string, args?: unknown[]) {
   try {

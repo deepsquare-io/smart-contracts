@@ -7,7 +7,7 @@ import "./interfaces/ISecurity.sol";
 
 /**
  * @title DeepSquare DPS token.
- * @author Mathieu Bour, Julien Schneider and Charly Mancel for the DeepSquare Association.
+ * @author Mathieu Bour, Julien Schneider, Charly Mancel, Valentin Pollart and Clarisse Tarrou for the DeepSquare Association.
  * @notice The DPS token is the DeepSquare ERC-20 security token.
  * @dev Since this a security token, transfers are restricted to the authorized accounts of the contract.
  */
@@ -15,21 +15,24 @@ contract DeepSquare is ERC20, Ownable {
     /// @dev The security which controls the token transfers.
     ISecurity public security;
 
+    /**
+     * @param initialSecurity The initial security contract.
+     */
     constructor(ISecurity initialSecurity) ERC20("DeepSquare", "DPS") {
         security = initialSecurity;
-        _mint(msg.sender, 210 * 1e6 * 1e18);
-        // 210,000,000 wei = 210 millions token with 18 decimals
+        _mint(msg.sender, 210e6 * 1e18); // 210,000,000 wei = 210 millions token with 18 decimals
     }
 
     /**
-     * @notice Set the security contract which manages the token transfer rescrictions.
+     * @notice Set the security contract which manages the token transfer restrictions.
+     * @param newSecurity The new security contract.
      */
     function setSecurity(ISecurity newSecurity) external onlyOwner {
         security = newSecurity;
     }
 
     /**
-     * @dev Forward the _beforeTokenTransfer hook to the DeepSquareSecurity contract which manages the token transfer rescrictions.
+     * @dev Forward the _beforeTokenTransfer hook to the DeepSquareSecurity contract which manages the token transfer restrictions.
      * @param from The account from where the tokens will be taken.
      * @param to The account where the tokens will be sent.
      * @param amount The token amount.

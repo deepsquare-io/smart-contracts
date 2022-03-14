@@ -17,6 +17,7 @@ specifiers:
   '@typescript-eslint/eslint-plugin': ^5.14.0
   '@typescript-eslint/parser': ^5.14.0
   chai: ^4.3.6
+  chalk: ^4.1.2
   cli-progress: ^3.10.0
   dotenv: ^16.0.0
   eslint: ^8.10.0
@@ -37,6 +38,9 @@ specifiers:
   typescript: ^4.6.2
   zod: ^3.13.4
 
+dependencies:
+  tslog: 3.3.2
+
 devDependencies:
   '@deepsquare/prettier-config': 1.0.3_f155c2edb9e5c4797441a74b977360f5
   '@nomiclabs/hardhat-ethers': 2.0.5_ethers@5.5.4+hardhat@2.9.1
@@ -54,6 +58,7 @@ devDependencies:
   '@typescript-eslint/eslint-plugin': 5.14.0_f4054b8c3cd621db16ae1b9d571bccc0
   '@typescript-eslint/parser': 5.14.0_eslint@8.10.0+typescript@4.6.2
   chai: 4.3.6
+  chalk: 4.1.2
   cli-progress: 3.10.0
   dotenv: 16.0.0
   eslint: 8.10.0
@@ -70,7 +75,6 @@ devDependencies:
   solhint: 3.3.7
   solidity-coverage: 0.7.20
   ts-node: 10.7.0_7802c9c63a3525e60b2894fd918d953f
-  tslog: 3.3.2
   typescript: 4.6.2
   zod: 3.13.4
 
@@ -2642,7 +2646,6 @@ packages:
 
   /buffer-from/1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
-    dev: true
 
   /buffer-to-arraybuffer/0.0.5:
     resolution: {integrity: sha1-YGSkD6dutDxyOrqe+PbhIW0QURo=}
@@ -8604,7 +8607,6 @@ packages:
     dependencies:
       buffer-from: 1.1.2
       source-map: 0.6.1
-    dev: true
 
   /source-map-url/0.4.1:
     resolution: {integrity: sha512-cPiFOTLUKvJFIg4SKVScy4ilPPW6rFgMgfuZJPNoDuMs3nC1HbMUycBoJw77xFIp6z1UJQJOfx6C9GMH80DiTw==}
@@ -8628,7 +8630,6 @@ packages:
   /source-map/0.6.1:
     resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
     engines: {node: '>=0.10.0'}
-    dev: true
 
   /spdx-correct/3.1.1:
     resolution: {integrity: sha512-cOYcUWwhCuHCXi49RhFRCyJEK3iPj1Ziz9DpViV3tbZOwXD49QzIN3MpOLJNxh2qwq2lJJZaKMVw9qNi4jTC0w==}
@@ -9172,7 +9173,7 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       source-map-support: 0.5.21
-    dev: true
+    dev: false
 
   /tsort/0.0.1:
     resolution: {integrity: sha1-4igPXoF/i/QnVlf9D5rr1E9aJ4Y=}

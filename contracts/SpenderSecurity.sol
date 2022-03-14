@@ -6,7 +6,7 @@ import "./interfaces/ISecurity.sol";
 
 /**
  * @title SpenderSecurity
- * @author Mathieu Bour, Julien Schneider and Charly Mancel for the DeepSquare Association.
+ * @author Mathieu Bour, Julien Schneider, Charly Mancel, Valentin Pollart and Clarisse Tarrou for the DeepSquare Association.
  * @notice Only accounts with the SPENDER role can transfer their DPS.
  */
 contract SpenderSecurity is ISecurity, AccessControl {

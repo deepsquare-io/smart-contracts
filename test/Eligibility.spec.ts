@@ -45,7 +45,9 @@ describe('Eligibility', () => {
           transactionId: randomBytes(16).toString('hex'),
         };
 
-        await eligibility.connect(accounts[0]).setResult(accounts[1].address, result);
+        await expect(eligibility.connect(accounts[0]).setResult(accounts[1].address, result))
+          .to.emit(eligibility, 'Validation')
+          .withArgs(accounts[1].address, [...Object.values(result)]);
         const writtenR = await eligibility.connect(accounts[2]).results(accounts[1].address);
 
         for (const [key, value] of Object.entries(result)) {

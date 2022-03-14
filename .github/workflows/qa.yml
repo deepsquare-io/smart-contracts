@@ -36,7 +36,7 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup
       - name: Run the tests
-        run: pnpm test
+        run: pnpm test:gas
   coverage:
     name: Compute the coverage with the tests
     runs-on: ubuntu-20.04
@@ -46,7 +46,7 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup
       - name: Run the tests in coverage mode
-        run: pnpm coverage
+        run: pnpm test:coverage
       - name: Send the coverage results to Codecov
         uses: codecov/codecov-action@v2
         with:
