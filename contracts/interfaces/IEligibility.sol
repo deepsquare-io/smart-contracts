@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 /**
  * @title Eligibility.
- * @author Mathieu Bour, Julien Schneider and Charly Mancel for the DeepSquare Association.
+ * @author Mathieu Bour, Julien Schneider, Charly Mancel, Valentin Pollart and Clarisse Tarrou for the DeepSquare Association.
  * @dev Defines a basic protocol (tier, limit) to verify the accounts KYC.
  */
 interface IEligibility {

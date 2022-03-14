@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 /**
  * @title ISecurity
- * @author Mathieu Bour, Julien Schneider and Charly Mancel for the DeepSquare Association.
+ * @author Mathieu Bour, Julien Schneider, Charly Mancel, Valentin Pollart and Clarisse Tarrou for the DeepSquare Association.
  * @notice Expose a validation function to restrict ERC20 transfers.
  * @dev This contract must be inherit and the validateTokenTransfer function overloaded with the appropriate logic.
  */

@@ -13,7 +13,7 @@ struct Result {
 
 /**
  * @title Eligibility.
- * @author Mathieu Bour, Julien Schneider and Charly Mancel for the DeepSquare Association.
+ * @author Mathieu Bour, Julien Schneider, Charly Mancel, Valentin Pollart and Clarisse Tarrou for the DeepSquare Association.
  * @dev Basic implementation of a KYC storage.
  */
 contract Eligibility is AccessControl, IEligibility {

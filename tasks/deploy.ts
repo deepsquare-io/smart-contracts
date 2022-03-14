@@ -10,7 +10,7 @@ import { join } from 'path';
 import { DPS_TOTAL_SUPPLY, ZERO_ADDRESS } from '../lib/constants';
 import logger from '../lib/logger';
 import { DEFAULT_ADMIN_ROLE } from '../lib/testing/AccessControl';
-import BridgeToken from '../lib/types/BirdgeToken';
+import BridgeToken from '../lib/types/BridgeToken';
 import DeepSquare from '../lib/types/DeepSquare';
 import Eligibility from '../lib/types/Eligibility';
 import Initializer from '../lib/types/Initializer';

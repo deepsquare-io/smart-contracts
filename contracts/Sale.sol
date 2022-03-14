@@ -7,7 +7,7 @@ import "./Eligibility.sol";
 
 /**
  * @title Token sale.
- * @author Mathieu Bour, Julien Schneider and Charly Mancel for the DeepSquare Association.
+ * @author Mathieu Bour, Julien Schneider, Charly Mancel, Valentin Pollart and Clarisse Tarrou for the DeepSquare Association.
  * @notice Conduct a token sale in exchange for a stablecoin (STC), e.g. USDC.
  */
 contract Sale is Ownable {
@@ -77,6 +77,7 @@ contract Sale is Ownable {
      * @notice Convert a DPS amount in stablecoin.
      * @dev Maximum possible working value is 210M DPS * 1e18 * 1e6 = 210e30.
      * Since log2(210e30) ~= 107,this cannot overflow an uint256.
+     * @param amountDPS The amount in DPS.
      */
     function convertDPStoSTC(uint256 amountDPS) public view returns (uint256) {
         return (amountDPS * (10**STC.decimals()) * rate) / 100 / (10**DPS.decimals());
@@ -84,6 +85,7 @@ contract Sale is Ownable {
 
     /**
      * @notice Get the remaining DPS tokens to sell.
+     * @return The amount of DPS remaining in the sale.
      */
     function remaining() external view returns (uint256) {
         return DPS.balanceOf(address(this));
@@ -91,6 +93,7 @@ contract Sale is Ownable {
 
     /**
      * @notice Get the raised stablecoin amount.
+     * @return The amount of stable coin raised in the sale.
      */
     function raised() external view returns (uint256) {
         return convertDPStoSTC(sold);
@@ -101,8 +104,11 @@ contract Sale is Ownable {
      * @dev Requirements:
      * - the account is not the sale owner.
      * - the account is eligible.
+     * @param account The account to check that should receive the DPS.
+     * @param amountSTC The amount of stablecoin that will be used to purchase DPS.
+     * @return The amount of DPS that should be transferred.
      */
-    function _validate(address account, uint256 amountSTC) internal {
+    function _validate(address account, uint256 amountSTC) internal returns (uint256) {
         require(account != owner(), "Sale: investor is the sale owner");
 
         (uint8 tier, uint256 limit) = eligibility.lookup(account);
@@ -116,12 +122,19 @@ contract Sale is Ownable {
             // zero limit means that the tier has no restrictions
             require(investmentSTC <= limitSTC, "Sale: exceeds tier limit");
         }
+
+        uint256 amountDPS = convertSTCtoDPS(amountSTC);
+        require(DPS.balanceOf(address(this)) >= amountDPS, "Sale: no enough tokens remaining");
+
+        return amountDPS;
     }
 
     /**
      * @notice Deliver the DPS to the account.
      * @dev Requirements:
      * - there are enough DPS remaining in the sale.
+     * @param account The account that will receive the DPS.
+     * @param amountDPS The amount of DPS to transfer.
      */
     function _transferDPS(address account, uint256 amountDPS) internal {
         sold += amountDPS;
@@ -136,10 +149,7 @@ contract Sale is Ownable {
      */
     function purchaseDPS(uint256 amountSTC) external {
         require(amountSTC >= minimumPurchaseSTC, "Sale: amount lower than minimum");
-        _validate(msg.sender, amountSTC);
-
-        uint256 amountDPS = convertSTCtoDPS(amountSTC);
-        require(DPS.balanceOf(address(this)) >= amountDPS, "Sale: no enough tokens remaining");
+        uint256 amountDPS = _validate(msg.sender, amountSTC);
 
         STC.transferFrom(msg.sender, owner(), amountSTC);
         _transferDPS(msg.sender, amountDPS);
@@ -151,11 +161,7 @@ contract Sale is Ownable {
      * @param account The investor address.
      */
     function deliverDPS(uint256 amountSTC, address account) external onlyOwner {
-        _validate(account, amountSTC);
-
-        uint256 amountDPS = convertSTCtoDPS(amountSTC);
-        require(DPS.balanceOf(address(this)) >= amountDPS, "Sale: no enough tokens remaining");
-
+        uint256 amountDPS = _validate(account, amountSTC);
         _transferDPS(account, amountDPS);
     }
 
