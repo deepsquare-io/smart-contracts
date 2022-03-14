@@ -3,7 +3,7 @@ import { Presets, SingleBar } from 'cli-progress';
 import { randomBytes } from 'crypto';
 import { BigNumber, utils } from 'ethers';
 import { readFileSync } from 'fs';
-import { subtask, task } from 'hardhat/config';
+import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types/runtime';
 import { chunk } from 'lodash';
 import { join } from 'path';
@@ -30,8 +30,8 @@ import { RawResult, RawTransfer } from './subtasks/state';
 interface DeployArgs {
   stablecoin: string;
   mint: string;
-  harden: string;
   cafe: string;
+  noHarden: boolean;
   yes: boolean;
 }
 
@@ -51,7 +51,7 @@ interface DeployState {
 }
 
 // constants
-const RATE_DPS_USD = 40; // $0.40 per DPS
+const GNOSIS_SAFE = '0xaEAE6CA5a34327b557181ae1E9E62BF2B5eB1D7F';
 const MINIMUM_PURCHASE_USD = 250; // $250 min USD investment
 const RESULTS_BATCH_SIZE = 50;
 const TRANSFER_BATCH_SIZE = 200;
@@ -61,7 +61,7 @@ const WRITER_ROLE = utils.id('WRITER');
 task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: HardhatRuntimeEnvironment) => {
   // Parse the options
   const mint = BigNumber.from(taskArgs.mint ?? 0);
-  const harden = taskArgs.harden;
+  const harden = !taskArgs.noHarden;
   const cafe = taskArgs.cafe;
 
   const [deployer] = await hre.ethers.getSigners();
@@ -76,8 +76,9 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
   );
 
   // Display what we will do
-  logger.info('Deployer:', chalk.magenta(deployer.address), `(${initialDeployerBalance} AVAX)`);
-  logger.info('Café (backend):', cafe);
+  logger.info('Deployer:      ', chalk.magenta(deployer.address), `(${initialDeployerBalance} AVAX)`);
+  logger.info('Café (backend):', chalk.magenta(cafe));
+  logger.info('Gnosis safe:   ', chalk.magenta(GNOSIS_SAFE));
 
   if (harden) {
     logger.info(`The deployment will be hardened and the permissions transferred to ${harden}`);
@@ -211,15 +212,43 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
 
   const progressT = new SingleBar({}, Presets.shades_classic);
   progressT.start(transfers.length, 0);
-  for (const transferChunk of chunk(transfers, TRANSFER_BATCH_SIZE)) {
+
+  const phase1: RawTransfer[] = [];
+  const phase2: RawTransfer[] = [];
+  let border = 0;
+
+  for (const t of transfers) {
+    if (t.rate === 20) {
+      phase1.push(t);
+    } else if (t.rate) {
+      phase2.push(t);
+    }
+  }
+
+  for (const transferChunk of chunk(phase1, TRANSFER_BATCH_SIZE)) {
+    const tx = await waitTx(
+      state.contracts.Initializer.airdrop(
+        transferChunk.map((t) => t.metadata.to),
+        transferChunk.map((t) => BigNumber.from(t.amount)),
+      ),
+    );
+
+    border = tx.blockNumber;
+
+    progressT.increment(transferChunk.length);
+  }
+
+  for (const transferChunk of chunk(phase2, TRANSFER_BATCH_SIZE)) {
     await waitTx(
       state.contracts.Initializer.airdrop(
         transferChunk.map((t) => t.metadata.to),
         transferChunk.map((t) => BigNumber.from(t.amount)),
       ),
     );
+
     progressT.increment(transferChunk.length);
   }
+
   progressT.stop();
 
   // Post-aidrop checks
@@ -233,14 +262,19 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
 
   if (harden) {
     // Step 6: transfer all privileges to the gnosis
-    logger.info('Hardening: transferring all permissions to', chalk.magenta(harden));
+    logger.info('Hardening: transferring all permissions to', chalk.magenta(GNOSIS_SAFE));
 
     // DeepSquare
-    await waitTx(state.contracts.DPS.transferOwnership(harden));
-    assert.equal(await state.contracts.DPS.owner(), harden, `DPS owner is now ${harden}`, `DPS owner is not ${harden}`);
+    await waitTx(state.contracts.DPS.transferOwnership(GNOSIS_SAFE));
+    assert.equal(
+      await state.contracts.DPS.owner(),
+      harden,
+      `DPS owner is now ${GNOSIS_SAFE}`,
+      `DPS owner is not ${GNOSIS_SAFE}`,
+    );
 
     // Sale
-    await waitTx(state.contracts.Sale.transferOwnership(harden));
+    await waitTx(state.contracts.Sale.transferOwnership(GNOSIS_SAFE));
     assert.equal(
       await state.contracts.Sale.owner(),
       harden,
@@ -249,17 +283,17 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
     );
 
     // Make gnosis spender admin
-    await grantRole(state.contracts.SpenderSecurity, DEFAULT_ADMIN_ROLE, harden);
+    await grantRole(state.contracts.SpenderSecurity, DEFAULT_ADMIN_ROLE, GNOSIS_SAFE);
     assert.ok(
-      await state.contracts.SpenderSecurity.hasRole(DEFAULT_ADMIN_ROLE, harden),
+      await state.contracts.SpenderSecurity.hasRole(DEFAULT_ADMIN_ROLE, GNOSIS_SAFE),
       `${harden} has the DEFAULT_ADMIN_ROLE role`,
       `${harden} has not the DEFAULT_ADMIN_ROLE role`,
     );
 
     // Make gnosis eligibility WRITER
-    await grantRole(state.contracts.SpenderSecurity, 'SPENDER', harden);
+    await grantRole(state.contracts.SpenderSecurity, 'SPENDER', GNOSIS_SAFE);
     assert.ok(
-      await state.contracts.SpenderSecurity.hasRole(SPENDER_ROLE, harden),
+      await state.contracts.SpenderSecurity.hasRole(SPENDER_ROLE, GNOSIS_SAFE),
       `${harden} has the SPENDER role`,
       `${harden} has not the SPENDER role`,
     );
@@ -268,21 +302,21 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
     await waitTx(state.contracts.SpenderSecurity.renounceRole(SPENDER_ROLE, deployer.address));
 
     // Make gnosis eligibility admin
-    await grantRole(state.contracts.Eligibility, DEFAULT_ADMIN_ROLE, harden);
+    await grantRole(state.contracts.Eligibility, DEFAULT_ADMIN_ROLE, GNOSIS_SAFE);
     assert.ok(
-      await state.contracts.Eligibility.hasRole(DEFAULT_ADMIN_ROLE, harden),
+      await state.contracts.Eligibility.hasRole(DEFAULT_ADMIN_ROLE, GNOSIS_SAFE),
       `${harden} has the DEFAULT_ADMIN_ROLE role`,
       `${harden} has not the DEFAULT_ADMIN_ROLE role`,
     );
 
-    await grantRole(state.contracts.Eligibility, 'WRITER', harden); // Make gnosis eligibility WRITER
+    await grantRole(state.contracts.Eligibility, 'WRITER', GNOSIS_SAFE); // Make gnosis eligibility WRITER
     assert.ok(
-      await state.contracts.Eligibility.hasRole(WRITER_ROLE, harden),
+      await state.contracts.Eligibility.hasRole(WRITER_ROLE, GNOSIS_SAFE),
       `${harden} has the WRITER role`,
       `${harden} has not the WRITER role`,
     );
     assert.ok(
-      await state.contracts.Eligibility.hasRole(WRITER_ROLE, harden),
+      await state.contracts.Eligibility.hasRole(WRITER_ROLE, GNOSIS_SAFE),
       `${harden} has not the WRITER role`,
       `${harden} has not the WRITER role`,
     );
@@ -306,9 +340,10 @@ task<DeployArgs>('deploy', 'Deploy the smart contracts', async (taskArgs, hre: H
   logger.info('SpenderSecurity:   ', state.contracts.SpenderSecurity.address);
   logger.info('DeepSquare:        ', state.contracts.DPS.address);
   logger.info('Sale:              ', state.contracts.Sale.address);
+  logger.info('Phase 1/2 block:   ', border);
 })
   .addOptionalParam('stablecoin', 'Address of the existing stablecoin contract')
   .addOptionalParam('mint', 'Mint stablecoin to the deployer')
-  .addOptionalParam('harden', 'Harden the contract by transferring the privileges to someone else, like a gnosis safe')
   .addOptionalParam('cafe', 'The café account address', '0xCAFEFbC500ef20b0c75198C74bbef6C17a19d793')
+  .addFlag('noHarden', 'Do not harden the deployment by transferring privileges to the gnosis')
   .addFlag('yes', 'Skip the checks');

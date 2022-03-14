@@ -11,7 +11,7 @@ interface DeployContractArgs {
 
 subtask<DeployContractArgs>(
   'deploy:contract',
-  'Deploy an individual contract',
+  'Deploy an individual contract and verify it at the same time',
   async ({ name, args = [], verify = false }, { network, run, ethers }) => {
     const factory: ContractFactory = await ethers.getContractFactory(name);
     const contract = await factory.deploy(...args);
@@ -19,6 +19,7 @@ subtask<DeployContractArgs>(
     logger.info(name, 'deployed to', chalk.magenta(contract.address));
 
     if (!verify) {
+      logger.info('Skipping verification');
       return contract;
     }
 
@@ -40,7 +41,7 @@ subtask<DeployContractArgs>(
         'message' in err &&
         (err as { message: string }).message.includes('Already Verified')
       ) {
-        logger.warn(name, 'is already verified, skipping');
+        logger.info(name, 'is already verified, skipping');
       } else {
         throw err;
       }

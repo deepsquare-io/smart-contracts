@@ -2,7 +2,9 @@ import { BigNumber, Contract, utils } from 'ethers';
 import SquareFundRaiseABI from './SquareFundRaiser.abi.json';
 import ethereum from './ethereum';
 
+/** @type {string} The legacy DPS contract on the Ethereum blockchain. */
 const LEGACY_DPS = '0x8DFFCD9a2F392451e0cE7A1F0D73D65C5807ECd3';
+/** @type {BigNumber} Private sale phase 1 */
 const PHASE1 = utils.parseUnits('10000000', 6); // 10 million DPS
 const PHASE2 = utils.parseUnits('7500000', 6); // 7.5 million DPS
 
