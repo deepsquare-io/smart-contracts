@@ -18,7 +18,7 @@ contract Sale is Ownable {
     IERC20Metadata public immutable STC;
 
     // @notice The eligibility contract.
-    Eligibility public immutable eligibility;
+    IEligibility public immutable eligibility;
 
     /// @notice How many cents costs a DPS (e.g., 40 means a single DPS token costs 0.40 STC).
     uint8 public immutable rate;
@@ -102,15 +102,15 @@ contract Sale is Ownable {
      * - the account is not the sale owner.
      * - the account is eligible.
      */
-    function _validate(address account, uint256 amountSTC) internal view {
+    function _validate(address account, uint256 amountSTC) internal {
         require(account != owner(), "Sale: investor is the sale owner");
 
-        (uint8 tier, , ) = eligibility.results(account);
+        (uint8 tier, uint256 limit) = eligibility.lookup(account);
 
         require(tier > 0, "Sale: account is not eligible");
 
         uint256 investmentSTC = convertDPStoSTC(DPS.balanceOf(account)) + amountSTC;
-        uint256 limitSTC = eligibility.limits(tier) * (10**STC.decimals());
+        uint256 limitSTC = limit * (10**STC.decimals());
 
         if (limitSTC != 0) {
             // zero limit means that the tier has no restrictions

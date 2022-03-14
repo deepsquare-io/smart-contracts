@@ -3,18 +3,21 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
+import "./interfaces/IEligibility.sol";
+
+struct Result {
+    uint8 tier; // The KYC tier.
+    string validator; // The KYC validator.
+    string transactionId; // The KYC transaction id.
+}
 
 /**
  * @title Eligibility.
  * @author Mathieu Bour, Julien Schneider and Charly Mancel for the DeepSquare Association.
  * @dev Basic implementation of a KYC storage.
  */
-contract Eligibility is AccessControl {
-    struct Result {
-        uint8 tier; // The KYC tier.
-        string validator; // The KYC validator.
-        string transactionId; // The KYC transaction id.
-    }
+contract Eligibility is AccessControl, IEligibility {
+    event Validation(address indexed account, Result result);
 
     /**
      * @notice Map KYC tiers with their limits in USD. Zero means no-limit.
@@ -46,6 +49,14 @@ contract Eligibility is AccessControl {
     }
 
     /**
+     * @notice Get the tier and limit for an account.
+     * @param account The account address to lookup.
+     */
+    function lookup(address account) external view returns (uint8, uint256) {
+        return (results[account].tier, limits[results[account].tier]);
+    }
+
+    /**
      * @notice Set the limit of a given KYC tier. Zero means there is no limit. Restricted to the OWNER role.
      * @param tier The KYC tier.
      * @param newLimit The KYC tier limit.
@@ -56,10 +67,11 @@ contract Eligibility is AccessControl {
 
     /**
      * @notice Set the latest KYC result of an account. Restricted to the WRITER role.
-     * @param account The account to check.
-     * @param _result The account KYC result.
+     * @param account The validated account address.
+     * @param result The account KYC result.
      */
-    function setResult(address account, Result memory _result) external onlyRole(WRITER) {
-        results[account] = _result;
+    function setResult(address account, Result memory result) external onlyRole(WRITER) {
+        results[account] = result;
+        emit Validation(account, result);
     }
 }

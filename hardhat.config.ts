@@ -4,6 +4,7 @@ import { HardhatUserConfig } from 'hardhat/config';
 import 'solidity-coverage';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
+import './tasks/deploy';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -21,13 +22,14 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       chainId: 31337,
-      forking: {
-        url: 'https://api.avax-test.network/ext/bc/C/rpc',
-      },
+      // forking: {
+      //   url: 'https://api.avax-test.network/ext/bc/C/rpc',
+      // },
+      gas: 8000000,
     },
   },
   gasReporter: {
-    enabled: true,
+    enabled: !!process.env.REPORT_GAS,
     currency: 'USD',
     excludeContracts: ['vendor/'],
     token: 'AVAX',

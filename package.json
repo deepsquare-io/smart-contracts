@@ -23,10 +23,11 @@
     "format": "prettier --write '{**/*,*}.{js,ts,sol,json,yml,yaml,md}'",
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "coverage": "hardhat coverage",
+    "test:gas": "HH_REPORT_GAS=true hardhat test",
+    "test:coverage": "hardhat coverage",
     "solhint": "solhint 'contracts/**/*.sol'",
     "eslint": "eslint '{scripts,test}/**/*.ts'",
-    "deploy:local": "hardhat run scripts/deploy.ts --network local",
+    "deploy": "hardhat run scripts/deploy.ts",
     "deploy:fuji": "hardhat run scripts/deploy.ts --network fuji",
     "fork:fuji": "hardhat node --fork https://api.avax-test.network/ext/bc/C/rpc"
   },
@@ -48,6 +49,7 @@
     "@typescript-eslint/eslint-plugin": "^5.14.0",
     "@typescript-eslint/parser": "^5.14.0",
     "chai": "^4.3.6",
+    "chalk": "^4.1.2",
     "cli-progress": "^3.10.0",
     "dotenv": "^16.0.0",
     "eslint": "^8.10.0",
@@ -64,12 +66,14 @@
     "solhint": "^3.3.7",
     "solidity-coverage": "^0.7.20",
     "ts-node": "^10.7.0",
-    "tslog": "^3.3.2",
     "typescript": "^4.6.2",
     "zod": "^3.13.4"
   },
   "private": true,
   "engines": {
     "node": "^16"
+  },
+  "dependencies": {
+    "tslog": "^3.3.2"
   }
 }

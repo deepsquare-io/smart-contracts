@@ -10,4 +10,5 @@ export interface Result {
 export default interface Eligibility extends BaseContract, AccessControl {
   results(account: string): Promise<Result>;
   setResult(account: string, result: Result): Promise<providers.TransactionResponse>;
+  setBatchResults(accounts: string[], batch: Result[]): Promise<providers.TransactionResponse>;
 }

@@ -22,14 +22,14 @@ contract DeepSquare is ERC20, Ownable {
     }
 
     /**
-     * @notice Set the security contract which manages the token transfer rescrictions.
+     * @notice Set the security contract which manages the token transfer restrictions.
      */
     function setSecurity(ISecurity newSecurity) external onlyOwner {
         security = newSecurity;
     }
 
     /**
-     * @dev Forward the _beforeTokenTransfer hook to the DeepSquareSecurity contract which manages the token transfer rescrictions.
+     * @dev Forward the _beforeTokenTransfer hook to the DeepSquareSecurity contract which manages the token transfer restrictions.
      * @param from The account from where the tokens will be taken.
      * @param to The account where the tokens will be sent.
      * @param amount The token amount.
