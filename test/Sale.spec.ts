@@ -1,11 +1,13 @@
 import { expect } from 'chai';
 import { randomBytes } from 'crypto';
+import { deployMockContract } from 'ethereum-waffle';
 import { BigNumber, Contract } from 'ethers';
 import { ethers } from 'hardhat';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
 import { setupDeepSquare } from '../lib/testing/DeepSquare';
 import { createERC20Agent, ERC20Agent } from '../lib/testing/ERC20';
+import abi from './abi/AggregatorV3Interface.abi.json';
 
 describe('Sale', () => {
   let owner: SignerWithAddress;
@@ -14,11 +16,13 @@ describe('Sale', () => {
   let STC: Contract;
   let Security: Contract;
   let Eligibility: Contract;
+  let MockAggregator: Contract;
   let Sale: Contract;
 
   let agentDPS: ERC20Agent;
   let agentSTC: ERC20Agent;
 
+  const DEFAULT_AGGREGATOR_DECIMALS = 8;
   const INITIAL_ROUND = ethers.utils.parseUnits('7000000', 18); // 7M DPS
   let MINIMUM_PURCHASE_STC: BigNumber; // $250
 
@@ -56,8 +60,20 @@ describe('Sale', () => {
     const EligibilityFactory = await ethers.getContractFactory('Eligibility');
     Eligibility = await EligibilityFactory.deploy();
 
+    MockAggregator = await deployMockContract(owner, abi);
+    await MockAggregator.mock.latestRoundData.returns(314, ethers.utils.parseUnits('100', 8), 314, 314, 314); // Default mock rate value (1 AVAX <=> 100 USD)
+    await MockAggregator.mock.decimals.returns(DEFAULT_AGGREGATOR_DECIMALS);
+
     const SaleFactory = await ethers.getContractFactory('Sale');
-    Sale = await SaleFactory.deploy(DPS.address, STC.address, Eligibility.address, 40, MINIMUM_PURCHASE_STC, 0);
+    Sale = await SaleFactory.deploy(
+      DPS.address,
+      STC.address,
+      Eligibility.address,
+      MockAggregator.address,
+      40,
+      MINIMUM_PURCHASE_STC,
+      0,
+    );
     await Security.grantRole(ethers.utils.id('SPENDER'), Sale.address);
 
     // Initial funding of the sale contract
@@ -91,6 +107,21 @@ describe('Sale', () => {
       await expect(
         SaleFactory.deploy(DPS.address, STC.address, Eligibility.address, 0, MINIMUM_PURCHASE_STC, 0),
       ).to.be.revertedWith('Sale: rate is not positive');
+    });
+  });
+
+  describe('convertAVAXtoUSD', () => {
+    [
+      [1, 9970000000, 99700000],
+      [1, 9783007000, 97830070],
+      [2, 10000000000, 200000000],
+    ].forEach(async ([amountAVAX, rate, amountUSD]) => {
+      const parsedAVAX = ethers.utils.parseUnits(amountAVAX.toString(), 18);
+
+      it(`should convert ${amountAVAX} DPS to ${amountUSD} USD with rate ${rate}`, async () => {
+        await MockAggregator.mock.latestRoundData.returns(314, rate, 314, 314, 314);
+        expect(await Sale.convertAVAXToUSD(parsedAVAX)).to.equals(amountUSD);
+      });
     });
   });
 
@@ -131,6 +162,61 @@ describe('Sale', () => {
   describe('raised', () => {
     it('should display the raised stablecoin amount', async () => {
       expect(await Sale.raised()).to.equal(0);
+    });
+  });
+
+  describe('purchaseDPSWithAVAX', () => {
+    it('should let user buy DPS tokens against AVAX and emit a Purchase event', async () => {
+      await setupAccount(accounts[0], { balanceSTC: 30000, approved: 20000, tier: 3 });
+      await MockAggregator.mock.latestRoundData.returns(314, ethers.utils.parseUnits('70', 8), 314, 314, 314);
+      await ethers.provider.send('hardhat_setBalance', [
+        accounts[0].address,
+        ethers.utils.parseUnits('2000', 18).toHexString(),
+      ]);
+
+      const initialOwnerBalance = await owner.getBalance();
+      const initialSold = await Sale.sold();
+
+      const amountAVAX = ethers.utils.parseUnits('1000', 18); // 1000 AVAX
+      const amountDPS = await Sale.convertSTCToDPS(await Sale.convertAVAXToUSD(amountAVAX));
+
+      await agentDPS.expectBalanceOf(accounts[0], 0);
+      await expect(Sale.connect(accounts[0]).purchaseDPSWithAVAX({ value: amountAVAX }))
+        .to.emit(Sale, 'Purchase')
+        .withArgs(accounts[0].address, amountDPS);
+
+      await agentDPS.expectBalanceOf(accounts[0], amountDPS);
+      expect((await accounts[0].getBalance()).lt(ethers.utils.parseUnits('1000', 18))).to.be.true;
+      expect(await owner.getBalance()).to.equals(initialOwnerBalance.add(amountAVAX));
+
+      expect(await Sale.sold()).to.equals(
+        initialSold.add(await DPS.balanceOf(accounts[0].address)),
+        'sold state is not incremented',
+      );
+    });
+
+    it('should revert if investor is the owner', async () => {
+      await expect(Sale.purchaseDPSWithAVAX({ value: ethers.utils.parseUnits('1000', 18) })).to.be.revertedWith(
+        'Sale: investor is the sale owner',
+      );
+    });
+
+    it('should revert if investor tries to buy less that the minimum purchase', async () => {
+      await expect(
+        Sale.connect(accounts[0]).purchaseDPSWithAVAX({ value: ethers.utils.parseUnits('1', 18) }), // 1 AVAX
+      ).to.be.revertedWith('Sale: amount lower than minimum');
+    });
+
+    it('should revert if investor is not eligible', async () => {
+      await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 0 });
+      await ethers.provider.send('hardhat_setBalance', [
+        accounts[0].address,
+        ethers.utils.parseUnits('2000', 18).toHexString(),
+      ]);
+
+      await expect(
+        Sale.connect(accounts[0]).purchaseDPSWithAVAX({ value: ethers.utils.parseUnits('1000', 18) }),
+      ).to.be.revertedWith('Sale: account is not eligible');
     });
   });
 
