@@ -1,29 +1,39 @@
 import { expect } from 'chai';
 import { randomBytes } from 'crypto';
-import { deployMockContract } from 'ethereum-waffle';
-import { BigNumber, Contract } from 'ethers';
+import { deployMockContract, MockContract } from 'ethereum-waffle';
 import { ethers } from 'hardhat';
+import { describe } from 'mocha';
+import { BigNumber } from '@ethersproject/bignumber';
+import { Contract } from '@ethersproject/contracts';
+import { id } from '@ethersproject/hash';
+import { keccak256 } from '@ethersproject/keccak256';
+import { parseEther, parseUnits } from '@ethersproject/units';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
-import { setupDeepSquare } from '../lib/testing/DeepSquare';
-import { createERC20Agent, ERC20Agent } from '../lib/testing/ERC20';
+import DeepSquare from '../typings/DeepSquare';
+import Eligibility from '../typings/Eligibility';
+import { Sale } from '../typings/Sale';
+import SpenderSecurity from '../typings/SpenderSecurity';
+import IERC20Metadata from '../typings/openzeppelin/IERC20Metadata';
 import abi from './abi/AggregatorV3Interface.abi.json';
+import { createERC20Agent, ERC20Agent } from './testing/ERC20Agent';
+import setup from './testing/setup';
 
 describe('Sale', () => {
   let owner: SignerWithAddress;
   let accounts: SignerWithAddress[];
-  let DPS: Contract;
-  let STC: Contract;
-  let Security: Contract;
-  let Eligibility: Contract;
-  let MockAggregator: Contract;
-  let Sale: Contract;
+  let DPS: DeepSquare;
+  let STC: IERC20Metadata;
+  let Security: SpenderSecurity;
+  let Eligibility: Eligibility;
+  let MockAggregator: MockContract;
+  let Sale: Sale;
 
   let agentDPS: ERC20Agent;
   let agentSTC: ERC20Agent;
 
-  const DEFAULT_AGGREGATOR_DECIMALS = 8; // I.e. e8 <=> 1 USD/AVAX
-  const INITIAL_ROUND = ethers.utils.parseUnits('7000000', 18); // 7M DPS
+  const DEFAULT_AGGREGATOR_DECIMALS = 8; // I.e. 1e8 <=> 1 USD/AVAX
+  const INITIAL_ROUND = parseUnits('7000000', 18); // 7M DPS
   let MINIMUM_PURCHASE_STC: BigNumber; // $250
 
   async function setupAccount(
@@ -42,30 +52,31 @@ describe('Sale', () => {
       await Eligibility.setResult(account.address, {
         tier: config.tier,
         validator: 'Jumio Corporation',
-        transactionId: ethers.utils.keccak256(randomBytes(16)),
+        transactionId: keccak256(randomBytes(16)),
       });
     }
   }
 
   beforeEach(async () => {
-    ({ owner, accounts, Security, DPS, agentDPS } = await setupDeepSquare());
+    ({ owner, accounts, Security, DPS, agentDPS } = await setup());
 
+    // Deploy a fake USDC.e
     const BridgeTokenFactory = await ethers.getContractFactory('BridgeToken');
-    STC = await BridgeTokenFactory.deploy(); // 1 billion STC
+    STC = (await BridgeTokenFactory.deploy()) as unknown as IERC20Metadata; // 1 billion STC
     agentSTC = await createERC20Agent(STC);
-    await STC.mint(owner.address, agentSTC.unit(1e9), ZERO_ADDRESS, 0, ethers.utils.id('genesis'));
+    await (STC as unknown as Contract).mint(owner.address, agentSTC.unit(1e9), ZERO_ADDRESS, 0, id('genesis'));
 
     MINIMUM_PURCHASE_STC = agentSTC.unit(250);
 
     const EligibilityFactory = await ethers.getContractFactory('Eligibility');
-    Eligibility = await EligibilityFactory.deploy();
+    Eligibility = (await EligibilityFactory.deploy()) as unknown as Eligibility;
 
     MockAggregator = await deployMockContract(owner, abi);
-    await MockAggregator.mock.latestRoundData.returns(314, ethers.utils.parseUnits('100', 8), 314, 314, 314); // Default mock rate value (1 AVAX <=> 100 USD)
+    await MockAggregator.mock.latestRoundData.returns(314, parseUnits('100', 8), 314, 314, 314); // Default mock rate value (1 AVAX <=> 100 USD)
     await MockAggregator.mock.decimals.returns(DEFAULT_AGGREGATOR_DECIMALS);
 
     const SaleFactory = await ethers.getContractFactory('Sale');
-    Sale = await SaleFactory.deploy(
+    Sale = (await SaleFactory.deploy(
       DPS.address,
       STC.address,
       Eligibility.address,
@@ -73,8 +84,8 @@ describe('Sale', () => {
       40,
       MINIMUM_PURCHASE_STC,
       0,
-    );
-    await Security.grantRole(ethers.utils.id('SPENDER'), Sale.address);
+    )) as unknown as Sale;
+    await Security.grantRole(id('SPENDER'), Sale.address);
 
     // Initial funding of the sale contract
     await DPS.transfer(Sale.address, INITIAL_ROUND);
@@ -141,24 +152,39 @@ describe('Sale', () => {
     });
   });
 
-  describe('convertAVAXtoUSD', () => {
+  describe('setAggregator', () => {
+    it('should change the Chainlink aggregator address', async () => {
+      const newAggregator = '0xa5409ec958C83C3f309868babACA7c86DCB077c1';
+      expect(await Sale.aggregator()).to.not.equals(newAggregator);
+      await Sale.setAggregator(newAggregator);
+      expect(await Sale.aggregator()).to.equals(newAggregator);
+    });
+  });
+
+  describe('convertAVAXtoSTC', () => {
     [
       [1, 99.7, 99700000],
       [1, 97.83007, 97830070],
       [2, 100.0, 200000000],
     ].forEach(async ([amountAVAX, rate, amountUSD]) => {
-      const parsedAVAX = ethers.utils.parseUnits(amountAVAX.toString(), 18);
+      const parsedAVAX = parseUnits(amountAVAX.toString(), 18);
 
-      it(`should convert ${amountAVAX} DPS to ${amountUSD} USD with rate ${rate}`, async () => {
+      it(`should convert ${amountAVAX} AVAX to ${amountUSD} USD with rate ${rate}`, async () => {
         await MockAggregator.mock.latestRoundData.returns(
           314,
-          ethers.utils.parseUnits(rate.toString(), DEFAULT_AGGREGATOR_DECIMALS), // Rate is in USD/AVAX
+          parseUnits(rate.toString(), DEFAULT_AGGREGATOR_DECIMALS), // Rate is in USD/AVAX
           314,
           314,
           314,
         );
-        expect(await Sale.convertAVAXtoUSD(parsedAVAX)).to.equals(amountUSD);
+
+        expect(await Sale.convertAVAXtoSTC(parsedAVAX)).to.equals(amountUSD);
       });
+    });
+
+    it('should revert if the aggregator answer is not strictly positive', async () => {
+      await MockAggregator.mock.latestRoundData.returns(314, -1, 314, 314, 314);
+      expect(Sale.convertAVAXtoSTC(parseEther('1'))).to.revertedWith('Sale: answer cannot be negative');
     });
   });
 
@@ -167,8 +193,8 @@ describe('Sale', () => {
       [1000, 2500],
       [5000, 12500],
     ].forEach(([amountSTC, amountDPS]) => {
-      const parsedSTC = ethers.utils.parseUnits(amountSTC.toString(), 6);
-      const parsedDPS = ethers.utils.parseUnits(amountDPS.toString(), 18);
+      const parsedSTC = parseUnits(amountSTC.toString(), 6);
+      const parsedDPS = parseUnits(amountDPS.toString(), 18);
 
       it(`should convert ${amountDPS} DPS to ${amountSTC} STC`, async () => {
         expect(await Sale.convertDPStoSTC(parsedDPS)).to.equals(parsedSTC);
@@ -181,8 +207,8 @@ describe('Sale', () => {
       [1000, 2500],
       [5000, 12500],
     ].forEach(([amountSTC, amountDPS]) => {
-      const parsedSTC = ethers.utils.parseUnits(amountSTC.toString(), 6);
-      const parsedDPS = ethers.utils.parseUnits(amountDPS.toString(), 18);
+      const parsedSTC = parseUnits(amountSTC.toString(), 6);
+      const parsedDPS = parseUnits(amountDPS.toString(), 18);
 
       it(`should convert ${amountSTC} STC to ${amountDPS} DPS`, async () => {
         expect(await Sale.convertSTCtoDPS(parsedSTC)).to.equals(parsedDPS);
@@ -205,17 +231,14 @@ describe('Sale', () => {
   describe('purchaseDPSWithAVAX', () => {
     it('should let user buy DPS tokens against AVAX and emit a Purchase event', async () => {
       await setupAccount(accounts[0], { balanceSTC: 30000, approved: 20000, tier: 3 });
-      await MockAggregator.mock.latestRoundData.returns(314, ethers.utils.parseUnits('70', 8), 314, 314, 314);
-      await ethers.provider.send('hardhat_setBalance', [
-        accounts[0].address,
-        ethers.utils.parseUnits('2000', 18).toHexString(),
-      ]);
+      await MockAggregator.mock.latestRoundData.returns(314, parseUnits('70', 8), 314, 314, 314);
+      await ethers.provider.send('hardhat_setBalance', [accounts[0].address, parseUnits('2000', 18).toHexString()]);
 
       const initialOwnerBalance = await owner.getBalance();
       const initialSold = await Sale.sold();
 
-      const amountAVAX = ethers.utils.parseUnits('1000', 18); // 1000 AVAX
-      const amountDPS = await Sale.convertSTCtoDPS(await Sale.convertAVAXtoUSD(amountAVAX));
+      const amountAVAX = parseUnits('1000', 18); // 1000 AVAX
+      const amountDPS = await Sale.convertSTCtoDPS(await Sale.convertAVAXtoSTC(amountAVAX));
 
       await agentDPS.expectBalanceOf(accounts[0], 0);
       await expect(Sale.connect(accounts[0]).purchaseDPSWithAVAX({ value: amountAVAX }))
@@ -223,7 +246,7 @@ describe('Sale', () => {
         .withArgs(accounts[0].address, amountDPS);
 
       await agentDPS.expectBalanceOf(accounts[0], amountDPS);
-      expect((await accounts[0].getBalance()).lt(ethers.utils.parseUnits('1000', 18))).to.be.true;
+      expect((await accounts[0].getBalance()).lt(parseUnits('1000', 18))).to.be.true;
       expect(await owner.getBalance()).to.equals(initialOwnerBalance.add(amountAVAX));
 
       expect(await Sale.sold()).to.equals(
@@ -233,37 +256,34 @@ describe('Sale', () => {
     });
 
     it('should revert if investor is the owner', async () => {
-      await expect(Sale.purchaseDPSWithAVAX({ value: ethers.utils.parseUnits('1000', 18) })).to.be.revertedWith(
+      await expect(Sale.purchaseDPSWithAVAX({ value: parseUnits('1000', 18) })).to.be.revertedWith(
         'Sale: investor is the sale owner',
       );
     });
 
     it('should revert if investor tries to buy less that the minimum purchase', async () => {
       await expect(
-        Sale.connect(accounts[0]).purchaseDPSWithAVAX({ value: ethers.utils.parseUnits('1', 18) }), // 1 AVAX
+        Sale.connect(accounts[0]).purchaseDPSWithAVAX({ value: parseUnits('1', 18) }), // 1 AVAX
       ).to.be.revertedWith('Sale: amount lower than minimum');
     });
 
     it('should revert if investor is not eligible', async () => {
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 0 });
-      await ethers.provider.send('hardhat_setBalance', [
-        accounts[0].address,
-        ethers.utils.parseUnits('2000', 18).toHexString(),
-      ]);
+      await ethers.provider.send('hardhat_setBalance', [accounts[0].address, parseUnits('2000', 18).toHexString()]);
 
-      await expect(
-        Sale.connect(accounts[0]).purchaseDPSWithAVAX({ value: ethers.utils.parseUnits('1000', 18) }),
-      ).to.be.revertedWith('Sale: account is not eligible');
+      await expect(Sale.connect(accounts[0]).purchaseDPSWithAVAX({ value: parseUnits('1000', 18) })).to.be.revertedWith(
+        'Sale: account is not eligible',
+      );
     });
   });
 
-  describe('purchaseDPS', () => {
+  describe('purchaseDPSWithSTC', () => {
     it('should let user buy DPS tokens against stablecoin and emit a Purchase event', async () => {
       const initialSold: BigNumber = await Sale.sold();
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 1 });
 
       await agentDPS.expectBalanceOf(accounts[0], 0);
-      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(1000)))
+      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(1000)))
         .to.emit(Sale, 'Purchase')
         .withArgs(accounts[0].address, agentDPS.unit(2500));
 
@@ -277,17 +297,17 @@ describe('Sale', () => {
     });
 
     it('should revert if investor is the owner', async () => {
-      await expect(Sale.purchaseDPS(agentSTC.unit(1000))).to.be.revertedWith('Sale: investor is the sale owner');
+      await expect(Sale.purchaseDPSWithSTC(agentSTC.unit(1000))).to.be.revertedWith('Sale: investor is the sale owner');
     });
 
     it('should revert if investor tries to buy less that the minimum purchase', async () => {
-      await expect(Sale.purchaseDPS(agentSTC.unit(100))).to.be.revertedWith('Sale: amount lower than minimum');
+      await expect(Sale.purchaseDPSWithSTC(agentSTC.unit(100))).to.be.revertedWith('Sale: amount lower than minimum');
     });
 
     it('should revert if investor is not eligible', async () => {
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 0 });
 
-      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(1000))).to.be.revertedWith(
+      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(1000))).to.be.revertedWith(
         'Sale: account is not eligible',
       );
     });
@@ -296,7 +316,7 @@ describe('Sale', () => {
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 1 });
 
       // tier 1 is 15k STC
-      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(16000))).to.be.revertedWith(
+      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(16000))).to.be.revertedWith(
         'Sale: exceeds tier limit',
       );
     });
@@ -304,9 +324,9 @@ describe('Sale', () => {
     it('should revert if investor tries to buy more tokens than its tier in multiple transactions', async () => {
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 1 });
 
-      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(8000))).to.not.be.reverted;
-      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(7000))).to.not.be.reverted;
-      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(1000))).to.be.revertedWith(
+      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(8000))).to.not.be.reverted;
+      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(7000))).to.not.be.reverted;
+      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(1000))).to.be.revertedWith(
         'Sale: exceeds tier limit',
       );
     });
@@ -314,7 +334,7 @@ describe('Sale', () => {
     it('should revert if the sender has not given enough allowance', async () => {
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 500, tier: 1 });
 
-      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(1000))).to.be.revertedWith(
+      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(1000))).to.be.revertedWith(
         'ERC20: transfer amount exceeds allowance',
       );
     });
@@ -323,13 +343,13 @@ describe('Sale', () => {
       // accounts[1] will buy all the tokens except 800 STC
       await setupAccount(accounts[1], { balanceSTC: 1e8, approved: 1e8, tier: 3 });
       const remainingSTC: BigNumber = await Sale.convertDPStoSTC(await Sale.remaining());
-      await Sale.connect(accounts[1]).purchaseDPS(remainingSTC.sub(agentSTC.unit(800)));
+      await Sale.connect(accounts[1]).purchaseDPSWithSTC(remainingSTC.sub(agentSTC.unit(800)));
       expect(await Sale.convertDPStoSTC(await Sale.remaining())).to.equals(agentSTC.unit(800));
 
       // accounts[0] attempts to buy for 1000 STC
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 1 });
 
-      await expect(Sale.connect(accounts[0]).purchaseDPS(agentSTC.unit(1000))).to.be.revertedWith(
+      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(1000))).to.be.revertedWith(
         'Sale: no enough tokens remaining',
       );
     });
@@ -407,7 +427,7 @@ describe('Sale', () => {
       const ERC20Factory = await ethers.getContractFactory('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20');
       const ERC20 = await ERC20Factory.deploy('DeepSquare no owner', 'DPS');
       const SaleFactory = await ethers.getContractFactory('Sale');
-      Sale = await SaleFactory.deploy(
+      Sale = (await SaleFactory.deploy(
         ERC20.address,
         STC.address,
         Eligibility.address,
@@ -415,8 +435,8 @@ describe('Sale', () => {
         40,
         MINIMUM_PURCHASE_STC,
         0,
-      );
-      await Security.grantRole(ethers.utils.id('SPENDER'), Sale.address);
+      )) as unknown as Sale;
+      await Security.grantRole(id('SPENDER'), Sale.address);
 
       await expect(Sale.close()).to.be.revertedWith('Sale: unable to determine owner');
     });

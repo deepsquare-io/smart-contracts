@@ -1,22 +1,22 @@
 import { expect } from 'chai';
-import { randomBytes } from 'crypto';
-import { Contract } from 'ethers';
 import { ethers } from 'hardhat';
+import { id } from '@ethersproject/hash';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { DEFAULT_ADMIN_ROLE, MissingRoleError } from '../lib/testing/AccessControl';
-import { makeResult } from '../lib/testing/Eligibility';
+import Eligibility from '../typings/Eligibility';
+import { DEFAULT_ADMIN_ROLE, MissingRoleError } from './testing/AccessControl';
+import { randomResult } from './testing/random';
 
 describe('Eligibility', () => {
   let admin: SignerWithAddress;
   let accounts: SignerWithAddress[];
-  let eligibility: Contract;
+  let eligibility: Eligibility;
 
-  const WRITER_ROLE = ethers.utils.id('WRITER');
+  const WRITER_ROLE = id('WRITER');
 
   beforeEach(async () => {
     [admin, ...accounts] = await ethers.getSigners();
     const EligibilityFactory = await ethers.getContractFactory('Eligibility');
-    eligibility = await EligibilityFactory.deploy();
+    eligibility = (await EligibilityFactory.deploy()) as unknown as Eligibility;
   });
 
   describe('constructor', () => {
@@ -32,18 +32,14 @@ describe('Eligibility', () => {
     });
 
     it('should revert if a non-WRITER tries to set a result', async () => {
-      await expect(eligibility.connect(accounts[3]).setResult(accounts[0].address, makeResult())).to.be.revertedWith(
+      await expect(eligibility.connect(accounts[3]).setResult(accounts[0].address, randomResult())).to.be.revertedWith(
         MissingRoleError(accounts[3], 'WRITER'),
       );
     });
 
     [1, 2].forEach((tier) => {
       it(`should allow a WRITER to write a KYC tier ${tier}`, async () => {
-        const result = {
-          tier,
-          validator: 'Jumio Corporation',
-          transactionId: randomBytes(16).toString('hex'),
-        };
+        const result = randomResult(tier);
 
         await expect(eligibility.connect(accounts[0]).setResult(accounts[1].address, result))
           .to.emit(eligibility, 'Validation')

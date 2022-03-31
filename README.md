@@ -8,6 +8,14 @@ DeepSquare smart contracts running on the [Avalanche C-chain](https://www.avax.n
 on the OpenZeppelin smart contracts ([@openzeppelin/contracts v4](https://docs.openzeppelin.com/contracts/4.x/)) which
 are considered as a security standard.
 
+## Deployed smart contracts
+
+| Contract                                         | Address                                                                                                                    |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| [DeepSquare](./contracts/DeepSquare.sol) (ERC20) | [0xf192caE2e7Cd4048Bea307368015E3647c49338e](https://snowtrace.io/token/0xf192caE2e7Cd4048Bea307368015E3647c49338e)        |
+| [Sale](./contracts/DeepSquare.sol)               | [0xb4A981d2663455aEE53193Da8e7c61c3579301cb](https://snowtrace.io/address/0xb4A981d2663455aEE53193Da8e7c61c3579301cb#code) |
+| [Eligibility](./contracts/Eligibility.sol)       | [0x52088e60AfB56E83cA0B6340B49F709e57973869](https://snowtrace.io/address/0x52088e60AfB56E83cA0B6340B49F709e57973869#code) |
+
 ## Maintainers
 
 <table>
@@ -15,6 +23,13 @@ are considered as a security standard.
     <td align="center">
       <a href="https://github.com/mathieu-bour">
         <img src="https://avatars.githubusercontent.com/u/21281702?v=3?s=150" width="150px;" alt=""/>
+        <br />
+        <b>Mathieu Bour</b>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/ArcticSubmarine">
+        <img src="https://avatars.githubusercontent.com/u/48919999?v=3?s=150" width="150px;" alt=""/>
         <br />
         <b>Mathieu Bour</b>
       </a>
