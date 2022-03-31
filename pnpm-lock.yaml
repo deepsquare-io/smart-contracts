@@ -1,6 +1,7 @@
 lockfileVersion: 5.3
 
 specifiers:
+  '@chainlink/contracts': ^0.4.0
   '@deepsquare/prettier-config': ^1.0.3
   '@nomiclabs/hardhat-ethers': ^2.0.4
   '@nomiclabs/hardhat-etherscan': ^3.0.1
@@ -42,6 +43,7 @@ dependencies:
   tslog: 3.3.2
 
 devDependencies:
+  '@chainlink/contracts': 0.4.0
   '@deepsquare/prettier-config': 1.0.3_f155c2edb9e5c4797441a74b977360f5
   '@nomiclabs/hardhat-ethers': 2.0.5_ethers@5.5.4+hardhat@2.9.1
   '@nomiclabs/hardhat-etherscan': 3.0.3_hardhat@2.9.1
@@ -312,6 +314,10 @@ packages:
     dependencies:
       '@babel/helper-validator-identifier': 7.16.7
       to-fast-properties: 2.0.0
+    dev: true
+
+  /@chainlink/contracts/0.4.0:
+    resolution: {integrity: sha512-yZGeCBd7d+qxfw9r/JxtPzsW2kCc6MorPRZ/tDKnaJI98H99j5P2Fosfehmcwk6wVZlz+0Bp4kS1y480nw3Zow==}
     dev: true
 
   /@cspotcode/source-map-consumer/0.8.0:

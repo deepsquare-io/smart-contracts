@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "./Eligibility.sol";
 
 /**
@@ -19,6 +20,9 @@ contract Sale is Ownable {
 
     // @notice The eligibility contract.
     IEligibility public immutable eligibility;
+
+    /// @notice Aggregator address.
+    AggregatorV3Interface public aggregator;
 
     /// @notice How many cents costs a DPS (e.g., 40 means a single DPS token costs 0.40 STC).
     uint8 public immutable rate;
@@ -47,6 +51,7 @@ contract Sale is Ownable {
         IERC20Metadata _DPS,
         IERC20Metadata _STC,
         Eligibility _eligibility,
+        AggregatorV3Interface _aggregator,
         uint8 _rate,
         uint256 _minimumPurchaseSTC,
         uint256 _initialSold
@@ -54,14 +59,24 @@ contract Sale is Ownable {
         require(address(_DPS) != address(0), "Sale: token is zero");
         require(address(_STC) != address(0), "Sale: stablecoin is zero");
         require(address(_eligibility) != address(0), "Sale: eligibility is zero");
+        require(address(_aggregator) != address(0), "Sale: aggregator is zero");
         require(_rate > 0, "Sale: rate is not positive");
 
         DPS = _DPS;
         STC = _STC;
         eligibility = _eligibility;
+        aggregator = _aggregator;
         rate = _rate;
         minimumPurchaseSTC = _minimumPurchaseSTC;
         sold = _initialSold;
+    }
+
+    /**
+     * @notice Convert an AVAX amount to USD.
+     */
+    function convertAVAXtoUSD(uint256 amountAVAX) public view returns (uint256) {
+        (, int256 answer, , ,) = aggregator.latestRoundData();
+        return (amountAVAX * uint(answer) * 10 ** STC.decimals()) / 10 ** (18 + aggregator.decimals());
     }
 
     /**
@@ -70,7 +85,7 @@ contract Sale is Ownable {
      * Since log2(210e30) ~= 107, this cannot overflow an uint256.
      */
     function convertSTCtoDPS(uint256 amountSTC) public view returns (uint256) {
-        return (amountSTC * (10**DPS.decimals()) * 100) / rate / (10**STC.decimals());
+        return (amountSTC * (10 ** DPS.decimals()) * 100) / rate / (10 ** STC.decimals());
     }
 
     /**
@@ -80,7 +95,7 @@ contract Sale is Ownable {
      * @param amountDPS The amount in DPS.
      */
     function convertDPStoSTC(uint256 amountDPS) public view returns (uint256) {
-        return (amountDPS * (10**STC.decimals()) * rate) / 100 / (10**DPS.decimals());
+        return (amountDPS * (10 ** STC.decimals()) * rate) / 100 / (10 ** DPS.decimals());
     }
 
     /**
@@ -116,7 +131,7 @@ contract Sale is Ownable {
         require(tier > 0, "Sale: account is not eligible");
 
         uint256 investmentSTC = convertDPStoSTC(DPS.balanceOf(account)) + amountSTC;
-        uint256 limitSTC = limit * (10**STC.decimals());
+        uint256 limitSTC = limit * (10 ** STC.decimals());
 
         if (limitSTC != 0) {
             // zero limit means that the tier has no restrictions
@@ -141,6 +156,17 @@ contract Sale is Ownable {
         DPS.transfer(account, amountDPS);
 
         emit Purchase(account, amountDPS);
+    }
+
+    function purchaseDPSWithAVAX() external payable {
+        uint256 amountSTC = convertAVAXtoUSD(msg.value);
+
+        require(amountSTC >= minimumPurchaseSTC, "Sale: amount lower than minimum");
+        uint256 amountDPS = _validate(msg.sender, amountSTC);
+
+        (bool sent,) = address(owner()).call{value : msg.value}("");
+        require(sent, "Sale: Failed to send AVAX");
+        _transferDPS(msg.sender, amountDPS);
     }
 
     /**
