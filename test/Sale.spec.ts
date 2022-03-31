@@ -22,7 +22,7 @@ describe('Sale', () => {
   let agentDPS: ERC20Agent;
   let agentSTC: ERC20Agent;
 
-  const DEFAULT_AGGREGATOR_DECIMALS = 8;
+  const DEFAULT_AGGREGATOR_DECIMALS = 8; // I.e. e8 <=> 1 USD/AVAX
   const INITIAL_ROUND = ethers.utils.parseUnits('7000000', 18); // 7M DPS
   let MINIMUM_PURCHASE_STC: BigNumber; // $250
 
@@ -84,42 +84,79 @@ describe('Sale', () => {
     it('should revert if the DPS contract is the zero address', async () => {
       const SaleFactory = await ethers.getContractFactory('Sale');
       await expect(
-        SaleFactory.deploy(ZERO_ADDRESS, STC.address, Eligibility.address, 40, MINIMUM_PURCHASE_STC, 0),
+        SaleFactory.deploy(
+          ZERO_ADDRESS,
+          STC.address,
+          Eligibility.address,
+          MockAggregator.address,
+          40,
+          MINIMUM_PURCHASE_STC,
+          0,
+        ),
       ).to.be.revertedWith('Sale: token is zero');
     });
 
     it('should revert if the stable coin contract is the zero address', async () => {
       const SaleFactory = await ethers.getContractFactory('Sale');
       await expect(
-        SaleFactory.deploy(DPS.address, ZERO_ADDRESS, Eligibility.address, 40, MINIMUM_PURCHASE_STC, 0),
+        SaleFactory.deploy(
+          DPS.address,
+          ZERO_ADDRESS,
+          Eligibility.address,
+          MockAggregator.address,
+          40,
+          MINIMUM_PURCHASE_STC,
+          0,
+        ),
       ).to.be.revertedWith('Sale: stablecoin is zero');
     });
 
     it('should revert if the eligibility contract is the zero address', async () => {
       const SaleFactory = await ethers.getContractFactory('Sale');
       await expect(
-        SaleFactory.deploy(DPS.address, STC.address, ZERO_ADDRESS, 40, MINIMUM_PURCHASE_STC, 0),
+        SaleFactory.deploy(DPS.address, STC.address, ZERO_ADDRESS, MockAggregator.address, 40, MINIMUM_PURCHASE_STC, 0),
       ).to.be.revertedWith('Sale: eligibility is zero');
+    });
+
+    it('should revert if the aggregator contract is the zero address', async () => {
+      const SaleFactory = await ethers.getContractFactory('Sale');
+      await expect(
+        SaleFactory.deploy(DPS.address, STC.address, Eligibility.address, ZERO_ADDRESS, 40, MINIMUM_PURCHASE_STC, 0),
+      ).to.be.revertedWith('Sale: aggregator is zero');
     });
 
     it('should revert if the rate is not greater than zero', async () => {
       const SaleFactory = await ethers.getContractFactory('Sale');
       await expect(
-        SaleFactory.deploy(DPS.address, STC.address, Eligibility.address, 0, MINIMUM_PURCHASE_STC, 0),
+        SaleFactory.deploy(
+          DPS.address,
+          STC.address,
+          Eligibility.address,
+          MockAggregator.address,
+          0,
+          MINIMUM_PURCHASE_STC,
+          0,
+        ),
       ).to.be.revertedWith('Sale: rate is not positive');
     });
   });
 
   describe('convertAVAXtoUSD', () => {
     [
-      [1, 9970000000, 99700000],
-      [1, 9783007000, 97830070],
-      [2, 10000000000, 200000000],
+      [1, 99.7, 99700000],
+      [1, 97.83007, 97830070],
+      [2, 100.0, 200000000],
     ].forEach(async ([amountAVAX, rate, amountUSD]) => {
       const parsedAVAX = ethers.utils.parseUnits(amountAVAX.toString(), 18);
 
       it(`should convert ${amountAVAX} DPS to ${amountUSD} USD with rate ${rate}`, async () => {
-        await MockAggregator.mock.latestRoundData.returns(314, rate, 314, 314, 314);
+        await MockAggregator.mock.latestRoundData.returns(
+          314,
+          ethers.utils.parseUnits(rate.toString(), DEFAULT_AGGREGATOR_DECIMALS), // Rate is in USD/AVAX
+          314,
+          314,
+          314,
+        );
         expect(await Sale.convertAVAXToUSD(parsedAVAX)).to.equals(amountUSD);
       });
     });
@@ -148,7 +185,7 @@ describe('Sale', () => {
       const parsedDPS = ethers.utils.parseUnits(amountDPS.toString(), 18);
 
       it(`should convert ${amountSTC} STC to ${amountDPS} DPS`, async () => {
-        expect(await Sale.convertSTCtoDPS(parsedSTC)).to.equals(parsedDPS);
+        expect(await Sale.convertSTCToDPS(parsedSTC)).to.equals(parsedDPS);
       });
     });
   });
@@ -370,7 +407,15 @@ describe('Sale', () => {
       const ERC20Factory = await ethers.getContractFactory('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20');
       const ERC20 = await ERC20Factory.deploy('DeepSquare no owner', 'DPS');
       const SaleFactory = await ethers.getContractFactory('Sale');
-      Sale = await SaleFactory.deploy(ERC20.address, STC.address, Eligibility.address, 40, MINIMUM_PURCHASE_STC, 0);
+      Sale = await SaleFactory.deploy(
+        ERC20.address,
+        STC.address,
+        Eligibility.address,
+        MockAggregator.address,
+        40,
+        MINIMUM_PURCHASE_STC,
+        0,
+      );
       await Security.grantRole(ethers.utils.id('SPENDER'), Sale.address);
 
       await expect(Sale.close()).to.be.revertedWith('Sale: unable to determine owner');

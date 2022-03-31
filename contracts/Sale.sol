@@ -59,6 +59,7 @@ contract Sale is Ownable {
         require(address(_DPS) != address(0), "Sale: token is zero");
         require(address(_STC) != address(0), "Sale: stablecoin is zero");
         require(address(_eligibility) != address(0), "Sale: eligibility is zero");
+        require(address(_aggregator) != address(0), "Sale: aggregator is zero");
         require(_rate > 0, "Sale: rate is not positive");
 
         DPS = _DPS;
