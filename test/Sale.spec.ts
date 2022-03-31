@@ -157,7 +157,7 @@ describe('Sale', () => {
           314,
           314,
         );
-        expect(await Sale.convertAVAXToUSD(parsedAVAX)).to.equals(amountUSD);
+        expect(await Sale.convertAVAXtoUSD(parsedAVAX)).to.equals(amountUSD);
       });
     });
   });
@@ -185,7 +185,7 @@ describe('Sale', () => {
       const parsedDPS = ethers.utils.parseUnits(amountDPS.toString(), 18);
 
       it(`should convert ${amountSTC} STC to ${amountDPS} DPS`, async () => {
-        expect(await Sale.convertSTCToDPS(parsedSTC)).to.equals(parsedDPS);
+        expect(await Sale.convertSTCtoDPS(parsedSTC)).to.equals(parsedDPS);
       });
     });
   });
@@ -215,7 +215,7 @@ describe('Sale', () => {
       const initialSold = await Sale.sold();
 
       const amountAVAX = ethers.utils.parseUnits('1000', 18); // 1000 AVAX
-      const amountDPS = await Sale.convertSTCToDPS(await Sale.convertAVAXToUSD(amountAVAX));
+      const amountDPS = await Sale.convertSTCtoDPS(await Sale.convertAVAXtoUSD(amountAVAX));
 
       await agentDPS.expectBalanceOf(accounts[0], 0);
       await expect(Sale.connect(accounts[0]).purchaseDPSWithAVAX({ value: amountAVAX }))

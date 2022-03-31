@@ -74,7 +74,7 @@ contract Sale is Ownable {
     /**
      * @notice Convert an AVAX amount to USD.
      */
-    function convertAVAXToUSD(uint256 amountAVAX) public view returns (uint256) {
+    function convertAVAXtoUSD(uint256 amountAVAX) public view returns (uint256) {
         (, int256 answer, , ,) = aggregator.latestRoundData();
         return (amountAVAX * uint(answer) * 10 ** STC.decimals()) / 10 ** (18 + aggregator.decimals());
     }
@@ -84,7 +84,7 @@ contract Sale is Ownable {
      * @dev Maximum possible working value is 210M DPS * 1e18 * 1e6 = 210e30.
      * Since log2(210e30) ~= 107, this cannot overflow an uint256.
      */
-    function convertSTCToDPS(uint256 amountSTC) public view returns (uint256) {
+    function convertSTCtoDPS(uint256 amountSTC) public view returns (uint256) {
         return (amountSTC * (10 ** DPS.decimals()) * 100) / rate / (10 ** STC.decimals());
     }
 
@@ -138,7 +138,7 @@ contract Sale is Ownable {
             require(investmentSTC <= limitSTC, "Sale: exceeds tier limit");
         }
 
-        uint256 amountDPS = convertSTCToDPS(amountSTC);
+        uint256 amountDPS = convertSTCtoDPS(amountSTC);
         require(DPS.balanceOf(address(this)) >= amountDPS, "Sale: no enough tokens remaining");
 
         return amountDPS;
@@ -159,7 +159,7 @@ contract Sale is Ownable {
     }
 
     function purchaseDPSWithAVAX() external payable {
-        uint256 amountSTC = convertAVAXToUSD(msg.value);
+        uint256 amountSTC = convertAVAXtoUSD(msg.value);
 
         require(amountSTC >= minimumPurchaseSTC, "Sale: amount lower than minimum");
         uint256 amountDPS = _validate(msg.sender, amountSTC);
