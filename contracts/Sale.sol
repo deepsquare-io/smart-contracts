@@ -21,7 +21,7 @@ contract Sale is Ownable {
     // @notice The eligibility contract.
     IEligibility public immutable eligibility;
 
-    /// @notice Aggregator address.
+    /// @notice The Chainlink AVAX/USD pair aggregator.
     AggregatorV3Interface public aggregator;
 
     /// @notice How many cents costs a DPS (e.g., 40 means a single DPS token costs 0.40 STC).
@@ -44,6 +44,7 @@ contract Sale is Ownable {
      * @param _DPS The DPS contract address.
      * @param _STC The ERC20 stablecoin contract address (e.g, USDT, USDC, etc.).
      * @param _eligibility The eligibility contract.
+     * @param _aggregator The Chainlink AVAX/USD pair aggregator contract address.
      * @param _rate The DPS/STC rate in STC cents.
      * @param _initialSold How many DPS tokens were already sold.
      */
@@ -72,20 +73,35 @@ contract Sale is Ownable {
     }
 
     /**
-     * @notice Convert an AVAX amount to USD.
+     * @notice Change the Chainlink AVAX/USD pair aggregator.
+     * @param newAggregator The new aggregator contract address.
      */
-    function convertAVAXtoUSD(uint256 amountAVAX) public view returns (uint256) {
-        (, int256 answer, , ,) = aggregator.latestRoundData();
-        return (amountAVAX * uint(answer) * 10 ** STC.decimals()) / 10 ** (18 + aggregator.decimals());
+    function setAggregator(AggregatorV3Interface newAggregator) external onlyOwner {
+        aggregator = newAggregator;
+    }
+
+    /**
+     * @notice Convert an AVAX amount to its equivalent of the stablecoin.
+     * This allow to handle the AVAX purchase the same way as the stablecoin purchases.
+     * @param amountAVAX The amount in AVAX wei.
+     * @return The amount in STC.
+     */
+    function convertAVAXtoSTC(uint256 amountAVAX) public view returns (uint256) {
+        (, int256 answer, , , ) = aggregator.latestRoundData();
+        require(answer > 0, "Sale: answer cannot be negative");
+
+        return (amountAVAX * uint256(answer) * 10**STC.decimals()) / 10**(18 + aggregator.decimals());
     }
 
     /**
      * @notice Convert a stablecoin amount in DPS.
      * @dev Maximum possible working value is 210M DPS * 1e18 * 1e6 = 210e30.
      * Since log2(210e30) ~= 107, this cannot overflow an uint256.
+     * @param amountSTC The amount in stablecoin.
+     * @return The amount in DPS.
      */
     function convertSTCtoDPS(uint256 amountSTC) public view returns (uint256) {
-        return (amountSTC * (10 ** DPS.decimals()) * 100) / rate / (10 ** STC.decimals());
+        return (amountSTC * (10**DPS.decimals()) * 100) / rate / (10**STC.decimals());
     }
 
     /**
@@ -93,9 +109,10 @@ contract Sale is Ownable {
      * @dev Maximum possible working value is 210M DPS * 1e18 * 1e6 = 210e30.
      * Since log2(210e30) ~= 107,this cannot overflow an uint256.
      * @param amountDPS The amount in DPS.
+     * @return The amount in stablecoin.
      */
     function convertDPStoSTC(uint256 amountDPS) public view returns (uint256) {
-        return (amountDPS * (10 ** STC.decimals()) * rate) / 100 / (10 ** DPS.decimals());
+        return (amountDPS * (10**STC.decimals()) * rate) / 100 / (10**DPS.decimals());
     }
 
     /**
@@ -108,7 +125,7 @@ contract Sale is Ownable {
 
     /**
      * @notice Get the raised stablecoin amount.
-     * @return The amount of stable coin raised in the sale.
+     * @return The amount of stablecoin raised in the sale.
      */
     function raised() external view returns (uint256) {
         return convertDPStoSTC(sold);
@@ -131,7 +148,7 @@ contract Sale is Ownable {
         require(tier > 0, "Sale: account is not eligible");
 
         uint256 investmentSTC = convertDPStoSTC(DPS.balanceOf(account)) + amountSTC;
-        uint256 limitSTC = limit * (10 ** STC.decimals());
+        uint256 limitSTC = limit * (10**STC.decimals());
 
         if (limitSTC != 0) {
             // zero limit means that the tier has no restrictions
@@ -158,22 +175,26 @@ contract Sale is Ownable {
         emit Purchase(account, amountDPS);
     }
 
+    /**
+     * @notice Purchase DPS with AVAX native currency.
+     * The invested amount will be msg.value.
+     */
     function purchaseDPSWithAVAX() external payable {
-        uint256 amountSTC = convertAVAXtoUSD(msg.value);
+        uint256 amountSTC = convertAVAXtoSTC(msg.value);
 
         require(amountSTC >= minimumPurchaseSTC, "Sale: amount lower than minimum");
         uint256 amountDPS = _validate(msg.sender, amountSTC);
 
-        (bool sent,) = address(owner()).call{value : msg.value}("");
-        require(sent, "Sale: Failed to send AVAX");
+        // We not have to use complex low-level code as it is a simple transfer to a user wallet
+        payable(owner()).transfer(msg.value);
         _transferDPS(msg.sender, amountDPS);
     }
 
     /**
-     * @notice Buy DPS with stablecoins.
+     * @notice Purchase DPS with stablecoin.
      * @param amountSTC The amount of stablecoin to invest.
      */
-    function purchaseDPS(uint256 amountSTC) external {
+    function purchaseDPSWithSTC(uint256 amountSTC) external {
         require(amountSTC >= minimumPurchaseSTC, "Sale: amount lower than minimum");
         uint256 amountDPS = _validate(msg.sender, amountSTC);
 
