@@ -12,7 +12,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
 import DeepSquare from '../typings/DeepSquare';
 import Eligibility from '../typings/Eligibility';
-import { Sale } from '../typings/Sale';
+import Sale from '../typings/Sale';
 import SpenderSecurity from '../typings/SpenderSecurity';
 import IERC20Metadata from '../typings/openzeppelin/IERC20Metadata';
 import abi from './abi/AggregatorV3Interface.abi.json';

@@ -3,7 +3,7 @@ import { BaseContract, CallOverrides } from '@ethersproject/contracts';
 import { TransactionResponse } from '@ethersproject/providers';
 import Ownable from './openzeppelin/Ownable';
 
-export interface Sale extends BaseContract, Ownable {
+export default interface Sale extends BaseContract, Ownable {
   /**
    * The DPS token contract being sold.
    */
