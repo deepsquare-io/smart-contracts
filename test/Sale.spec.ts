@@ -10,8 +10,15 @@ import { keccak256 } from '@ethersproject/keccak256';
 import { parseEther, parseUnits } from '@ethersproject/units';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
-import { BridgeToken, DeepSquare, Eligibility, Sale, SpenderSecurity } from '../typings';
-import abi from './abi/AggregatorV3Interface.abi.json';
+import { DeepSquare } from '../typings/contracts/DeepSquare';
+import { Eligibility } from '../typings/contracts/Eligibility';
+import { Sale } from '../typings/contracts/Sale';
+import { SpenderSecurity } from '../typings/contracts/SpenderSecurity';
+import { BridgeToken } from '../typings/contracts/vendor/BridgeToken.sol/BridgeToken';
+import { AggregatorV3Interface__factory } from '../typings/factories/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface__factory';
+import { Eligibility__factory } from '../typings/factories/contracts/Eligibility__factory';
+import { Sale__factory } from '../typings/factories/contracts/Sale__factory';
+import { BridgeToken__factory } from '../typings/factories/contracts/vendor/BridgeToken.sol/BridgeToken__factory';
 import { createERC20Agent, ERC20Agent } from './testing/ERC20Agent';
 import setup from './testing/setup';
 
@@ -57,22 +64,19 @@ describe('Sale', () => {
     ({ owner, accounts, Security, DPS, agentDPS } = await setup());
 
     // Deploy a fake USDC.e
-    const BridgeTokenFactory = await ethers.getContractFactory('BridgeToken');
-    STC = await BridgeTokenFactory.deploy(); // 1 billion STC
+    STC = await new BridgeToken__factory(owner).deploy(); // 1 billion STC
     agentSTC = await createERC20Agent(STC);
     await (STC as unknown as Contract).mint(owner.address, agentSTC.unit(1e9), ZERO_ADDRESS, 0, id('genesis'));
 
     MINIMUM_PURCHASE_STC = agentSTC.unit(250);
 
-    const EligibilityFactory = await ethers.getContractFactory('Eligibility');
-    Eligibility = (await EligibilityFactory.deploy()) as unknown as Eligibility;
+    Eligibility = await new Eligibility__factory(owner).deploy();
 
-    MockAggregator = await deployMockContract(owner, abi);
+    MockAggregator = await deployMockContract(owner, AggregatorV3Interface__factory.abi);
     await MockAggregator.mock.latestRoundData.returns(314, parseUnits('100', 8), 314, 314, 314); // Default mock rate value (1 AVAX <=> 100 USD)
     await MockAggregator.mock.decimals.returns(DEFAULT_AGGREGATOR_DECIMALS);
 
-    const SaleFactory = await ethers.getContractFactory('Sale');
-    Sale = await SaleFactory.deploy(
+    Sale = await new Sale__factory(owner).deploy(
       DPS.address,
       STC.address,
       Eligibility.address,
@@ -89,9 +93,8 @@ describe('Sale', () => {
 
   describe('constructor', () => {
     it('should revert if the DPS contract is the zero address', async () => {
-      const SaleFactory = await ethers.getContractFactory('Sale');
       await expect(
-        SaleFactory.deploy(
+        new Sale__factory(owner).deploy(
           ZERO_ADDRESS,
           STC.address,
           Eligibility.address,
@@ -104,9 +107,8 @@ describe('Sale', () => {
     });
 
     it('should revert if the stable coin contract is the zero address', async () => {
-      const SaleFactory = await ethers.getContractFactory('Sale');
       await expect(
-        SaleFactory.deploy(
+        new Sale__factory(owner).deploy(
           DPS.address,
           ZERO_ADDRESS,
           Eligibility.address,
@@ -119,23 +121,36 @@ describe('Sale', () => {
     });
 
     it('should revert if the eligibility contract is the zero address', async () => {
-      const SaleFactory = await ethers.getContractFactory('Sale');
       await expect(
-        SaleFactory.deploy(DPS.address, STC.address, ZERO_ADDRESS, MockAggregator.address, 40, MINIMUM_PURCHASE_STC, 0),
+        new Sale__factory(owner).deploy(
+          DPS.address,
+          STC.address,
+          ZERO_ADDRESS,
+          MockAggregator.address,
+          40,
+          MINIMUM_PURCHASE_STC,
+          0,
+        ),
       ).to.be.revertedWith('Sale: eligibility is zero');
     });
 
     it('should revert if the aggregator contract is the zero address', async () => {
-      const SaleFactory = await ethers.getContractFactory('Sale');
       await expect(
-        SaleFactory.deploy(DPS.address, STC.address, Eligibility.address, ZERO_ADDRESS, 40, MINIMUM_PURCHASE_STC, 0),
+        new Sale__factory(owner).deploy(
+          DPS.address,
+          STC.address,
+          Eligibility.address,
+          ZERO_ADDRESS,
+          40,
+          MINIMUM_PURCHASE_STC,
+          0,
+        ),
       ).to.be.revertedWith('Sale: aggregator is zero');
     });
 
     it('should revert if the rate is not greater than zero', async () => {
-      const SaleFactory = await ethers.getContractFactory('Sale');
       await expect(
-        SaleFactory.deploy(
+        new Sale__factory(owner).deploy(
           DPS.address,
           STC.address,
           Eligibility.address,
@@ -422,8 +437,7 @@ describe('Sale', () => {
       // Configure a new Sale contract with a dummy ERC20 token
       const ERC20Factory = await ethers.getContractFactory('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20');
       const ERC20 = await ERC20Factory.deploy('DeepSquare no owner', 'DPS');
-      const SaleFactory = await ethers.getContractFactory('Sale');
-      Sale = (await SaleFactory.deploy(
+      Sale = await new Sale__factory(owner).deploy(
         ERC20.address,
         STC.address,
         Eligibility.address,
@@ -431,7 +445,7 @@ describe('Sale', () => {
         40,
         MINIMUM_PURCHASE_STC,
         0,
-      )) as unknown as Sale;
+      );
       await Security.grantRole(id('SPENDER'), Sale.address);
 
       await expect(Sale.close()).to.be.revertedWith('Sale: unable to determine owner');

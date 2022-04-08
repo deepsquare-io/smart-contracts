@@ -29,8 +29,6 @@
     "test:coverage": "hardhat coverage",
     "solhint": "solhint 'contracts/**/*.sol'",
     "eslint": "eslint '{scripts,test}/**/*.ts'",
-    "deploy": "hardhat run scripts/deploy.ts",
-    "deploy:fuji": "hardhat run scripts/deploy.ts --network fuji",
     "fork:fuji": "hardhat node --fork https://api.avax-test.network/ext/bc/C/rpc",
     "build": "tsc -p tsconfig.package.json",
     "typechain": "rimraf typings/ && hardhat typechain && rimraf 'typings/**/index.ts'"
