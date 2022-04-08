@@ -185,8 +185,9 @@ contract Sale is Ownable {
         require(amountSTC >= minimumPurchaseSTC, "Sale: amount lower than minimum");
         uint256 amountDPS = _validate(msg.sender, amountSTC);
 
-        // We not have to use complex low-level code as it is a simple transfer to a user wallet
-        payable(owner()).transfer(msg.value);
+        // Using .transfer() might cause an out-of-gas revert if using gnosis safe as owner
+        (bool sent, ) = payable(owner()).call{ value: msg.value }("");
+        require(sent, "Sale: failed to forward AVAX");
         _transferDPS(msg.sender, amountDPS);
     }
 
