@@ -12,6 +12,7 @@ const REMAINING: BigNumber | null = BigNumber.from('0x0');
 
 type NetworkName = 'hardhat' | 'mainnet' | 'fuji';
 type ContractName = 'USDCe' | 'DeepSquare' | 'Eligibility' | 'SaleV1' | 'SaleV2' | 'AggregatorV3';
+
 const addresses: Record<ContractName, Record<NetworkName, string>> = {
   USDCe: {
     hardhat: '0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e',
