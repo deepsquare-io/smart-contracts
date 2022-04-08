@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { parseUnits } from '@ethersproject/units';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import SpenderSecurity from '../typings/SpenderSecurity';
+import { SpenderSecurity } from '../typings';
 import { MissingRoleError } from './testing/AccessControl';
 
 describe('SpenderSecurity', () => {
@@ -14,7 +14,7 @@ describe('SpenderSecurity', () => {
     [deployer, ...accounts] = await ethers.getSigners();
 
     const SpenderSecurityFactory = await ethers.getContractFactory('SpenderSecurity');
-    security = (await SpenderSecurityFactory.deploy()) as unknown as SpenderSecurity;
+    security = await SpenderSecurityFactory.deploy();
   });
 
   describe('validateTokenTransfer', () => {

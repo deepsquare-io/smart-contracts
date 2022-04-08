@@ -5,6 +5,7 @@ import 'solidity-coverage';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
+import '@typechain/hardhat';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -51,6 +52,10 @@ const config: HardhatUserConfig = {
       avalanche: process.env.SNOWTRACE_API_KEY,
       avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY,
     },
+  },
+  typechain: {
+    outDir: 'typings',
+    target: 'ethers-v5',
   },
 };
 

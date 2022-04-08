@@ -1,7 +1,6 @@
 import { ethers } from 'hardhat';
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import DeepSquare from '../../typings/DeepSquare';
-import SpenderSecurity from '../../typings/SpenderSecurity';
+import { DeepSquare, SpenderSecurity } from '../../typings';
 import { createERC20Agent, ERC20Agent } from './ERC20Agent';
 
 interface SetupOutput {

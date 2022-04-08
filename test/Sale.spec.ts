@@ -10,11 +10,7 @@ import { keccak256 } from '@ethersproject/keccak256';
 import { parseEther, parseUnits } from '@ethersproject/units';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
-import DeepSquare from '../typings/DeepSquare';
-import Eligibility from '../typings/Eligibility';
-import Sale from '../typings/Sale';
-import SpenderSecurity from '../typings/SpenderSecurity';
-import IERC20Metadata from '../typings/openzeppelin/IERC20Metadata';
+import { BridgeToken, DeepSquare, Eligibility, Sale, SpenderSecurity } from '../typings';
 import abi from './abi/AggregatorV3Interface.abi.json';
 import { createERC20Agent, ERC20Agent } from './testing/ERC20Agent';
 import setup from './testing/setup';
@@ -23,7 +19,7 @@ describe('Sale', () => {
   let owner: SignerWithAddress;
   let accounts: SignerWithAddress[];
   let DPS: DeepSquare;
-  let STC: IERC20Metadata;
+  let STC: BridgeToken;
   let Security: SpenderSecurity;
   let Eligibility: Eligibility;
   let MockAggregator: MockContract;
@@ -62,7 +58,7 @@ describe('Sale', () => {
 
     // Deploy a fake USDC.e
     const BridgeTokenFactory = await ethers.getContractFactory('BridgeToken');
-    STC = (await BridgeTokenFactory.deploy()) as unknown as IERC20Metadata; // 1 billion STC
+    STC = await BridgeTokenFactory.deploy(); // 1 billion STC
     agentSTC = await createERC20Agent(STC);
     await (STC as unknown as Contract).mint(owner.address, agentSTC.unit(1e9), ZERO_ADDRESS, 0, id('genesis'));
 
@@ -76,7 +72,7 @@ describe('Sale', () => {
     await MockAggregator.mock.decimals.returns(DEFAULT_AGGREGATOR_DECIMALS);
 
     const SaleFactory = await ethers.getContractFactory('Sale');
-    Sale = (await SaleFactory.deploy(
+    Sale = await SaleFactory.deploy(
       DPS.address,
       STC.address,
       Eligibility.address,
@@ -84,7 +80,7 @@ describe('Sale', () => {
       40,
       MINIMUM_PURCHASE_STC,
       0,
-    )) as unknown as Sale;
+    );
     await Security.grantRole(id('SPENDER'), Sale.address);
 
     // Initial funding of the sale contract
