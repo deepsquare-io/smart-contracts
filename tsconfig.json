@@ -9,10 +9,11 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "outDir": "./dist",
-    "rootDirs": ["./src", "./scripts", "./test"]
+    "rootDirs": ["./src", "./scripts", "./test"],
+    "emitDeclarationOnly": true
   },
   "exclude": ["dist", "node_modules"],
-  "include": ["./test", "./src", "./scripts"],
+  "include": ["./test", "./scripts", "./typings"],
   "files": ["./hardhat.config.ts"],
   "ts-node": {
     "swc": true

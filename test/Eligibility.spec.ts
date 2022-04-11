@@ -2,7 +2,8 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { id } from '@ethersproject/hash';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import Eligibility from '../typings/Eligibility';
+import { Eligibility } from '../typings/contracts/Eligibility';
+import { Eligibility__factory } from '../typings/factories/contracts/Eligibility__factory';
 import { DEFAULT_ADMIN_ROLE, MissingRoleError } from './testing/AccessControl';
 import { randomResult } from './testing/random';
 
@@ -15,8 +16,7 @@ describe('Eligibility', () => {
 
   beforeEach(async () => {
     [admin, ...accounts] = await ethers.getSigners();
-    const EligibilityFactory = await ethers.getContractFactory('Eligibility');
-    eligibility = (await EligibilityFactory.deploy()) as unknown as Eligibility;
+    eligibility = await new Eligibility__factory(admin).deploy();
   });
 
   describe('constructor', () => {
@@ -46,9 +46,9 @@ describe('Eligibility', () => {
           .withArgs(accounts[1].address, [...Object.values(result)]);
         const writtenR = await eligibility.connect(accounts[2]).results(accounts[1].address);
 
-        for (const [key, value] of Object.entries(result)) {
-          expect(writtenR[key]).to.equal(value);
-        }
+        expect(result.tier).to.equals(writtenR.tier);
+        expect(result.validator).to.equals(writtenR.validator);
+        expect(result.transactionId).to.equals(writtenR.transactionId);
       });
     });
   });

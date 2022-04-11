@@ -185,8 +185,9 @@ contract Sale is Ownable {
         require(amountSTC >= minimumPurchaseSTC, "Sale: amount lower than minimum");
         uint256 amountDPS = _validate(msg.sender, amountSTC);
 
-        // We not have to use complex low-level code as it is a simple transfer to a user wallet
-        payable(owner()).transfer(msg.value);
+        // Using .transfer() might cause an out-of-gas revert if using gnosis safe as owner
+        (bool sent, ) = payable(owner()).call{ value: msg.value }("");
+        require(sent, "Sale: failed to forward AVAX");
         _transferDPS(msg.sender, amountDPS);
     }
 
@@ -216,12 +217,7 @@ contract Sale is Ownable {
      * @notice Close the sale by sending the remaining tokens back to the owner and then renouncing ownership.
      */
     function close() external onlyOwner {
-        // Call the DPS owner() function
-        (bool success, bytes memory data) = address(DPS).staticcall(abi.encodeWithSignature("owner()"));
-        require(success, "Sale: unable to determine owner");
-        address owner = abi.decode(data, (address));
-
-        _transferDPS(owner, DPS.balanceOf(address(this)));
+        _transferDPS(owner(), DPS.balanceOf(address(this))); // Transfer all the DPS back to the owner
         renounceOwnership();
     }
 }

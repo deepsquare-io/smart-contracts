@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DPS_TOTAL_SUPPLY } from '../lib/constants';
-import DeepSquare from '../typings/DeepSquare';
+import waitTx from '../lib/waitTx';
+import { DeepSquare } from '../typings/contracts/DeepSquare';
 import { ERC20Agent } from './testing/ERC20Agent';
 import { randomInt } from './testing/random';
 import setup from './testing/setup';
@@ -73,7 +74,7 @@ describe('DeepSquare', async () => {
     });
 
     it('should add a new security (to change transfer rules)', async () => {
-      await expect(DPS.setSecurity(accounts[1].address));
+      await DPS.setSecurity(accounts[1].address);
       expect(await DPS.security()).to.equals(accounts[1].address);
     });
   });
