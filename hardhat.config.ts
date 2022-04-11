@@ -6,6 +6,7 @@ import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
 import '@typechain/hardhat';
+import './tasks/typechain';
 
 const config: HardhatUserConfig = {
   solidity: {
