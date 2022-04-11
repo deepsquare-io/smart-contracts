@@ -27,4 +27,14 @@ contract ReferralProgram is Ownable {
 
         return true;
     }
+
+    /**
+     * @dev Destroy this contract after the referral program.
+     */
+    function destruct() external onlyOwner {
+        address _owner = owner();
+        DPS.transfer(_owner, DPS.balanceOf(address(this)));
+        renounceOwnership();
+        selfdestruct(payable(_owner));
+    }
 }

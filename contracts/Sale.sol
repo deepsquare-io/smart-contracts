@@ -217,12 +217,7 @@ contract Sale is Ownable {
      * @notice Close the sale by sending the remaining tokens back to the owner and then renouncing ownership.
      */
     function close() external onlyOwner {
-        // Call the DPS owner() function
-        (bool success, bytes memory data) = address(DPS).staticcall(abi.encodeWithSignature("owner()"));
-        require(success, "Sale: unable to determine owner");
-        address owner = abi.decode(data, (address));
-
-        _transferDPS(owner, DPS.balanceOf(address(this)));
+        _transferDPS(owner(), DPS.balanceOf(address(this))); // Transfer all the DPS back to the owner
         renounceOwnership();
     }
 }
