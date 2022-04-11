@@ -30,6 +30,7 @@ export interface ReferralProgramInterface extends utils.Interface {
   functions: {
     "DPS()": FunctionFragment;
     "deliver(address[],uint256[])": FunctionFragment;
+    "destruct()": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
@@ -39,6 +40,7 @@ export interface ReferralProgramInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "DPS"
       | "deliver"
+      | "destruct"
       | "owner"
       | "renounceOwnership"
       | "transferOwnership"
@@ -49,6 +51,7 @@ export interface ReferralProgramInterface extends utils.Interface {
     functionFragment: "deliver",
     values: [string[], BigNumberish[]]
   ): string;
+  encodeFunctionData(functionFragment: "destruct", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -61,6 +64,7 @@ export interface ReferralProgramInterface extends utils.Interface {
 
   decodeFunctionResult(functionFragment: "DPS", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deliver", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "destruct", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
@@ -125,6 +129,10 @@ export interface ReferralProgram extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    destruct(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
@@ -142,6 +150,10 @@ export interface ReferralProgram extends BaseContract {
   deliver(
     recipients: string[],
     amounts: BigNumberish[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  destruct(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -164,6 +176,8 @@ export interface ReferralProgram extends BaseContract {
       amounts: BigNumberish[],
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    destruct(overrides?: CallOverrides): Promise<void>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
@@ -195,6 +209,10 @@ export interface ReferralProgram extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    destruct(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
@@ -213,6 +231,10 @@ export interface ReferralProgram extends BaseContract {
     deliver(
       recipients: string[],
       amounts: BigNumberish[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    destruct(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
