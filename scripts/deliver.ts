@@ -1,6 +1,6 @@
 import { Presets, SingleBar } from 'cli-progress';
+import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
-import { BigNumber } from '@ethersproject/bignumber';
 import { parseEther } from '@ethersproject/units';
 import mappings from '../data/mappings.json';
 import { DeepSquare__factory } from '../typings/factories/contracts/DeepSquare__factory';
@@ -16,31 +16,27 @@ async function main() {
   const progress = new SingleBar({}, Presets.shades_classic);
   progress.start(Object.keys(mappings).length, 0);
 
+  const ReferralProgram = await new ReferralProgram__factory(deployer).deploy(
+    '0xf192cae2e7cd4048bea307368015e3647c49338e',
+    LIMIT,
+  );
+
   for (const [beneficiary, referees] of Object.entries(mappings)) {
     progress.increment();
+    ReferralProgram.verifyBeneficiary(beneficiary);
+
     const actualBalance = await DPS.balanceOf(beneficiary);
 
     if (actualBalance.lt(LIMIT)) {
       continue; // User has not invested enough to 25000 DPS
     }
 
-    const balances = await Promise.all(referees.map((referee) => DPS.balanceOf(referee)));
-    const sum = balances.reduce((total, value) => total.add(value), BigNumber.from(0));
-
-    if (sum.gt(0)) {
-      amounts[beneficiary] = sum.mul(12).div(100).toString();
+    const gains = BigNumber.from(ReferralProgram.calculateGains(beneficiary, referees));
+    if (gains.gt(0)) {
+      amounts[beneficiary] = gains.toString();
     }
   }
   progress.stop();
-
-  // deliver the DPS to the referrers, but we need to have at least the sum of the referral gains
-  // for (const [beneficiary, amount] of Object.entries(amounts)) {
-  //   await DPS.transfer(beneficiary, amount); // but we need some DPS!! // 1 AVAX tx
-  // }
-
-  const ReferralProgram = await new ReferralProgram__factory(deployer).deploy(
-    '0xf192cae2e7cd4048bea307368015e3647c49338e',
-  );
 
   await ReferralProgram.deliver(Object.keys(amounts), Object.values(amounts)); // order ?
 }

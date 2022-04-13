@@ -53,6 +53,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.DeepSquare__factory>;
     getContractFactory(
+      name: "DeepSquareBridge",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.DeepSquareBridge__factory>;
+    getContractFactory(
       name: "Eligibility",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Eligibility__factory>;
@@ -84,6 +88,10 @@ declare module "hardhat/types/runtime" {
       name: "SpenderSecurity",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SpenderSecurity__factory>;
+    getContractFactory(
+      name: "Square",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Square__factory>;
     getContractFactory(
       name: "BridgeToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -156,6 +164,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.DeepSquare>;
     getContractAt(
+      name: "DeepSquareBridge",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.DeepSquareBridge>;
+    getContractAt(
       name: "Eligibility",
       address: string,
       signer?: ethers.Signer
@@ -195,6 +208,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.SpenderSecurity>;
+    getContractAt(
+      name: "Square",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Square>;
     getContractAt(
       name: "BridgeToken",
       address: string,

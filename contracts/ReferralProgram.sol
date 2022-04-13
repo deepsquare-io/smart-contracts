@@ -8,8 +8,14 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 contract ReferralProgram is Ownable {
     IERC20Metadata public DPS;
 
-    constructor(IERC20Metadata _DPS) {
+    uint256 public limit;
+
+    constructor(IERC20Metadata _DPS, uint256 _limit) {
+        require(address(_DPS) != address(0), "ReferralProgram: token is zero");
+        require(limit > 0, 'ReferralProgram: Limit is lower or equal to zero.');
+
         DPS = _DPS;
+        limit = _limit;
     }
 
     /**
@@ -26,6 +32,27 @@ contract ReferralProgram is Ownable {
         }
 
         return true;
+    }
+
+    /**
+     * @dev Calculates the referral gains.
+     * @param referrer Address of the referrer.
+     * @param referees List of the addresses of the referees.
+     */
+    function calculateGains(address referrer, address[] memory referees) external onlyOwner returns (uint256) {
+        require(referees.length != 0);
+
+        uint256 gains = 0;
+        for (uint i = 0; i < referees.length; i++) {
+            gains += DPS.balanceOf(referees[i]) * 12 / 100;
+        }
+
+        return gains;
+    }
+
+    function verifyBeneficiary(address beneficiary) external {
+        require(beneficiary != address(0));
+        require(DPS.balanceOf(beneficiary) < limit);
     }
 
     /**
