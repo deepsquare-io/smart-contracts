@@ -9,7 +9,7 @@ import { DeepSquare } from '../typings/contracts/DeepSquare';
 import { ERC20Agent } from './testing/ERC20Agent';
 import setup from './testing/setup';
 
-describe.only('ReferralProgram', () => {
+describe('ReferralProgram', () => {
   let owner: SignerWithAddress;
   let accounts: SignerWithAddress[];
   let DPS: DeepSquare;
