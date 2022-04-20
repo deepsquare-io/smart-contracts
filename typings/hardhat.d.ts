@@ -104,6 +104,10 @@ declare module "hardhat/types/runtime" {
       name: "IERC20Metadata",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20Metadata__factory>;
+    getContractFactory(
+      name: "Voting",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Voting__factory>;
 
     getContractAt(
       name: "AggregatorV3Interface",
@@ -220,6 +224,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20Metadata>;
+    getContractAt(
+      name: "Voting",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Voting>;
 
     // default types
     getContractFactory(
