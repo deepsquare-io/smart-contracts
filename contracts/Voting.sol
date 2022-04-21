@@ -42,7 +42,6 @@ contract Voting is Ownable {
         string subject;
         bool closed;
         uint32 tagIndex;
-        string[] choices;
     }
 
     struct Grants {
@@ -65,20 +64,18 @@ contract Voting is Ownable {
 
     string[][] public choices;
 
-    Result[] private results;
+    Result[] internal results;
 
-    mapping(uint32 => mapping(uint32 => uint256)) public resultStorage;
+    uint256[][] public resultStorage;
 
-    mapping(address => mapping(uint32 => Grants)) private delegates; // proxy => tag => voters
-    // proxyAddress => tagIndexA => [addressA1, addressA2, ... ]
-    //              => tagIndexB => [addressB1, addressB2, ... ]
+    mapping(address => mapping(uint32 => Grants)) internal delegates; // proxy => tag => voters
 
-    mapping(address => mapping(uint32 => address)) private proxyVoters; // voter => tag => proxy
+    mapping(address => mapping(uint32 => address)) internal proxyVoters; // voter => tag => proxy
 
     constructor(
         IERC20Metadata _DPS
     ) {
-        require(address(_DPS) != address(0), "Sale: token is zero");
+        require(address(_DPS) != address(0), "Vote: DPS address is zero.");
 
         DPS = _DPS;
     }
@@ -87,28 +84,38 @@ contract Voting is Ownable {
         tags.push(name);
     }
 
-    function removeTag(uint32 tagIndex) external onlyOwner {
-        require(tags.length > tagIndex, 'Voting: Tag index is too high.');
-        tags[tagIndex] = tags[tags.length - 1];
-        tags.pop();
+    function getTags() external view returns(string[] memory){
+        return tags;
     }
 
     function createBallot(string memory subject, uint32 tagIndex, string[] memory _choices) external onlyOwner {
         require(tags.length > tagIndex, 'Voting: Tag index is too high.');
 
-        uint32 memory ballotId = ballots.length;
         ballots.push(Ballot(subject, false, tagIndex));
-        for (uint i = 0; i < _choices.length; i++) {
-            choices[ballotId].push(_choices[i]);
+        choices.push(_choices);
+        results.push();
+        resultStorage.push();
+        for(uint i = 0; i < _choices.length; i++){
+            resultStorage[resultStorage.length - 1].push(0);
         }
-
     }
 
-    function closeBallot(uint32 ballotIndex) external onlyOwner {
+    function getBallots() external view returns(Ballot[] memory) {
+        return ballots;
+    }
+
+    function getChoices() external view returns(string[][] memory) {
+        return choices;
+    }
+
+    function getAllResults() external view returns (uint256[][] memory) {
+        return resultStorage;
+    }
+
+    function getBallotResult(uint256 ballotIndex) external view returns(uint256[] memory) {
         require(ballots.length > ballotIndex, 'Voting: Ballot index is too high.');
-        ballots[ballotIndex].closed = true;
+        return resultStorage[ballotIndex];
     }
-
 
     function vote(uint32 ballotIndex, uint32 choiceIndex) external {
         require(ballots.length > ballotIndex, 'Voting: Ballot index is too high.');
@@ -116,7 +123,7 @@ contract Voting is Ownable {
         require(choices[ballotIndex].length > choiceIndex, 'Voting: Choice index is too high.');
 
         require(proxyVoters[msg.sender][ballots[ballotIndex].tagIndex] == address(0), 'Voting: Vote is delegated.'); // Verify that voter has not granted proxy to somebody.
-        require(DPS.balanceOf(msg.sender) > 25e3 * 1e18, 'Voting: Not enough DPS to vote.'); // 25k DPS limit
+        require(DPS.balanceOf(msg.sender) >= 25e3 * 1e18, 'Voting: Not enough DPS to vote.'); // 25k DPS limit
 
         if(!results[ballotIndex].votes[msg.sender].hasVoted) {
             results[ballotIndex].votes[msg.sender].hasVoted = true;
@@ -128,49 +135,48 @@ contract Voting is Ownable {
 
     function totalProxyAmount(address voter, uint32 tagIndex) public view returns (uint256) {
         require(tags.length > tagIndex, 'Voting: Tag index is too high');
-        uint256 memory total = DPS.balanceOf(voter);
-        for(uint i = 0; i < delegates[voter][tagIndex].length; i++) {
-            total += DPS.balanceOf(delegates[voter][tagIndex][i]);
+        uint256 total = DPS.balanceOf(voter);
+        for(uint32 i = 0; i < delegates[voter][tagIndex].grantCount; i++) {
+            total += DPS.balanceOf(delegates[voter][tagIndex].indexVoter[i]);
         }
         return total;
     }
 
-    function close(uint32 ballotIndex) external onlyOwner {
-        require(ballots.length > ballotIndex, 'Voting: Ballot index is too high');
-        require(ballots[ballotIndex].closed, 'Voting: Ballot is still open.');
+    function closeBallot(uint32 ballotIndex) external onlyOwner {
+        require(ballots.length > ballotIndex, 'Voting: Ballot index is too high.');
+        require(!ballots[ballotIndex].closed, 'Voting: Ballot already closed.');
 
         ballots[ballotIndex].closed = true;
 
-        Result memory result = results[ballotIndex];
-        uint32 memory tagIndex= ballots[ballotIndex].tagIndex;
+        Result storage result = results[ballotIndex];
+        uint32 tagIndex = ballots[ballotIndex].tagIndex;
 
         for(uint i = 0; i < result.voters.length; i++) { // if A has granted proxy to B
-            address memory voter = result.voters[i];
-            resultStorage[ballotIndex][result.votes[voter].choiceIndex] = totalProxyAmount(voter, tagIndex);
+            address voter = result.voters[i];
+            resultStorage[ballotIndex][result.votes[voter].choiceIndex] += totalProxyAmount(voter, tagIndex);
         }
     }
 
     function grantProxy(address to, uint32 tagIndex) external {
         require(tags.length > tagIndex, 'Voting: Tag index is too high');
-        require(DPS.balanceOf(msg.sender) > 0, 'Voting: Not enough DPS to delegate.');
-        require(DPS.balanceOf(to) > 25e3 * 1e18, 'Voting: Proxy has not enough DPS.');
+        require(DPS.balanceOf(to) >= 25e3 * 1e18 || to == address(0), 'Voting: Proxy has not enough DPS.');
 
         if(proxyVoters[msg.sender][tagIndex] != address(0)) {
-            uint32 memory formerDelegate = delegates[proxyVoters[msg.sender][tagIndex]][tagIndex];
-            uint32 memory senderIndex = formerDelegate.voterIndex[msg.sender];
-            formerDelegate.indexVoter[senderIndex] = formerDelegate.indexVoter[formerDelegate.grantCount - 1];
-            formerDelegate.indexVoter[formerDelegate.grantCount - 1] = address(0);
-            formerDelegate.voterIndex[msg.sender] = -1;
-            formerDelegate.grantCount--;
+            Grants storage formerDelegateGrants = delegates[proxyVoters[msg.sender][tagIndex]][tagIndex];
+            uint32 senderIndex = formerDelegateGrants.voterIndex[msg.sender];
+            formerDelegateGrants.indexVoter[senderIndex] = formerDelegateGrants.indexVoter[formerDelegateGrants.grantCount - 1];
+            formerDelegateGrants.indexVoter[formerDelegateGrants.grantCount - 1] = address(0);
+            formerDelegateGrants.voterIndex[msg.sender] = 0;
+            formerDelegateGrants.grantCount--;
         }
         
         proxyVoters[msg.sender][tagIndex] = to;
 
         if(to != address(0)) {
-            uint32 memory newDelegate = delegates[to][tagIndex];
-            newDelegate.voterIndex[msg.sender] = newDelegate.grantCount;
-            newDelegate.indexVoter[newDelegate.grantCount] = msg.sender;
-            newDelegate.grantCount++;
+            Grants storage newDelegateGrants = delegates[to][tagIndex];
+            newDelegateGrants.voterIndex[msg.sender] = newDelegateGrants.grantCount;
+            newDelegateGrants.indexVoter[newDelegateGrants.grantCount] = msg.sender;
+            newDelegateGrants.grantCount++;
         }
     }
 }

@@ -85,6 +85,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SpenderSecurity__factory>;
     getContractFactory(
+      name: "ExposedVoting",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ExposedVoting__factory>;
+    getContractFactory(
       name: "BridgeToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.BridgeToken__factory>;
@@ -199,6 +203,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.SpenderSecurity>;
+    getContractAt(
+      name: "ExposedVoting",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ExposedVoting>;
     getContractAt(
       name: "BridgeToken",
       address: string,
