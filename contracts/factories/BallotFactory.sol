@@ -3,46 +3,38 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
+import "../Ballot.sol";
+import "../VotingProxy.sol";
 
 contract BallotFactory is Ownable {
     address[] public ballotAddresses;
-    address public masterAddress;
+    address public implementationAddress;
+    address public votingProxyAddress;
 
     string[] public tags;
 
-    constructor(address _masterAddress){
-        require(_masterAddress != address(0), 'BallotFactory: Master address should not be zero address');
-        masterAddress = _masterAddress;
+    constructor(address _implementationAddress, address _votingProxyAddress){
+        require(_implementationAddress != address(0), 'BallotFactory: Implementation address should not be zero address');
+        require(_votingProxyAddress != address(0), 'BallotFactory: Voting proxy address should not be zero address');
+        implementationAddress = _implementationAddress;
+        votingProxyAddress = _votingProxyAddress;
     }
 
     function createBallot(string memory subject, uint32 tagIndex, string[] memory _choices) external onlyOwner returns(address){
         require(tags.length > tagIndex, 'BallotFactory: Tag index is too high.');
 
-        address cloneAddress;
-
-        address master = masterAddress;
-
-        assembly {
-            let ptr := mload(0x40)
-            mstore(ptr, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
-            mstore(add(ptr, 0x14), shl(0x60, master))
-            mstore(add(ptr, 0x28), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)
-            cloneAddress := create(0, ptr, 0x37)
-        }
-
-        require(cloneAddress != address(0), "BallotFactory: Ballot clone creation failed");
-
-        (bool success, ) = cloneAddress.call(abi.encodeWithSignature("init(string,uint32,string[])", subject, tagIndex, _choices));
-        require(success, "BallotFactory: Ballot clone initialization failed.");
+        address cloneAddress = Clones.clone(implementationAddress);
+        Ballot(cloneAddress).init(subject, tagIndex, _choices, VotingProxy(votingProxyAddress));
 
         ballotAddresses.push(cloneAddress);
 
         return cloneAddress;
     }
 
-    function setMasterAddress(address newAddress) external onlyOwner {
-        require(masterAddress != address(0), 'BallotFactory: Master address should not be zero address');
-        masterAddress = newAddress;
+    function setImplementationAddress(address newAddress) external onlyOwner {
+        require(newAddress != address(0), 'BallotFactory: Implementation address should not be zero address');
+        implementationAddress = newAddress;
     }
 
     function getBallots() external view returns (address[] memory) {

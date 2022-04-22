@@ -4,6 +4,8 @@ import { parseUnits } from '@ethersproject/units';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
 import {
+  Ballot,
+  Ballot__factory,
   BallotFactory,
   BallotFactory__factory,
   DeepSquare,
@@ -15,22 +17,23 @@ import {
 import { ERC20Agent } from './testing/ERC20Agent';
 import setup from './testing/setup';
 
-describe.only('Ballot', async () => {
+describe('Ballot', async () => {
   let owner: SignerWithAddress;
   let accounts: SignerWithAddress[];
   let DPS: DeepSquare;
   let ballot: ExposedBallot;
   let agentDPS: ERC20Agent;
   let votingProxy: ExposedVotingProxy;
-  let ballotMaster: ExposedBallot;
+  let ballotMaster: Ballot;
   let ballotFactory: BallotFactory;
 
   beforeEach(async () => {
     ({ owner, accounts, DPS, agentDPS } = await setup());
     votingProxy = await new ExposedVotingProxy__factory(owner).deploy(DPS.address);
-    ballotMaster = await new ExposedBallot__factory(owner).deploy(DPS.address, votingProxy.address);
-    ballotFactory = await new BallotFactory__factory(owner).deploy(ballotMaster.address);
+    ballotMaster = await new Ballot__factory(owner).deploy(DPS.address, votingProxy.address);
+    ballotFactory = await new BallotFactory__factory(owner).deploy(ballotMaster.address, votingProxy.address);
     await votingProxy.setBallotFactory(ballotFactory.address);
+    ballot = await new ExposedBallot__factory(owner).deploy(DPS.address, votingProxy.address);
   });
 
   describe('constructor', () => {
@@ -41,33 +44,20 @@ describe.only('Ballot', async () => {
     });
   });
 
-  describe('closeBallot', () => {
-    beforeEach(async () => {
-      await ballotFactory.addTag('foo');
-      await ballotFactory.createBallot('bar', BigNumber.from(0), ['baz', 'qux']);
-      // fetch created ballot
-    });
-
-    it('should throw if ballot does not exist', async () => {
-      await expect(ballot.closeBallot()).to.revertedWith('Voting: Ballot index is too high.');
-    });
-    it('should close the ballot', async () => {
-      await ballot.closeBallot();
-      expect(await ballot.closed()).to.deep.equals(true);
+  describe('init', () => {
+    it('should initialize ballot state variables', async () => {
+      await ballot.init('foo', BigNumber.from(0), ['bar', 'baz'], votingProxy.address);
+      expect(await ballot.subject()).to.equals('foo');
+      expect(await ballot.tagIndex()).to.equals(BigNumber.from(0));
+      expect(await ballot.getChoices()).to.deep.equals(['bar', 'baz']);
+      expect(await ballot.getResults()).to.deep.equals([BigNumber.from(0), BigNumber.from(0)]);
     });
   });
 
   describe('vote', () => {
     beforeEach(async () => {
       await ballotFactory.addTag('foo');
-      await ballotFactory.createBallot('bar', BigNumber.from(0), ['baz', 'qux']);
-      // fetch created ballot
-    });
-
-    it('should throw if ballot does not exist', async () => {
-      await expect(ballot.connect(accounts[0]).vote(BigNumber.from(0))).to.revertedWith(
-        'Voting: Ballot index is too high.',
-      );
+      await ballot.init('foo', BigNumber.from(0), ['bar', 'baz'], votingProxy.address);
     });
     it('should throw if ballot is closed', async () => {
       await ballot.closeBallot();
@@ -91,25 +81,22 @@ describe.only('Ballot', async () => {
     it('should vote', async () => {
       await agentDPS.transfer(accounts[0], 25000, 18);
       await ballot.connect(accounts[0]).vote(BigNumber.from(0));
-      expect(await ballot._results()).to.deep.equals([accounts[0].address, [0, true]]); // How can we check private state variable values?
+      expect(await ballot._results()).to.deep.equals([[accounts[0].address, [0, true]]]);
+      await ballot.connect(accounts[0]).vote(BigNumber.from(1));
+      expect(await ballot._results()).to.deep.equals([[accounts[0].address, [1, true]]]);
     });
   });
 
   describe('closeBallot', async () => {
-    it('should throw of ballot does not exist', async () => {
-      await expect(ballot.closeBallot()).to.revertedWith('Voting: Ballot index is too high.');
+    beforeEach(async () => {
+      await ballotFactory.addTag('foo');
+      await ballot.init('foo', BigNumber.from(0), ['bar', 'baz'], votingProxy.address);
     });
     it('should throw if ballot is not closed', async () => {
-      await ballotFactory.addTag('foo');
-      await ballotFactory.createBallot('bar', BigNumber.from(0), ['baz', 'qux']);
-      // fetch created ballot
       await ballot.closeBallot();
       await expect(ballot.closeBallot()).to.revertedWith('Voting: Ballot already closed.');
     });
     it('should show results', async () => {
-      await ballotFactory.addTag('foo');
-      await ballotFactory.createBallot('bar', BigNumber.from(0), ['baz', 'qux']);
-      // fetch created ballot
       await agentDPS.transfer(accounts[0], 25000, 18);
       await agentDPS.transfer(accounts[1], 25000, 18);
       await agentDPS.transfer(accounts[2], 25000, 18);
