@@ -1,51 +1,49 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract Vesting {
-    struct Deposit {
-        uint256 start;
-        uint256 slicePeriod;
-        uint256 initialAmount;
-        uint256 sliceAmount;
-        uint256 sliceCount;
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
+struct Lock {
+    uint256 value;
+    uint256 release; // The release date in seconds since the epoch
+}
+
+contract Vesting is Ownable {
+    /**
+     * @dev The vested token.
+     */
+    IERC20Metadata public token;
+
+    /**
+     * @dev The vesting locks, mapped by account addresses.
+     * There is no guarantee that the locks are ordered by release date time.
+     */
+    mapping(address => Lock[]) private locks;
+
+    constructor(IERC20Metadata _token) {
+        token = _token;
     }
 
-    struct VestingSchedule {
-        uint256 released;
-        Deposit[] deposits;
+    function vest(address investor, Lock memory lock) external onlyOwner {
+        locks[investor].push(lock);
+        token.transfer(investor, lock.value);
     }
 
-    mapping(address => VestingSchedule) vestingSchedules;
-
-    constructor(){}
-
-    function releasedAmount(address beneficiary) external view returns (uint256) {
-        return vestingSchedules[beneficiary].released;
+    function available(uint256 currentDate) public view returns (uint256) {
+        return token.balanceOf(msg.sender) - locked(currentDate);
+        // potentially negative???
     }
 
-    function releasableAmount(address beneficiary) external view returns (uint256) {
-        uint256 releasable = vestingSchedules[beneficiary].released;
-        uint256 releasableSlices = 0;
-        Deposit[] deposits = vestingSchedules[beneficiary].deposits;
-        for(uint i = 0; i < deposits.length; i++){
-            if(deposits[i].start < block.timestamp) {
-                continue;
-            }
-            releasableSlices = (block.timestamp - deposits[i].start) / deposits[i].slicePeriod;
-            if(releasableSlices > deposits[i].sliceCount) {
-                releasable -= deposits[i].initialAmount + deposits[i].sliceCount * sliceAmount;
-            } else {
-                releasable -= deposits[i].initialAmount + releasableSlices * sliceAmount;
-            }
+    function locked(uint256 currentDate) public view returns (uint256) {
+        uint256 sum = 0;
+
+        for (uint256 i = 0; i < locks[msg.sender].length; i++) {
+            if (locks[msg.sender][i].release < currentDate) continue;
+
+            sum += locks[msg.sender][i].value;
         }
-        return releasable;
-    }
 
-    function deposit(address beneficiary, uint256 start, uint256 slicePeriod, uint256 initialAmount, uint256 sliceAmount, uint256 sliceCount) external {
-        vestingSchedules[beneficiary].deposits.push(Deposit(start, slicePeriod, initialAmount, sliceAmount, slicePeriod));
-    }
-
-    function withdraw(address beneficiary, uint256 amount) external {
-        require(releasableAmount(beneficiary) > amount, "Vesting: beneficiary has not enough releasable tokens");
-        vestingSchedules[beneficiary].released += amount;
+        return sum;
     }
 }
