@@ -16,14 +16,14 @@ contract BallotFactory is Ownable {
     event BallotCreated(address ballotAddress);
 
     constructor(address _implementationAddress, BallotTagManager _ballotTagManager){
-        require(_implementationAddress != address(0), 'BallotFactory: Implementation address should not be zero address');
-        require(address(_ballotTagManager) != address(0), 'BallotFactory: Ballot tag manager address should not be zero address');
+        require(_implementationAddress != address(0), "BallotFactory: Implementation address should not be zero address");
+        require(address(_ballotTagManager) != address(0), "BallotFactory: Ballot tag manager address should not be zero address");
         implementationAddress = _implementationAddress;
         ballotTagManager = _ballotTagManager;
     }
 
     function createBallot(string memory subject, uint32 tagIndex, string[] memory _choices) external onlyOwner {
-        require(ballotTagManager.getTags().length > tagIndex, 'BallotFactory: Tag index is too high.');
+        require(ballotTagManager.getTags().length > tagIndex, "BallotFactory: Tag index is too high.");
 
         address cloneAddress = Clones.clone(implementationAddress);
         Ballot(cloneAddress).init(subject, tagIndex, _choices);
@@ -33,7 +33,7 @@ contract BallotFactory is Ownable {
     }
 
     function setImplementationAddress(address newAddress) external onlyOwner {
-        require(newAddress != address(0), 'BallotFactory: Implementation address should not be zero address');
+        require(newAddress != address(0), "BallotFactory: Implementation address should not be zero address");
         implementationAddress = newAddress;
     }
 

@@ -1,14 +1,7 @@
 import { expect } from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
-import {
-  Ballot,
-  BallotFactory,
-  BallotFactory__factory,
-  BallotTagManager,
-  DeepSquare,
-  VotingProxy,
-} from '../typings';
+import { Ballot, BallotFactory, BallotFactory__factory, BallotTagManager, DeepSquare, VotingProxy } from '../typings';
 import setup from './testing/setup';
 import setupVoting from './testing/setupVoting';
 

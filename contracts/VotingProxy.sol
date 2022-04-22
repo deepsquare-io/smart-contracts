@@ -22,15 +22,15 @@ contract VotingProxy is Ownable {
 
     constructor(IERC20Metadata _DPS, BallotTagManager _ballotTagManager) {
         require(address(_DPS) != address(0), "VotingProxy: DPS address is zero.");
-        require(address(_ballotTagManager) != address(0), 'VotingProxy: Ballot tag manager address is zero.');
+        require(address(_ballotTagManager) != address(0), "VotingProxy: Ballot tag manager address is zero.");
 
         DPS = _DPS;
         ballotTagManager = _ballotTagManager;
     }
 
     function grantProxy(address to, uint32 tagIndex) external {
-        require(ballotTagManager.getTags().length > tagIndex, 'VotingProxy: Tag index is too high');
-        require(DPS.balanceOf(to) >= 25e3 * 1e18 || to == address(0), 'VotingProxy: Proxy has not enough DPS.');
+        require(ballotTagManager.getTags().length > tagIndex, "VotingProxy: Tag index is too high");
+        require(DPS.balanceOf(to) >= 25e3 * 1e18 || to == address(0), "VotingProxy: Proxy has not enough DPS.");
 
         if(proxyVoters[msg.sender][tagIndex] != address(0)) {
             Grants storage formerDelegateGrants = delegates[proxyVoters[msg.sender][tagIndex]][tagIndex];
@@ -52,7 +52,7 @@ contract VotingProxy is Ownable {
     }
 
     function proxyAmount(address voter, uint32 tagIndex) public view returns (uint256) {
-        require(ballotTagManager.getTags().length > tagIndex, 'VotingProxy: Tag index is too high');
+        require(ballotTagManager.getTags().length > tagIndex, "VotingProxy: Tag index is too high");
         uint256 total;
         for(uint32 i = 0; i < delegates[voter][tagIndex].grantCount; i++) {
             total += DPS.balanceOf(delegates[voter][tagIndex].indexVoter[i]);

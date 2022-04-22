@@ -3,13 +3,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { parseUnits } from '@ethersproject/units';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
-import {
-  BallotTagManager,
-  DeepSquare,
-  ExposedBallot,
-  ExposedBallot__factory,
-  ExposedVotingProxy,
-} from '../typings';
+import { BallotTagManager, DeepSquare, ExposedBallot, ExposedBallot__factory, ExposedVotingProxy } from '../typings';
 import { ERC20Agent } from './testing/ERC20Agent';
 import setup from './testing/setup';
 import setupVoting from './testing/setupVoting';

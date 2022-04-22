@@ -3,13 +3,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { parseUnits } from '@ethersproject/units';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
-import {
-  BallotFactory,
-  BallotTagManager,
-  DeepSquare,
-  ExposedVotingProxy,
-  ExposedVotingProxy__factory,
-} from '../typings';
+import { BallotTagManager, DeepSquare, ExposedVotingProxy, ExposedVotingProxy__factory } from '../typings';
 import { ERC20Agent } from './testing/ERC20Agent';
 import setup from './testing/setup';
 import setupVoting from './testing/setupVoting';
@@ -21,11 +15,10 @@ describe('Voting proxy', async () => {
   let agentDPS: ERC20Agent;
   let ballotTagManager: BallotTagManager;
   let votingProxy: ExposedVotingProxy;
-  let ballotFactory: BallotFactory;
 
   beforeEach(async () => {
     ({ owner, accounts, DPS, agentDPS } = await setup());
-    ({ ballotTagManager, votingProxy, ballotFactory } = await setupVoting(owner, DPS));
+    ({ ballotTagManager, votingProxy } = await setupVoting(owner, DPS));
   });
 
   describe('constructor', () => {
