@@ -4,35 +4,29 @@ import { parseUnits } from '@ethersproject/units';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
 import {
-  Ballot,
-  Ballot__factory,
-  BallotFactory,
-  BallotFactory__factory,
+  BallotTagManager,
   DeepSquare,
   ExposedBallot,
   ExposedBallot__factory,
   ExposedVotingProxy,
-  ExposedVotingProxy__factory,
 } from '../typings';
 import { ERC20Agent } from './testing/ERC20Agent';
 import setup from './testing/setup';
+import setupVoting from './testing/setupVoting';
 
-describe('Ballot', async () => {
+describe('Ballot', () => {
   let owner: SignerWithAddress;
   let accounts: SignerWithAddress[];
   let DPS: DeepSquare;
   let ballot: ExposedBallot;
   let agentDPS: ERC20Agent;
+  let ballotTagManager: BallotTagManager;
   let votingProxy: ExposedVotingProxy;
-  let ballotMaster: Ballot;
-  let ballotFactory: BallotFactory;
 
   beforeEach(async () => {
     ({ owner, accounts, DPS, agentDPS } = await setup());
-    votingProxy = await new ExposedVotingProxy__factory(owner).deploy(DPS.address);
-    ballotMaster = await new Ballot__factory(owner).deploy(DPS.address, votingProxy.address);
-    ballotFactory = await new BallotFactory__factory(owner).deploy(ballotMaster.address, votingProxy.address);
-    await votingProxy.setBallotFactory(ballotFactory.address);
+    ({ ballotTagManager, votingProxy } = await setupVoting(owner, DPS));
+
     ballot = await new ExposedBallot__factory(owner).deploy(DPS.address, votingProxy.address);
   });
 
@@ -46,7 +40,7 @@ describe('Ballot', async () => {
 
   describe('init', () => {
     it('should initialize ballot state variables', async () => {
-      await ballot.init('foo', BigNumber.from(0), ['bar', 'baz'], votingProxy.address);
+      await ballot.init('foo', BigNumber.from(0), ['bar', 'baz']);
       expect(await ballot.subject()).to.equals('foo');
       expect(await ballot.tagIndex()).to.equals(BigNumber.from(0));
       expect(await ballot.getChoices()).to.deep.equals(['bar', 'baz']);
@@ -56,8 +50,8 @@ describe('Ballot', async () => {
 
   describe('vote', () => {
     beforeEach(async () => {
-      await ballotFactory.addTag('foo');
-      await ballot.init('foo', BigNumber.from(0), ['bar', 'baz'], votingProxy.address);
+      await ballotTagManager.addTag('foo');
+      await ballot.init('foo', BigNumber.from(0), ['bar', 'baz']);
     });
     it('should throw if ballot is closed', async () => {
       await ballot.closeBallot();
@@ -89,8 +83,8 @@ describe('Ballot', async () => {
 
   describe('closeBallot', async () => {
     beforeEach(async () => {
-      await ballotFactory.addTag('foo');
-      await ballot.init('foo', BigNumber.from(0), ['bar', 'baz'], votingProxy.address);
+      await ballotTagManager.addTag('foo');
+      await ballot.init('foo', BigNumber.from(0), ['bar', 'baz']);
     });
     it('should throw if ballot is not closed', async () => {
       await ballot.closeBallot();

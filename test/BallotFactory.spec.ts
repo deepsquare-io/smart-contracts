@@ -3,28 +3,26 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
 import {
   Ballot,
-  Ballot__factory,
   BallotFactory,
   BallotFactory__factory,
+  BallotTagManager,
   DeepSquare,
   VotingProxy,
-  VotingProxy__factory,
 } from '../typings';
 import setup from './testing/setup';
+import setupVoting from './testing/setupVoting';
 
-describe.only('Ballot Factory', async () => {
+describe('Ballot Factory', async () => {
   let owner: SignerWithAddress;
   let DPS: DeepSquare;
+  let ballotTagManager: BallotTagManager;
   let votingProxy: VotingProxy;
   let ballotImplementation: Ballot;
   let ballotFactory: BallotFactory;
 
   beforeEach(async () => {
     ({ owner, DPS } = await setup());
-    votingProxy = await new VotingProxy__factory(owner).deploy(DPS.address);
-    ballotImplementation = await new Ballot__factory(owner).deploy(DPS.address, votingProxy.address);
-    ballotFactory = await new BallotFactory__factory(owner).deploy(ballotImplementation.address, votingProxy.address);
-    await votingProxy.setBallotFactory(ballotFactory.address);
+    ({ ballotTagManager, votingProxy, ballotImplementation, ballotFactory } = await setupVoting(owner, DPS));
   });
 
   describe('constructor', () => {
@@ -33,10 +31,10 @@ describe.only('Ballot Factory', async () => {
         'BallotFactory: Implementation address should not be zero address',
       );
     });
-    it('should revert if the DPS contract is the zero address', async () => {
+    it('should revert if the Ballot tag manager is the zero address', async () => {
       await expect(
         new BallotFactory__factory(owner).deploy(ballotImplementation.address, ZERO_ADDRESS),
-      ).to.be.revertedWith('BallotFactory: Voting proxy address should not be zero address');
+      ).to.be.revertedWith('BallotFactory: Ballot tag manager address should not be zero address');
     });
   });
 
@@ -48,9 +46,11 @@ describe.only('Ballot Factory', async () => {
     });
 
     it('should create a new ballot', async () => {
-      await ballotFactory.addTag('foo');
+      await ballotTagManager.addTag('foo');
       await ballotFactory.setImplementationAddress(ballotImplementation.address);
-      const ballotAddress = await ballotFactory.createBallot('foo', 0, ['bar', 'baz']).then((t) => t.data);
+      const [ballotAddress] = await ballotFactory
+        .createBallot('foo', 0, ['bar', 'baz'])
+        .then(async (t) => (await t.wait()).events?.find((e) => e.event === 'BallotCreated')?.args ?? []);
       expect(await ballotFactory.getBallots()).to.deep.equals([ballotAddress]);
     });
   });

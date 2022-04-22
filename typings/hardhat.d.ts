@@ -53,6 +53,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ballot__factory>;
     getContractFactory(
+      name: "BallotTagManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BallotTagManager__factory>;
+    getContractFactory(
       name: "DeepSquare",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.DeepSquare__factory>;
@@ -175,6 +179,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Ballot>;
+    getContractAt(
+      name: "BallotTagManager",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BallotTagManager>;
     getContractAt(
       name: "DeepSquare",
       address: string,

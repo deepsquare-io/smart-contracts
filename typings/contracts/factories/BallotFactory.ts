@@ -28,40 +28,37 @@ import type {
 
 export interface BallotFactoryInterface extends utils.Interface {
   functions: {
-    "addTag(string)": FunctionFragment;
     "ballotAddresses(uint256)": FunctionFragment;
+    "ballotTagManager()": FunctionFragment;
     "createBallot(string,uint32,string[])": FunctionFragment;
     "getBallots()": FunctionFragment;
-    "getTags()": FunctionFragment;
     "implementationAddress()": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setImplementationAddress(address)": FunctionFragment;
-    "tags(uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
-    "votingProxyAddress()": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "addTag"
       | "ballotAddresses"
+      | "ballotTagManager"
       | "createBallot"
       | "getBallots"
-      | "getTags"
       | "implementationAddress"
       | "owner"
       | "renounceOwnership"
       | "setImplementationAddress"
-      | "tags"
       | "transferOwnership"
-      | "votingProxyAddress"
   ): FunctionFragment;
 
-  encodeFunctionData(functionFragment: "addTag", values: [string]): string;
   encodeFunctionData(
     functionFragment: "ballotAddresses",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "ballotTagManager",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "createBallot",
@@ -71,7 +68,6 @@ export interface BallotFactoryInterface extends utils.Interface {
     functionFragment: "getBallots",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "getTags", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "implementationAddress",
     values?: undefined
@@ -85,19 +81,17 @@ export interface BallotFactoryInterface extends utils.Interface {
     functionFragment: "setImplementationAddress",
     values: [string]
   ): string;
-  encodeFunctionData(functionFragment: "tags", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "votingProxyAddress",
-    values?: undefined
-  ): string;
 
-  decodeFunctionResult(functionFragment: "addTag", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "ballotAddresses",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "ballotTagManager",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -105,7 +99,6 @@ export interface BallotFactoryInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getBallots", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "getTags", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "implementationAddress",
     data: BytesLike
@@ -119,22 +112,26 @@ export interface BallotFactoryInterface extends utils.Interface {
     functionFragment: "setImplementationAddress",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "tags", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "votingProxyAddress",
-    data: BytesLike
-  ): Result;
 
   events: {
+    "BallotCreated(address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "BallotCreated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
+
+export interface BallotCreatedEventObject {
+  ballotAddress: string;
+}
+export type BallotCreatedEvent = TypedEvent<[string], BallotCreatedEventObject>;
+
+export type BallotCreatedEventFilter = TypedEventFilter<BallotCreatedEvent>;
 
 export interface OwnershipTransferredEventObject {
   previousOwner: string;
@@ -175,15 +172,12 @@ export interface BallotFactory extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    addTag(
-      name: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     ballotAddresses(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    ballotTagManager(overrides?: CallOverrides): Promise<[string]>;
 
     createBallot(
       subject: string,
@@ -193,8 +187,6 @@ export interface BallotFactory extends BaseContract {
     ): Promise<ContractTransaction>;
 
     getBallots(overrides?: CallOverrides): Promise<[string[]]>;
-
-    getTags(overrides?: CallOverrides): Promise<[string[]]>;
 
     implementationAddress(overrides?: CallOverrides): Promise<[string]>;
 
@@ -209,25 +201,18 @@ export interface BallotFactory extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    tags(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
-
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    votingProxyAddress(overrides?: CallOverrides): Promise<[string]>;
   };
-
-  addTag(
-    name: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   ballotAddresses(
     arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  ballotTagManager(overrides?: CallOverrides): Promise<string>;
 
   createBallot(
     subject: string,
@@ -237,8 +222,6 @@ export interface BallotFactory extends BaseContract {
   ): Promise<ContractTransaction>;
 
   getBallots(overrides?: CallOverrides): Promise<string[]>;
-
-  getTags(overrides?: CallOverrides): Promise<string[]>;
 
   implementationAddress(overrides?: CallOverrides): Promise<string>;
 
@@ -253,33 +236,27 @@ export interface BallotFactory extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  tags(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
   transferOwnership(
     newOwner: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  votingProxyAddress(overrides?: CallOverrides): Promise<string>;
-
   callStatic: {
-    addTag(name: string, overrides?: CallOverrides): Promise<void>;
-
     ballotAddresses(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    ballotTagManager(overrides?: CallOverrides): Promise<string>;
 
     createBallot(
       subject: string,
       tagIndex: BigNumberish,
       _choices: string[],
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<void>;
 
     getBallots(overrides?: CallOverrides): Promise<string[]>;
-
-    getTags(overrides?: CallOverrides): Promise<string[]>;
 
     implementationAddress(overrides?: CallOverrides): Promise<string>;
 
@@ -292,17 +269,16 @@ export interface BallotFactory extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    tags(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
     transferOwnership(
       newOwner: string,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    votingProxyAddress(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
+    "BallotCreated(address)"(ballotAddress?: null): BallotCreatedEventFilter;
+    BallotCreated(ballotAddress?: null): BallotCreatedEventFilter;
+
     "OwnershipTransferred(address,address)"(
       previousOwner?: string | null,
       newOwner?: string | null
@@ -314,15 +290,12 @@ export interface BallotFactory extends BaseContract {
   };
 
   estimateGas: {
-    addTag(
-      name: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     ballotAddresses(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    ballotTagManager(overrides?: CallOverrides): Promise<BigNumber>;
 
     createBallot(
       subject: string,
@@ -332,8 +305,6 @@ export interface BallotFactory extends BaseContract {
     ): Promise<BigNumber>;
 
     getBallots(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getTags(overrides?: CallOverrides): Promise<BigNumber>;
 
     implementationAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -348,26 +319,19 @@ export interface BallotFactory extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    tags(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    votingProxyAddress(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    addTag(
-      name: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     ballotAddresses(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    ballotTagManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     createBallot(
       subject: string,
@@ -377,8 +341,6 @@ export interface BallotFactory extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getBallots(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getTags(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     implementationAddress(
       overrides?: CallOverrides
@@ -395,18 +357,9 @@ export interface BallotFactory extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    tags(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    votingProxyAddress(
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

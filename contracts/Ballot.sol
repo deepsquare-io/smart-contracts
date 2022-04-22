@@ -64,12 +64,11 @@ contract Ballot is Ownable, Initializable {
         proxy = _proxy;
     }
 
-    function init(string memory _subject, uint32 _tagIndex, string[] memory _choices, VotingProxy _proxy) public initializer {
+    function init(string memory _subject, uint32 _tagIndex, string[] memory _choices) public initializer {
         subject = _subject;
         tagIndex = _tagIndex;
         closed = false;
         choices = _choices;
-        proxy = _proxy;
         resultStorage = new uint256[](choices.length);
     }
 

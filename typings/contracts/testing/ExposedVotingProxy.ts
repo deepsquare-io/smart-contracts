@@ -32,12 +32,12 @@ export interface ExposedVotingProxyInterface extends utils.Interface {
     "_delegates(address,uint32)": FunctionFragment;
     "_proxyVoters(address,uint32)": FunctionFragment;
     "ballotFactory()": FunctionFragment;
+    "ballotTagManager()": FunctionFragment;
     "grantProxy(address,uint32)": FunctionFragment;
     "hasDelegated(address,uint32)": FunctionFragment;
     "owner()": FunctionFragment;
     "proxyAmount(address,uint32)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "setBallotFactory(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
@@ -47,12 +47,12 @@ export interface ExposedVotingProxyInterface extends utils.Interface {
       | "_delegates"
       | "_proxyVoters"
       | "ballotFactory"
+      | "ballotTagManager"
       | "grantProxy"
       | "hasDelegated"
       | "owner"
       | "proxyAmount"
       | "renounceOwnership"
-      | "setBallotFactory"
       | "transferOwnership"
   ): FunctionFragment;
 
@@ -67,6 +67,10 @@ export interface ExposedVotingProxyInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "ballotFactory",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "ballotTagManager",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -87,10 +91,6 @@ export interface ExposedVotingProxyInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "setBallotFactory",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string]
   ): string;
@@ -105,6 +105,10 @@ export interface ExposedVotingProxyInterface extends utils.Interface {
     functionFragment: "ballotFactory",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "ballotTagManager",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "grantProxy", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "hasDelegated",
@@ -117,10 +121,6 @@ export interface ExposedVotingProxyInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setBallotFactory",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -190,6 +190,8 @@ export interface ExposedVotingProxy extends BaseContract {
 
     ballotFactory(overrides?: CallOverrides): Promise<[string]>;
 
+    ballotTagManager(overrides?: CallOverrides): Promise<[string]>;
+
     grantProxy(
       to: string,
       tagIndex: BigNumberish,
@@ -211,11 +213,6 @@ export interface ExposedVotingProxy extends BaseContract {
     ): Promise<[BigNumber]>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setBallotFactory(
-      _ballotFactory: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -241,6 +238,8 @@ export interface ExposedVotingProxy extends BaseContract {
 
   ballotFactory(overrides?: CallOverrides): Promise<string>;
 
+  ballotTagManager(overrides?: CallOverrides): Promise<string>;
+
   grantProxy(
     to: string,
     tagIndex: BigNumberish,
@@ -262,11 +261,6 @@ export interface ExposedVotingProxy extends BaseContract {
   ): Promise<BigNumber>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setBallotFactory(
-    _ballotFactory: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -292,6 +286,8 @@ export interface ExposedVotingProxy extends BaseContract {
 
     ballotFactory(overrides?: CallOverrides): Promise<string>;
 
+    ballotTagManager(overrides?: CallOverrides): Promise<string>;
+
     grantProxy(
       to: string,
       tagIndex: BigNumberish,
@@ -313,11 +309,6 @@ export interface ExposedVotingProxy extends BaseContract {
     ): Promise<BigNumber>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
-    setBallotFactory(
-      _ballotFactory: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     transferOwnership(
       newOwner: string,
@@ -353,6 +344,8 @@ export interface ExposedVotingProxy extends BaseContract {
 
     ballotFactory(overrides?: CallOverrides): Promise<BigNumber>;
 
+    ballotTagManager(overrides?: CallOverrides): Promise<BigNumber>;
+
     grantProxy(
       to: string,
       tagIndex: BigNumberish,
@@ -374,11 +367,6 @@ export interface ExposedVotingProxy extends BaseContract {
     ): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setBallotFactory(
-      _ballotFactory: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -405,6 +393,8 @@ export interface ExposedVotingProxy extends BaseContract {
 
     ballotFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    ballotTagManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     grantProxy(
       to: string,
       tagIndex: BigNumberish,
@@ -426,11 +416,6 @@ export interface ExposedVotingProxy extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setBallotFactory(
-      _ballotFactory: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

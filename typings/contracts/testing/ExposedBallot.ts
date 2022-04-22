@@ -53,7 +53,7 @@ export interface ExposedBallotInterface extends utils.Interface {
     "closed()": FunctionFragment;
     "getChoices()": FunctionFragment;
     "getResults()": FunctionFragment;
-    "init(string,uint32,string[],address)": FunctionFragment;
+    "init(string,uint32,string[])": FunctionFragment;
     "owner()": FunctionFragment;
     "proxy()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
@@ -105,7 +105,7 @@ export interface ExposedBallotInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "init",
-    values: [string, BigNumberish, string[], string]
+    values: [string, BigNumberish, string[]]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "proxy", values?: undefined): string;
@@ -222,7 +222,6 @@ export interface ExposedBallot extends BaseContract {
       _subject: string,
       _tagIndex: BigNumberish,
       _choices: string[],
-      _proxy: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -276,7 +275,6 @@ export interface ExposedBallot extends BaseContract {
     _subject: string,
     _tagIndex: BigNumberish,
     _choices: string[],
-    _proxy: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -328,7 +326,6 @@ export interface ExposedBallot extends BaseContract {
       _subject: string,
       _tagIndex: BigNumberish,
       _choices: string[],
-      _proxy: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -387,7 +384,6 @@ export interface ExposedBallot extends BaseContract {
       _subject: string,
       _tagIndex: BigNumberish,
       _choices: string[],
-      _proxy: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -443,7 +439,6 @@ export interface ExposedBallot extends BaseContract {
       _subject: string,
       _tagIndex: BigNumberish,
       _choices: string[],
-      _proxy: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

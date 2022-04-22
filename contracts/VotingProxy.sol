@@ -5,9 +5,10 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "./factories/BallotFactory.sol";
 
-contract VotingProxy is Ownable{
+contract VotingProxy is Ownable {
     IERC20Metadata public immutable DPS;
     BallotFactory public ballotFactory;
+    BallotTagManager public ballotTagManager;
 
     struct Grants {
         mapping(address => uint32) voterIndex;
@@ -19,17 +20,16 @@ contract VotingProxy is Ownable{
 
     mapping(address => mapping(uint32 => address)) internal proxyVoters; // voter => tag => proxy
 
-    constructor(IERC20Metadata _DPS) {
+    constructor(IERC20Metadata _DPS, BallotTagManager _ballotTagManager) {
         require(address(_DPS) != address(0), "VotingProxy: DPS address is zero.");
-        DPS = _DPS;
-    }
+        require(address(_ballotTagManager) != address(0), 'VotingProxy: Ballot tag manager address is zero.');
 
-    function setBallotFactory(BallotFactory _ballotFactory) external onlyOwner {
-        ballotFactory = _ballotFactory;
+        DPS = _DPS;
+        ballotTagManager = _ballotTagManager;
     }
 
     function grantProxy(address to, uint32 tagIndex) external {
-        require(ballotFactory.getTags().length > tagIndex, 'VotingProxy: Tag index is too high');
+        require(ballotTagManager.getTags().length > tagIndex, 'VotingProxy: Tag index is too high');
         require(DPS.balanceOf(to) >= 25e3 * 1e18 || to == address(0), 'VotingProxy: Proxy has not enough DPS.');
 
         if(proxyVoters[msg.sender][tagIndex] != address(0)) {
@@ -52,7 +52,7 @@ contract VotingProxy is Ownable{
     }
 
     function proxyAmount(address voter, uint32 tagIndex) public view returns (uint256) {
-        require(ballotFactory.getTags().length > tagIndex, 'VotingProxy: Tag index is too high');
+        require(ballotTagManager.getTags().length > tagIndex, 'VotingProxy: Tag index is too high');
         uint256 total;
         for(uint32 i = 0; i < delegates[voter][tagIndex].grantCount; i++) {
             total += DPS.balanceOf(delegates[voter][tagIndex].indexVoter[i]);
