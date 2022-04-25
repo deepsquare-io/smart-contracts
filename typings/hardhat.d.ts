@@ -73,6 +73,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Sale__factory>;
     getContractFactory(
+      name: "LockingSecurity",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.LockingSecurity__factory>;
+    getContractFactory(
       name: "ReferralProgram",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReferralProgram__factory>;
@@ -104,10 +108,6 @@ declare module "hardhat/types/runtime" {
       name: "IERC20Metadata",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20Metadata__factory>;
-    getContractFactory(
-      name: "Vesting",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Vesting__factory>;
 
     getContractAt(
       name: "AggregatorV3Interface",
@@ -185,6 +185,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Sale>;
     getContractAt(
+      name: "LockingSecurity",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.LockingSecurity>;
+    getContractAt(
       name: "ReferralProgram",
       address: string,
       signer?: ethers.Signer
@@ -224,11 +229,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20Metadata>;
-    getContractAt(
-      name: "Vesting",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Vesting>;
 
     // default types
     getContractFactory(

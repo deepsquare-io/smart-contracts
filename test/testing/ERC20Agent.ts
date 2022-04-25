@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 import { TransactionResponse } from '@ethersproject/providers';
 import { parseUnits } from '@ethersproject/units';
-import IERC20Metadata from '../../typings/openzeppelin/IERC20Metadata';
+import { IERC20Metadata } from '../../typings/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata';
 import { Account, getAddress } from './Account';
 
 export interface ERC20Agent {
