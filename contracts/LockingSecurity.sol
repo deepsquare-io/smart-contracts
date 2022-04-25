@@ -35,6 +35,14 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
+    /**
+     * @notice Check if the DPS transfer should be authorized.
+     * @param sender The account which triggered the transfer.
+     * @param from The account from where the tokens will be taken.
+     * @dev Requirements:
+     * - if the sender is the bridge or has the role 'DEFAULT_ADMIN_ROLE' or has the role 'SALE', no further verification is made.
+     * - else, the receiver has to be the bridge and the account from where the tokens will be taken has to have sufficient available funds.
+     */
     function validateTokenTransfer(
         address sender,
         address from,
