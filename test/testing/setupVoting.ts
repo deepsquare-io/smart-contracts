@@ -4,32 +4,24 @@ import {
   Ballot__factory,
   BallotFactory,
   BallotFactory__factory,
-  BallotTagManager,
-  BallotTagManager__factory,
   DeepSquare,
-  ExposedVotingProxy,
-  ExposedVotingProxy__factory,
+  VotingDelegation,
+  VotingDelegation__factory,
 } from '../../typings';
 
 interface SetupVotingOutput {
-  ballotTagManager: BallotTagManager;
-  votingProxy: ExposedVotingProxy;
+  votingDelegation: VotingDelegation;
   ballotImplementation: Ballot;
   ballotFactory: BallotFactory;
 }
 
 export default async function setupVoting(owner: SignerWithAddress, DPS: DeepSquare): Promise<SetupVotingOutput> {
-  const ballotTagManager = await new BallotTagManager__factory(owner).deploy();
-  const votingProxy = await new ExposedVotingProxy__factory(owner).deploy(DPS.address, ballotTagManager.address);
-  const ballotImplementation = await new Ballot__factory(owner).deploy(DPS.address, votingProxy.address);
-  const ballotFactory = await new BallotFactory__factory(owner).deploy(
-    ballotImplementation.address,
-    ballotTagManager.address,
-  );
+  const votingDelegation = await new VotingDelegation__factory(owner).deploy(DPS.address);
+  const ballotImplementation = await new Ballot__factory(owner).deploy(DPS.address, votingDelegation.address);
+  const ballotFactory = await new BallotFactory__factory(owner).deploy(ballotImplementation.address);
 
   return {
-    ballotTagManager,
-    votingProxy,
+    votingDelegation,
     ballotImplementation,
     ballotFactory,
   };

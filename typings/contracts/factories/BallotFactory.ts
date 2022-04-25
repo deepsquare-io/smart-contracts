@@ -29,8 +29,7 @@ import type {
 export interface BallotFactoryInterface extends utils.Interface {
   functions: {
     "ballotAddresses(uint256)": FunctionFragment;
-    "ballotTagManager()": FunctionFragment;
-    "createBallot(string,uint32,string[])": FunctionFragment;
+    "createBallot(string,string,string[])": FunctionFragment;
     "getBallots()": FunctionFragment;
     "implementationAddress()": FunctionFragment;
     "owner()": FunctionFragment;
@@ -42,7 +41,6 @@ export interface BallotFactoryInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "ballotAddresses"
-      | "ballotTagManager"
       | "createBallot"
       | "getBallots"
       | "implementationAddress"
@@ -57,12 +55,8 @@ export interface BallotFactoryInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "ballotTagManager",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "createBallot",
-    values: [string, BigNumberish, string[]]
+    values: [string, string, string[]]
   ): string;
   encodeFunctionData(
     functionFragment: "getBallots",
@@ -88,10 +82,6 @@ export interface BallotFactoryInterface extends utils.Interface {
 
   decodeFunctionResult(
     functionFragment: "ballotAddresses",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "ballotTagManager",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -177,11 +167,9 @@ export interface BallotFactory extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    ballotTagManager(overrides?: CallOverrides): Promise<[string]>;
-
     createBallot(
       subject: string,
-      tagIndex: BigNumberish,
+      topic: string,
       _choices: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -212,11 +200,9 @@ export interface BallotFactory extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  ballotTagManager(overrides?: CallOverrides): Promise<string>;
-
   createBallot(
     subject: string,
-    tagIndex: BigNumberish,
+    topic: string,
     _choices: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -247,11 +233,9 @@ export interface BallotFactory extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    ballotTagManager(overrides?: CallOverrides): Promise<string>;
-
     createBallot(
       subject: string,
-      tagIndex: BigNumberish,
+      topic: string,
       _choices: string[],
       overrides?: CallOverrides
     ): Promise<void>;
@@ -295,11 +279,9 @@ export interface BallotFactory extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    ballotTagManager(overrides?: CallOverrides): Promise<BigNumber>;
-
     createBallot(
       subject: string,
-      tagIndex: BigNumberish,
+      topic: string,
       _choices: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -331,11 +313,9 @@ export interface BallotFactory extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    ballotTagManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     createBallot(
       subject: string,
-      tagIndex: BigNumberish,
+      topic: string,
       _choices: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

@@ -5,28 +5,22 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "../Ballot.sol";
-import "../VotingProxy.sol";
-import "../BallotTagManager.sol";
+import "../VotingDelegation.sol";
 
 contract BallotFactory is Ownable {
     address[] public ballotAddresses;
     address public implementationAddress;
-    BallotTagManager public ballotTagManager;
 
     event BallotCreated(address ballotAddress);
 
-    constructor(address _implementationAddress, BallotTagManager _ballotTagManager){
+    constructor(address _implementationAddress){
         require(_implementationAddress != address(0), "BallotFactory: Implementation address should not be zero address");
-        require(address(_ballotTagManager) != address(0), "BallotFactory: Ballot tag manager address should not be zero address");
         implementationAddress = _implementationAddress;
-        ballotTagManager = _ballotTagManager;
     }
 
-    function createBallot(string memory subject, uint32 tagIndex, string[] memory _choices) external onlyOwner {
-        require(ballotTagManager.getTags().length > tagIndex, "BallotFactory: Tag index is too high.");
-
+    function createBallot(string memory subject, string memory topic, string[] memory _choices) external onlyOwner {
         address cloneAddress = Clones.clone(implementationAddress);
-        Ballot(cloneAddress).init(subject, tagIndex, _choices);
+        Ballot(cloneAddress).init(subject, topic, _choices);
 
         ballotAddresses.push(cloneAddress);
         emit BallotCreated(cloneAddress);

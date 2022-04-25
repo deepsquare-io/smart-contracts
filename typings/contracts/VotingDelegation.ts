@@ -4,7 +4,6 @@
 import type {
   BaseContract,
   BigNumber,
-  BigNumberish,
   BytesLike,
   CallOverrides,
   ContractTransaction,
@@ -26,16 +25,17 @@ import type {
   OnEvent,
 } from "../common";
 
-export interface VotingProxyInterface extends utils.Interface {
+export interface VotingDelegationInterface extends utils.Interface {
   functions: {
     "DPS()": FunctionFragment;
     "ballotFactory()": FunctionFragment;
-    "ballotTagManager()": FunctionFragment;
-    "grantProxy(address,uint32)": FunctionFragment;
-    "hasDelegated(address,uint32)": FunctionFragment;
+    "delegate(address,string)": FunctionFragment;
+    "delegationAmount(address,string)": FunctionFragment;
+    "delegators(address,string)": FunctionFragment;
+    "hasDelegated(address,string)": FunctionFragment;
     "owner()": FunctionFragment;
-    "proxyAmount(address,uint32)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
+    "representative(address,string)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
@@ -43,12 +43,13 @@ export interface VotingProxyInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "DPS"
       | "ballotFactory"
-      | "ballotTagManager"
-      | "grantProxy"
+      | "delegate"
+      | "delegationAmount"
+      | "delegators"
       | "hasDelegated"
       | "owner"
-      | "proxyAmount"
       | "renounceOwnership"
+      | "representative"
       | "transferOwnership"
   ): FunctionFragment;
 
@@ -58,25 +59,29 @@ export interface VotingProxyInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "ballotTagManager",
-    values?: undefined
+    functionFragment: "delegate",
+    values: [string, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "grantProxy",
-    values: [string, BigNumberish]
+    functionFragment: "delegationAmount",
+    values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "delegators",
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "hasDelegated",
-    values: [string, BigNumberish]
+    values: [string, string]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "proxyAmount",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "representative",
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
@@ -88,22 +93,23 @@ export interface VotingProxyInterface extends utils.Interface {
     functionFragment: "ballotFactory",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "delegate", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "ballotTagManager",
+    functionFragment: "delegationAmount",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "grantProxy", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "delegators", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "hasDelegated",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "proxyAmount",
+    functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "renounceOwnership",
+    functionFragment: "representative",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -130,12 +136,12 @@ export type OwnershipTransferredEvent = TypedEvent<
 export type OwnershipTransferredEventFilter =
   TypedEventFilter<OwnershipTransferredEvent>;
 
-export interface VotingProxy extends BaseContract {
+export interface VotingDelegation extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: VotingProxyInterface;
+  interface: VotingDelegationInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -161,31 +167,41 @@ export interface VotingProxy extends BaseContract {
 
     ballotFactory(overrides?: CallOverrides): Promise<[string]>;
 
-    ballotTagManager(overrides?: CallOverrides): Promise<[string]>;
-
-    grantProxy(
+    delegate(
       to: string,
-      tagIndex: BigNumberish,
+      topic: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    delegationAmount(
+      voter: string,
+      topic: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    delegators(
+      to: string,
+      topic: string,
+      overrides?: CallOverrides
+    ): Promise<[string[]]>;
+
     hasDelegated(
       voter: string,
-      tagIndex: BigNumberish,
+      topic: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
-    proxyAmount(
-      voter: string,
-      tagIndex: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    representative(
+      from: string,
+      topic: string,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     transferOwnership(
       newOwner: string,
@@ -197,31 +213,41 @@ export interface VotingProxy extends BaseContract {
 
   ballotFactory(overrides?: CallOverrides): Promise<string>;
 
-  ballotTagManager(overrides?: CallOverrides): Promise<string>;
-
-  grantProxy(
+  delegate(
     to: string,
-    tagIndex: BigNumberish,
+    topic: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  delegationAmount(
+    voter: string,
+    topic: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  delegators(
+    to: string,
+    topic: string,
+    overrides?: CallOverrides
+  ): Promise<string[]>;
+
   hasDelegated(
     voter: string,
-    tagIndex: BigNumberish,
+    topic: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
-  proxyAmount(
-    voter: string,
-    tagIndex: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   renounceOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  representative(
+    from: string,
+    topic: string,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   transferOwnership(
     newOwner: string,
@@ -233,29 +259,39 @@ export interface VotingProxy extends BaseContract {
 
     ballotFactory(overrides?: CallOverrides): Promise<string>;
 
-    ballotTagManager(overrides?: CallOverrides): Promise<string>;
-
-    grantProxy(
+    delegate(
       to: string,
-      tagIndex: BigNumberish,
+      topic: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
+    delegationAmount(
+      voter: string,
+      topic: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    delegators(
+      to: string,
+      topic: string,
+      overrides?: CallOverrides
+    ): Promise<string[]>;
+
     hasDelegated(
       voter: string,
-      tagIndex: BigNumberish,
+      topic: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
-    proxyAmount(
-      voter: string,
-      tagIndex: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    representative(
+      from: string,
+      topic: string,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     transferOwnership(
       newOwner: string,
@@ -279,30 +315,40 @@ export interface VotingProxy extends BaseContract {
 
     ballotFactory(overrides?: CallOverrides): Promise<BigNumber>;
 
-    ballotTagManager(overrides?: CallOverrides): Promise<BigNumber>;
-
-    grantProxy(
+    delegate(
       to: string,
-      tagIndex: BigNumberish,
+      topic: string,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    delegationAmount(
+      voter: string,
+      topic: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    delegators(
+      to: string,
+      topic: string,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     hasDelegated(
       voter: string,
-      tagIndex: BigNumberish,
+      topic: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    proxyAmount(
-      voter: string,
-      tagIndex: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    representative(
+      from: string,
+      topic: string,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     transferOwnership(
@@ -316,30 +362,40 @@ export interface VotingProxy extends BaseContract {
 
     ballotFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    ballotTagManager(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    grantProxy(
+    delegate(
       to: string,
-      tagIndex: BigNumberish,
+      topic: string,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    delegationAmount(
+      voter: string,
+      topic: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    delegators(
+      to: string,
+      topic: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     hasDelegated(
       voter: string,
-      tagIndex: BigNumberish,
+      topic: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    proxyAmount(
-      voter: string,
-      tagIndex: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    representative(
+      from: string,
+      topic: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(

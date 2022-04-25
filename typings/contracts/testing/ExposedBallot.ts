@@ -49,17 +49,17 @@ export interface ExposedBallotInterface extends utils.Interface {
     "DPS()": FunctionFragment;
     "_results()": FunctionFragment;
     "choices(uint256)": FunctionFragment;
-    "closeBallot()": FunctionFragment;
+    "close()": FunctionFragment;
     "closed()": FunctionFragment;
     "getChoices()": FunctionFragment;
     "getResults()": FunctionFragment;
-    "init(string,uint32,string[])": FunctionFragment;
+    "init(string,string,string[])": FunctionFragment;
     "owner()": FunctionFragment;
     "proxy()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "resultStorage(uint256)": FunctionFragment;
     "subject()": FunctionFragment;
-    "tagIndex()": FunctionFragment;
+    "topic()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "vote(uint32)": FunctionFragment;
   };
@@ -69,7 +69,7 @@ export interface ExposedBallotInterface extends utils.Interface {
       | "DPS"
       | "_results"
       | "choices"
-      | "closeBallot"
+      | "close"
       | "closed"
       | "getChoices"
       | "getResults"
@@ -79,7 +79,7 @@ export interface ExposedBallotInterface extends utils.Interface {
       | "renounceOwnership"
       | "resultStorage"
       | "subject"
-      | "tagIndex"
+      | "topic"
       | "transferOwnership"
       | "vote"
   ): FunctionFragment;
@@ -90,10 +90,7 @@ export interface ExposedBallotInterface extends utils.Interface {
     functionFragment: "choices",
     values: [BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "closeBallot",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "close", values?: undefined): string;
   encodeFunctionData(functionFragment: "closed", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getChoices",
@@ -105,7 +102,7 @@ export interface ExposedBallotInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "init",
-    values: [string, BigNumberish, string[]]
+    values: [string, string, string[]]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "proxy", values?: undefined): string;
@@ -118,7 +115,7 @@ export interface ExposedBallotInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "subject", values?: undefined): string;
-  encodeFunctionData(functionFragment: "tagIndex", values?: undefined): string;
+  encodeFunctionData(functionFragment: "topic", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string]
@@ -128,10 +125,7 @@ export interface ExposedBallotInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "DPS", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "_results", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "choices", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "closeBallot",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "close", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "closed", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getChoices", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getResults", data: BytesLike): Result;
@@ -147,7 +141,7 @@ export interface ExposedBallotInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "subject", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "tagIndex", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "topic", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
     data: BytesLike
@@ -208,7 +202,7 @@ export interface ExposedBallot extends BaseContract {
 
     choices(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
 
-    closeBallot(
+    close(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -220,7 +214,7 @@ export interface ExposedBallot extends BaseContract {
 
     init(
       _subject: string,
-      _tagIndex: BigNumberish,
+      _topic: string,
       _choices: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -240,7 +234,7 @@ export interface ExposedBallot extends BaseContract {
 
     subject(overrides?: CallOverrides): Promise<[string]>;
 
-    tagIndex(overrides?: CallOverrides): Promise<[number]>;
+    topic(overrides?: CallOverrides): Promise<[string]>;
 
     transferOwnership(
       newOwner: string,
@@ -261,7 +255,7 @@ export interface ExposedBallot extends BaseContract {
 
   choices(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-  closeBallot(
+  close(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -273,7 +267,7 @@ export interface ExposedBallot extends BaseContract {
 
   init(
     _subject: string,
-    _tagIndex: BigNumberish,
+    _topic: string,
     _choices: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -293,7 +287,7 @@ export interface ExposedBallot extends BaseContract {
 
   subject(overrides?: CallOverrides): Promise<string>;
 
-  tagIndex(overrides?: CallOverrides): Promise<number>;
+  topic(overrides?: CallOverrides): Promise<string>;
 
   transferOwnership(
     newOwner: string,
@@ -314,7 +308,7 @@ export interface ExposedBallot extends BaseContract {
 
     choices(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-    closeBallot(overrides?: CallOverrides): Promise<void>;
+    close(overrides?: CallOverrides): Promise<void>;
 
     closed(overrides?: CallOverrides): Promise<boolean>;
 
@@ -324,7 +318,7 @@ export interface ExposedBallot extends BaseContract {
 
     init(
       _subject: string,
-      _tagIndex: BigNumberish,
+      _topic: string,
       _choices: string[],
       overrides?: CallOverrides
     ): Promise<void>;
@@ -342,7 +336,7 @@ export interface ExposedBallot extends BaseContract {
 
     subject(overrides?: CallOverrides): Promise<string>;
 
-    tagIndex(overrides?: CallOverrides): Promise<number>;
+    topic(overrides?: CallOverrides): Promise<string>;
 
     transferOwnership(
       newOwner: string,
@@ -370,7 +364,7 @@ export interface ExposedBallot extends BaseContract {
 
     choices(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-    closeBallot(
+    close(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -382,7 +376,7 @@ export interface ExposedBallot extends BaseContract {
 
     init(
       _subject: string,
-      _tagIndex: BigNumberish,
+      _topic: string,
       _choices: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -402,7 +396,7 @@ export interface ExposedBallot extends BaseContract {
 
     subject(overrides?: CallOverrides): Promise<BigNumber>;
 
-    tagIndex(overrides?: CallOverrides): Promise<BigNumber>;
+    topic(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: string,
@@ -425,7 +419,7 @@ export interface ExposedBallot extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    closeBallot(
+    close(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -437,7 +431,7 @@ export interface ExposedBallot extends BaseContract {
 
     init(
       _subject: string,
-      _tagIndex: BigNumberish,
+      _topic: string,
       _choices: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -457,7 +451,7 @@ export interface ExposedBallot extends BaseContract {
 
     subject(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    tagIndex(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    topic(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,

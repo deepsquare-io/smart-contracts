@@ -53,10 +53,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ballot__factory>;
     getContractFactory(
-      name: "BallotTagManager",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.BallotTagManager__factory>;
-    getContractFactory(
       name: "DeepSquare",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.DeepSquare__factory>;
@@ -101,10 +97,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ExposedBallot__factory>;
     getContractFactory(
-      name: "ExposedVotingProxy",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ExposedVotingProxy__factory>;
-    getContractFactory(
       name: "BridgeToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.BridgeToken__factory>;
@@ -125,9 +117,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20Metadata__factory>;
     getContractFactory(
-      name: "VotingProxy",
+      name: "VotingDelegation",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.VotingProxy__factory>;
+    ): Promise<Contracts.VotingDelegation__factory>;
 
     getContractAt(
       name: "AggregatorV3Interface",
@@ -179,11 +171,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Ballot>;
-    getContractAt(
-      name: "BallotTagManager",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.BallotTagManager>;
     getContractAt(
       name: "DeepSquare",
       address: string,
@@ -240,11 +227,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ExposedBallot>;
     getContractAt(
-      name: "ExposedVotingProxy",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ExposedVotingProxy>;
-    getContractAt(
       name: "BridgeToken",
       address: string,
       signer?: ethers.Signer
@@ -270,10 +252,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20Metadata>;
     getContractAt(
-      name: "VotingProxy",
+      name: "VotingDelegation",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.VotingProxy>;
+    ): Promise<Contracts.VotingDelegation>;
 
     // default types
     getContractFactory(
