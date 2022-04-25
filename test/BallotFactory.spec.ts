@@ -8,7 +8,7 @@ import { BallotFactory__factory } from '../typings/factories/contracts/factories
 import setup from './testing/setup';
 import setupVoting from './testing/setupVoting';
 
-describe.only('Ballot Factory', async () => {
+describe('Ballot Factory', async () => {
   let owner: SignerWithAddress;
   let DPS: DeepSquare;
   let ballotImplementation: Ballot;
