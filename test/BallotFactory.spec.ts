@@ -1,7 +1,10 @@
 import { expect } from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
-import { Ballot, BallotFactory, BallotFactory__factory, DeepSquare } from '../typings';
+import { Ballot } from '../typings/contracts/Ballot';
+import { DeepSquare } from '../typings/contracts/DeepSquare';
+import { BallotFactory } from '../typings/contracts/factories/BallotFactory';
+import { BallotFactory__factory } from '../typings/factories/contracts/factories/BallotFactory__factory';
 import setup from './testing/setup';
 import setupVoting from './testing/setupVoting';
 
