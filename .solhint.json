@@ -4,6 +4,7 @@
     "compiler-version": ["error", "^0.8.0"],
     "func-visibility": ["warn", { "ignoreConstructors": true }],
     "no-empty-blocks": "off",
-    "var-name-mixedcase": "off"
+    "var-name-mixedcase": "off",
+    "reason-string": ["warn", { "maxLength": 128 }]
   }
 }
