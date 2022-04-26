@@ -1,5 +1,5 @@
 import { ethers, network } from 'hardhat';
-import {formatUnits, parseUnits} from '@ethersproject/units';
+import { formatUnits, parseUnits } from '@ethersproject/units';
 import { Ballot__factory } from '../typings/factories/contracts/Ballot__factory';
 import { DeepSquare__factory } from '../typings/factories/contracts/DeepSquare__factory';
 import { VotingDelegation__factory } from '../typings/factories/contracts/VotingDelegation__factory';
