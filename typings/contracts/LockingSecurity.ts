@@ -48,12 +48,9 @@ export interface LockingSecurityInterface extends utils.Interface {
     "lock(address,(uint256,uint256))": FunctionFragment;
     "locked(address,uint256)": FunctionFragment;
     "locks(address,uint256)": FunctionFragment;
-    "owner()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
     "upgradeBridge(address)": FunctionFragment;
     "validateTokenTransfer(address,address,address,uint256)": FunctionFragment;
     "vest(address,(uint256,uint256))": FunctionFragment;
@@ -72,12 +69,9 @@ export interface LockingSecurityInterface extends utils.Interface {
       | "lock"
       | "locked"
       | "locks"
-      | "owner"
-      | "renounceOwnership"
       | "renounceRole"
       | "revokeRole"
       | "supportsInterface"
-      | "transferOwnership"
       | "upgradeBridge"
       | "validateTokenTransfer"
       | "vest"
@@ -118,11 +112,6 @@ export interface LockingSecurityInterface extends utils.Interface {
     functionFragment: "locks",
     values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "renounceRole",
     values: [BytesLike, string]
@@ -134,10 +123,6 @@ export interface LockingSecurityInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "upgradeBridge",
@@ -169,11 +154,6 @@ export interface LockingSecurityInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "lock", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "locked", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "locks", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "renounceRole",
     data: BytesLike
@@ -181,10 +161,6 @@ export interface LockingSecurityInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -198,29 +174,15 @@ export interface LockingSecurityInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "vest", data: BytesLike): Result;
 
   events: {
-    "OwnershipTransferred(address,address)": EventFragment;
     "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
     "RoleGranted(bytes32,address,address)": EventFragment;
     "RoleRevoked(bytes32,address,address)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
 }
-
-export interface OwnershipTransferredEventObject {
-  previousOwner: string;
-  newOwner: string;
-}
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
->;
-
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface RoleAdminChangedEventObject {
   role: string;
@@ -334,12 +296,6 @@ export interface LockingSecurity extends BaseContract {
       [BigNumber, BigNumber] & { value: BigNumber; release: BigNumber }
     >;
 
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     renounceRole(
       role: BytesLike,
       account: string,
@@ -356,11 +312,6 @@ export interface LockingSecurity extends BaseContract {
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     upgradeBridge(
       newBridge: string,
@@ -428,12 +379,6 @@ export interface LockingSecurity extends BaseContract {
     overrides?: CallOverrides
   ): Promise<[BigNumber, BigNumber] & { value: BigNumber; release: BigNumber }>;
 
-  owner(overrides?: CallOverrides): Promise<string>;
-
-  renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   renounceRole(
     role: BytesLike,
     account: string,
@@ -450,11 +395,6 @@ export interface LockingSecurity extends BaseContract {
     interfaceId: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
-
-  transferOwnership(
-    newOwner: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   upgradeBridge(
     newBridge: string,
@@ -524,10 +464,6 @@ export interface LockingSecurity extends BaseContract {
       [BigNumber, BigNumber] & { value: BigNumber; release: BigNumber }
     >;
 
-    owner(overrides?: CallOverrides): Promise<string>;
-
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
     renounceRole(
       role: BytesLike,
       account: string,
@@ -544,11 +480,6 @@ export interface LockingSecurity extends BaseContract {
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     upgradeBridge(newBridge: string, overrides?: CallOverrides): Promise<void>;
 
@@ -568,15 +499,6 @@ export interface LockingSecurity extends BaseContract {
   };
 
   filters: {
-    "OwnershipTransferred(address,address)"(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferredEventFilter;
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferredEventFilter;
-
     "RoleAdminChanged(bytes32,bytes32,bytes32)"(
       role?: BytesLike | null,
       previousAdminRole?: BytesLike | null,
@@ -661,12 +583,6 @@ export interface LockingSecurity extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     renounceRole(
       role: BytesLike,
       account: string,
@@ -682,11 +598,6 @@ export interface LockingSecurity extends BaseContract {
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     upgradeBridge(
@@ -761,12 +672,6 @@ export interface LockingSecurity extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     renounceRole(
       role: BytesLike,
       account: string,
@@ -782,11 +687,6 @@ export interface LockingSecurity extends BaseContract {
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     upgradeBridge(

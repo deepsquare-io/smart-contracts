@@ -12,8 +12,8 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
 import { DeepSquare } from '../typings/contracts/DeepSquare';
 import { Eligibility } from '../typings/contracts/Eligibility';
+import { LockingSecurity } from '../typings/contracts/LockingSecurity';
 import { Sale } from '../typings/contracts/Sale';
-import { SpenderSecurity } from '../typings/contracts/SpenderSecurity';
 import { BridgeToken } from '../typings/contracts/vendor/BridgeToken.sol/BridgeToken';
 import { AggregatorV3Interface__factory } from '../typings/factories/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface__factory';
 import { Eligibility__factory } from '../typings/factories/contracts/Eligibility__factory';
@@ -27,7 +27,7 @@ describe('Sale', () => {
   let accounts: SignerWithAddress[];
   let DPS: DeepSquare;
   let STC: BridgeToken;
-  let Security: SpenderSecurity;
+  let Security: LockingSecurity;
   let Eligibility: Eligibility;
   let MockAggregator: MockContract;
   let Sale: Sale;
@@ -85,7 +85,7 @@ describe('Sale', () => {
       MINIMUM_PURCHASE_STC,
       0,
     );
-    await Security.grantRole(id('SPENDER'), Sale.address);
+    await Security.grantRole(id('SALE'), Sale.address);
 
     // Initial funding of the sale contract
     await DPS.transfer(Sale.address, INITIAL_ROUND);

@@ -6,9 +6,19 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interfaces/ISecurity.sol";
 
-contract LockingSecurity is ISecurity, AccessControl, Ownable {
+/**
+ * @title LockingSecurity
+ * @author Mathieu Bour, Valentin Pollart and Clarisse Tarrou for the DeepSquare Association.
+ * @notice Allow to lock DPS tokens on holders balances for a certain amount of time.
+ * @dev This contracts acts as a replacement the SpenderSecurity contract, by allowing DPS holders to receive funds,
+ * but restricting the to move the funds before a certain date.
+ * In order to continue to conduct private DPS sale, it introduces the SALE role, which is essentially the same as the
+ * former SPENDER role.
+ * In the future, we will probably write v2 of this contract which will save gas by using time-ordered locks.
+ */
+contract LockingSecurity is ISecurity, AccessControl {
     struct Lock {
-        uint256 value;
+        uint256 value; // The lock DPS amount
         uint256 release; // The release date in seconds since the epoch
     }
 
@@ -60,6 +70,8 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
     /**
      * @notice Compute how much tokens are locked for a give account.
      * @dev This acts a as "minimum balance".
+     * @param account The address to check
+     * @param currentDate The date reference to use.
      */
     function locked(address account, uint256 currentDate) public view returns (uint256) {
         uint256 sum = 0;
@@ -84,24 +96,25 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
     }
 
     /**
-     * Allow the owner to upgrade the bridge.
+     * @notice Allow the owner to upgrade the bridge.
      */
-    function upgradeBridge(address newBridge) external onlyOwner {
+    function upgradeBridge(address newBridge) external onlyRole(DEFAULT_ADMIN_ROLE) {
         bridge = newBridge;
     }
 
     /**
      * @notice Lock DPS to an investor.
      */
-    function lock(address investor, Lock memory details) external onlyOwner {
+    function lock(address investor, Lock memory details) external onlyRole(DEFAULT_ADMIN_ROLE) {
         locks[investor].push(details);
     }
 
     /**
      * @notice Lock and transfer DPS to an investor at the same time.
+     * @dev The sender has to allow the contract to transfer DPS first using the increaseAllowance method first.
      */
-    function vest(address investor, Lock memory details) external onlyOwner {
+    function vest(address investor, Lock memory details) external onlyRole(DEFAULT_ADMIN_ROLE) {
         locks[investor].push(details);
-        DPS.transfer(investor, details.value);
+        DPS.transferFrom(msg.sender, investor, details.value);
     }
 }

@@ -46,6 +46,7 @@ describe('LockingSecurity', () => {
         release: now + 3600,
       });
     });
+
     it('should return how much DPS is available', async () => {
       const now = Math.floor(Date.now() / 1000);
 
@@ -79,10 +80,12 @@ describe('LockingSecurity', () => {
         Security.validateTokenTransfer(ZERO_ADDRESS, accounts[0].address, accounts[1].address, agentDPS.unit(10)),
       ).to.not.reverted;
     });
+
     it('should return if the sender has the role DEFAULT_ADMIN_ROLE', async () => {
       await expect(Security.validateTokenTransfer(owner.address, owner.address, accounts[0].address, agentDPS.unit(10)))
         .to.not.be.reverted;
     });
+
     it('should return if the sender has the role SALE', async () => {
       await Security.grantRole(id('SALE'), accounts[0].address);
       await expect(
@@ -94,6 +97,7 @@ describe('LockingSecurity', () => {
         ),
       ).to.not.be.reverted;
     });
+
     it('should reverse if the recipient is not the bridge', async () => {
       await expect(
         Security.validateTokenTransfer(
@@ -104,6 +108,7 @@ describe('LockingSecurity', () => {
         ),
       ).to.be.revertedWith('LockingSecurity: destination is not the bridge');
     });
+
     it("should reverse if the sender's funds are too low", async () => {
       const now = Math.floor(Date.now() / 1000);
       await agentDPS.transfer(accounts[0], 10);
@@ -114,6 +119,7 @@ describe('LockingSecurity', () => {
         Security.validateTokenTransfer(accounts[0].address, accounts[0].address, bridgeAddress, agentDPS.unit(9)),
       ).to.be.revertedWith('LockingSecurity: transfer amount exceeds available tokens');
     });
+
     it('should pass', async () => {
       await agentDPS.transfer(accounts[0], agentDPS.unit(10));
       const bridgeAddress = await Security.bridge();
@@ -128,14 +134,17 @@ describe('LockingSecurity', () => {
     it('should lock and transfer DPS to the investor', async () => {
       const now = Math.floor(Date.now() / 1000);
       await Security.grantRole(id('SALE'), Security.address);
-      await agentDPS.transfer(Security.address, agentDPS.unit(20000));
+
+      const amount = agentDPS.unit(20000);
+      await DPS.increaseAllowance(Security.address, amount);
+
       await Security.vest(accounts[1].address, {
-        value: agentDPS.unit(10000),
+        value: amount,
         release: now + 3600,
       });
-      expect(await Security.locked(accounts[1].address, now)).to.equals(agentDPS.unit(10000));
+      expect(await Security.locked(accounts[1].address, now)).to.equals(amount);
       expect(await Security.available(accounts[1].address, now)).to.equals(0);
-      expect(await DPS.balanceOf(accounts[1].address)).to.equals(agentDPS.unit(10000));
+      expect(await DPS.balanceOf(accounts[1].address)).to.equals(amount);
     });
   });
 });
