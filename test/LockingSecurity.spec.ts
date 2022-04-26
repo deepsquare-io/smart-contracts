@@ -8,7 +8,7 @@ import { LockingSecurity } from '../typings/contracts/LockingSecurity';
 import { ERC20Agent } from './testing/ERC20Agent';
 import setup from './testing/setup';
 
-describe.only('LockingSecurity', () => {
+describe('LockingSecurity', () => {
   let owner: SignerWithAddress;
   let accounts: SignerWithAddress[];
   let DPS: DeepSquare;
