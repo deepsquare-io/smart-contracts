@@ -8,24 +8,37 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 contract ReferralProgram is Ownable {
     IERC20Metadata public DPS;
 
-    constructor(IERC20Metadata _DPS) {
+    uint256 public limit;
+
+    constructor(IERC20Metadata _DPS, uint256 _limit) {
+        require(address(_DPS) != address(0), "ReferralProgram: token is zero.");
+        require(_limit > 0, "ReferralProgram: Limit is lower or equal to zero.");
+
         DPS = _DPS;
+        limit = _limit;
     }
 
     /**
      * @dev Deliver DPS to recipients.
-     * @param recipients The recipient addresses.
-     * @param amounts The associated amounts.
+     * @param referrers The referrers addresses.
+     * @param referees A matrix of the referees.
      */
-    function deliver(address[] memory recipients, uint256[] memory amounts) external onlyOwner returns (bool) {
-        require(recipients.length != 0, "ReferralProgram: recipient length is zero");
-        require(recipients.length == amounts.length, "ReferralProgram: arguments size mismatch");
+    function deliver(address[] memory referrers, address[][] memory referees) external onlyOwner {
+        require(referrers.length == referees.length, "ReferralProgram: referrers and referees lists have different lengths.");
 
-        for (uint256 i = 0; i < recipients.length; i++) {
-            require(DPS.transfer(recipients[i], amounts[i]));
+        for (uint i = 0; i < referrers.length; i++) {
+            require(DPS.balanceOf(referrers[i]) >= limit, "ReferralProgram: referrer balance is lower than limit.");
+
+            if (referees[i].length > 0) {
+                uint256 gains = 0;
+
+                for (uint j = 0; j < referees[i].length; j++) {
+                    gains += DPS.balanceOf(referees[i][j]);
+                }
+
+                require(DPS.transfer(referrers[i], gains * 12 / 100));
+            }
         }
-
-        return true;
     }
 
     /**
