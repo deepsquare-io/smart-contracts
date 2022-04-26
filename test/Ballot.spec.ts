@@ -5,6 +5,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
 import { DeepSquare } from '../typings/contracts/DeepSquare';
 import { VotingDelegation } from '../typings/contracts/VotingDelegation';
+import { BallotFactory } from '../typings/contracts/factories/BallotFactory';
 import { ExposedBallot } from '../typings/contracts/testing/ExposedBallot';
 import { ExposedBallot__factory } from '../typings/factories/contracts/testing/ExposedBallot__factory';
 import { ERC20Agent } from './testing/ERC20Agent';
@@ -18,10 +19,11 @@ describe('Ballot', () => {
   let ballot: ExposedBallot;
   let agentDPS: ERC20Agent;
   let votingDelegation: VotingDelegation;
+  let ballotFactory: BallotFactory;
 
   beforeEach(async () => {
     ({ owner, accounts, DPS, agentDPS } = await setup());
-    ({ votingDelegation } = await setupVoting(owner, DPS));
+    ({ votingDelegation, ballotFactory } = await setupVoting(owner, DPS));
 
     ballot = await new ExposedBallot__factory(owner).deploy(DPS.address, votingDelegation.address);
   });
@@ -36,7 +38,7 @@ describe('Ballot', () => {
 
   describe('init', () => {
     it('should initialize ballot state variables', async () => {
-      await ballot.init('foo', 'bar', ['baz', 'qux']);
+      await ballot.init(DPS.address, votingDelegation.address, ballotFactory.address, 'foo', 'bar', ['baz', 'qux']);
       expect(await ballot.subject()).to.equals('foo');
       expect(await ballot.topic()).to.equals('bar');
       expect(await ballot.getChoices()).to.deep.equals(['baz', 'qux']);
@@ -46,7 +48,7 @@ describe('Ballot', () => {
 
   describe('vote', () => {
     beforeEach(async () => {
-      await ballot.init('foo', 'qux', ['bar', 'baz']);
+      await ballot.init(DPS.address, votingDelegation.address, ballotFactory.address, 'foo', 'qux', ['bar', 'baz']);
     });
     it('should throw if ballot is closed', async () => {
       await ballot.close();
@@ -78,7 +80,10 @@ describe('Ballot', () => {
 
   describe('closeBallot', async () => {
     beforeEach(async () => {
-      await ballot.init('foo', 'qux', ['bar', 'baz']);
+      await ballot.init(DPS.address, votingDelegation.address, ballotFactory.address, 'foo', 'qux', ['bar', 'baz']);
+    });
+    it('should throw if is not the factory owner', async () => {
+      await expect(ballot.connect(accounts[0]).close()).to.revertedWith('Voting: Restricted to factory owner.');
     });
     it('should throw if ballot is not closed', async () => {
       await ballot.close();

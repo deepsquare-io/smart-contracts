@@ -8,8 +8,9 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./VotingDelegation.sol";
 
 contract Ballot is Ownable, Initializable {
-    IERC20Metadata public immutable DPS;
+    IERC20Metadata public DPS;
     VotingDelegation public proxy;
+    BallotFactory public factory;
 
     struct Vote {
         uint32 choiceIndex;
@@ -35,12 +36,15 @@ contract Ballot is Ownable, Initializable {
         proxy = _proxy;
     }
 
-    function init(string memory _subject, string memory _topic, string[] memory _choices) public initializer {
+    function init(IERC20Metadata _DPS, VotingDelegation _proxy, BallotFactory _factory, string memory _subject, string memory _topic, string[] memory _choices) public initializer {
         subject = _subject;
         topic = _topic;
         closed = false;
         choices = _choices;
         resultStorage = new uint256[](choices.length);
+        DPS = _DPS;
+        proxy = _proxy;
+        factory = _factory;
     }
 
     function getChoices() external view returns(string[] memory) {
@@ -67,7 +71,8 @@ contract Ballot is Ownable, Initializable {
         votes[msg.sender].choiceIndex = choiceIndex;
     }
 
-    function close() external onlyOwner {
+    function close() external {
+        require(msg.sender == factory.owner(), "Voting: Restricted to factory owner.");
         require(!closed, "Voting: Ballot already closed.");
 
         closed = true;

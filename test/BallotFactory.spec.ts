@@ -21,7 +21,12 @@ describe('Ballot Factory', async () => {
 
   describe('constructor', () => {
     it('should revert if the DPS contract is the zero address', async () => {
-      await expect(new BallotFactory__factory(owner).deploy(ZERO_ADDRESS)).to.be.revertedWith(
+      await expect(
+        new BallotFactory__factory(owner).deploy(ZERO_ADDRESS, ballotImplementation.address),
+      ).to.be.revertedWith('BallotFactory: Implementation address should not be zero address');
+    });
+    it('should revert if the DPS contract is the zero address', async () => {
+      await expect(new BallotFactory__factory(owner).deploy(DPS.address, ZERO_ADDRESS)).to.be.revertedWith(
         'BallotFactory: Implementation address should not be zero address',
       );
     });

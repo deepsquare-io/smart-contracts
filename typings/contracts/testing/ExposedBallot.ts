@@ -51,9 +51,10 @@ export interface ExposedBallotInterface extends utils.Interface {
     "choices(uint256)": FunctionFragment;
     "close()": FunctionFragment;
     "closed()": FunctionFragment;
+    "factory()": FunctionFragment;
     "getChoices()": FunctionFragment;
     "getResults()": FunctionFragment;
-    "init(string,string,string[])": FunctionFragment;
+    "init(address,address,address,string,string,string[])": FunctionFragment;
     "owner()": FunctionFragment;
     "proxy()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
@@ -71,6 +72,7 @@ export interface ExposedBallotInterface extends utils.Interface {
       | "choices"
       | "close"
       | "closed"
+      | "factory"
       | "getChoices"
       | "getResults"
       | "init"
@@ -92,6 +94,7 @@ export interface ExposedBallotInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "close", values?: undefined): string;
   encodeFunctionData(functionFragment: "closed", values?: undefined): string;
+  encodeFunctionData(functionFragment: "factory", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getChoices",
     values?: undefined
@@ -102,7 +105,7 @@ export interface ExposedBallotInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "init",
-    values: [string, string, string[]]
+    values: [string, string, string, string, string, string[]]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(functionFragment: "proxy", values?: undefined): string;
@@ -127,6 +130,7 @@ export interface ExposedBallotInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "choices", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "close", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "closed", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getChoices", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getResults", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "init", data: BytesLike): Result;
@@ -208,11 +212,16 @@ export interface ExposedBallot extends BaseContract {
 
     closed(overrides?: CallOverrides): Promise<[boolean]>;
 
+    factory(overrides?: CallOverrides): Promise<[string]>;
+
     getChoices(overrides?: CallOverrides): Promise<[string[]]>;
 
     getResults(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
     init(
+      _DPS: string,
+      _proxy: string,
+      _factory: string,
       _subject: string,
       _topic: string,
       _choices: string[],
@@ -261,11 +270,16 @@ export interface ExposedBallot extends BaseContract {
 
   closed(overrides?: CallOverrides): Promise<boolean>;
 
+  factory(overrides?: CallOverrides): Promise<string>;
+
   getChoices(overrides?: CallOverrides): Promise<string[]>;
 
   getResults(overrides?: CallOverrides): Promise<BigNumber[]>;
 
   init(
+    _DPS: string,
+    _proxy: string,
+    _factory: string,
     _subject: string,
     _topic: string,
     _choices: string[],
@@ -312,11 +326,16 @@ export interface ExposedBallot extends BaseContract {
 
     closed(overrides?: CallOverrides): Promise<boolean>;
 
+    factory(overrides?: CallOverrides): Promise<string>;
+
     getChoices(overrides?: CallOverrides): Promise<string[]>;
 
     getResults(overrides?: CallOverrides): Promise<BigNumber[]>;
 
     init(
+      _DPS: string,
+      _proxy: string,
+      _factory: string,
       _subject: string,
       _topic: string,
       _choices: string[],
@@ -370,11 +389,16 @@ export interface ExposedBallot extends BaseContract {
 
     closed(overrides?: CallOverrides): Promise<BigNumber>;
 
+    factory(overrides?: CallOverrides): Promise<BigNumber>;
+
     getChoices(overrides?: CallOverrides): Promise<BigNumber>;
 
     getResults(overrides?: CallOverrides): Promise<BigNumber>;
 
     init(
+      _DPS: string,
+      _proxy: string,
+      _factory: string,
       _subject: string,
       _topic: string,
       _choices: string[],
@@ -425,11 +449,16 @@ export interface ExposedBallot extends BaseContract {
 
     closed(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getChoices(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getResults(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     init(
+      _DPS: string,
+      _proxy: string,
+      _factory: string,
       _subject: string,
       _topic: string,
       _choices: string[],

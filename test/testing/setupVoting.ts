@@ -16,7 +16,7 @@ interface SetupVotingOutput {
 export default async function setupVoting(owner: SignerWithAddress, DPS: DeepSquare): Promise<SetupVotingOutput> {
   const votingDelegation = await new VotingDelegation__factory(owner).deploy(DPS.address);
   const ballotImplementation = await new Ballot__factory(owner).deploy(DPS.address, votingDelegation.address);
-  const ballotFactory = await new BallotFactory__factory(owner).deploy(ballotImplementation.address);
+  const ballotFactory = await new BallotFactory__factory(owner).deploy(DPS.address, ballotImplementation.address);
 
   return {
     votingDelegation,

@@ -28,6 +28,7 @@ import type {
 
 export interface BallotFactoryInterface extends utils.Interface {
   functions: {
+    "DPS()": FunctionFragment;
     "ballotAddresses(uint256)": FunctionFragment;
     "createBallot(string,string,string[])": FunctionFragment;
     "getBallots()": FunctionFragment;
@@ -40,6 +41,7 @@ export interface BallotFactoryInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "DPS"
       | "ballotAddresses"
       | "createBallot"
       | "getBallots"
@@ -50,6 +52,7 @@ export interface BallotFactoryInterface extends utils.Interface {
       | "transferOwnership"
   ): FunctionFragment;
 
+  encodeFunctionData(functionFragment: "DPS", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ballotAddresses",
     values: [BigNumberish]
@@ -80,6 +83,7 @@ export interface BallotFactoryInterface extends utils.Interface {
     values: [string]
   ): string;
 
+  decodeFunctionResult(functionFragment: "DPS", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "ballotAddresses",
     data: BytesLike
@@ -162,6 +166,8 @@ export interface BallotFactory extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    DPS(overrides?: CallOverrides): Promise<[string]>;
+
     ballotAddresses(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -194,6 +200,8 @@ export interface BallotFactory extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
+
+  DPS(overrides?: CallOverrides): Promise<string>;
 
   ballotAddresses(
     arg0: BigNumberish,
@@ -228,6 +236,8 @@ export interface BallotFactory extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    DPS(overrides?: CallOverrides): Promise<string>;
+
     ballotAddresses(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -274,6 +284,8 @@ export interface BallotFactory extends BaseContract {
   };
 
   estimateGas: {
+    DPS(overrides?: CallOverrides): Promise<BigNumber>;
+
     ballotAddresses(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -308,6 +320,8 @@ export interface BallotFactory extends BaseContract {
   };
 
   populateTransaction: {
+    DPS(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     ballotAddresses(
       arg0: BigNumberish,
       overrides?: CallOverrides
