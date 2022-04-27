@@ -176,7 +176,7 @@ export interface BallotFactory extends BaseContract {
     createBallot(
       subject: string,
       topic: string,
-      _choices: string[],
+      choices: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -211,7 +211,7 @@ export interface BallotFactory extends BaseContract {
   createBallot(
     subject: string,
     topic: string,
-    _choices: string[],
+    choices: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -246,7 +246,7 @@ export interface BallotFactory extends BaseContract {
     createBallot(
       subject: string,
       topic: string,
-      _choices: string[],
+      choices: string[],
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -294,7 +294,7 @@ export interface BallotFactory extends BaseContract {
     createBallot(
       subject: string,
       topic: string,
-      _choices: string[],
+      choices: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -330,7 +330,7 @@ export interface BallotFactory extends BaseContract {
     createBallot(
       subject: string,
       topic: string,
-      _choices: string[],
+      choices: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

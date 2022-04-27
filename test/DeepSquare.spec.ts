@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DPS_TOTAL_SUPPLY } from '../lib/constants';
-import { DeepSquare } from '../typings';
+import { DeepSquare } from '../typings/contracts/DeepSquare';
 import { ERC20Agent } from './testing/ERC20Agent';
 import { randomInt } from './testing/random';
 import setup from './testing/setup';

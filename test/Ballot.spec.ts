@@ -2,12 +2,11 @@ import { expect } from 'chai';
 import { BigNumber } from '@ethersproject/bignumber';
 import { parseUnits } from '@ethersproject/units';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { ZERO_ADDRESS } from '../lib/constants';
 import { DeepSquare } from '../typings/contracts/DeepSquare';
-import { VotingDelegation } from '../typings/contracts/VotingDelegation';
-import { BallotFactory } from '../typings/contracts/factories/BallotFactory';
-import { ExposedBallot } from '../typings/contracts/testing/ExposedBallot';
-import { ExposedBallot__factory } from '../typings/factories/contracts/testing/ExposedBallot__factory';
+import { BallotFactory } from '../typings/contracts/voting/BallotFactory';
+import { VotingDelegation } from '../typings/contracts/voting/VotingDelegation';
+import { ExposedBallot } from '../typings/contracts/voting/testing/ExposedBallot';
+import { ExposedBallot__factory } from '../typings/factories/contracts/voting/testing/ExposedBallot__factory';
 import { ERC20Agent } from './testing/ERC20Agent';
 import setup from './testing/setup';
 import setupVoting from './testing/setupVoting';
@@ -25,15 +24,7 @@ describe('Ballot', () => {
     ({ owner, accounts, DPS, agentDPS } = await setup());
     ({ votingDelegation, ballotFactory } = await setupVoting(owner, DPS));
 
-    ballot = await new ExposedBallot__factory(owner).deploy(DPS.address, votingDelegation.address);
-  });
-
-  describe('constructor', () => {
-    it('should revert if the DPS contract is the zero address', async () => {
-      await expect(new ExposedBallot__factory(owner).deploy(ZERO_ADDRESS, votingDelegation.address)).to.be.revertedWith(
-        'Vote: DPS address is zero.',
-      );
-    });
+    ballot = await new ExposedBallot__factory(owner).deploy();
   });
 
   describe('init', () => {

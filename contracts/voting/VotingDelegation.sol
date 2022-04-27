@@ -2,11 +2,20 @@
 
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "./factories/BallotFactory.sol";
+import "./BallotFactory.sol";
 
+/**
+ * @title BallotFactory
+ * @author Mathieu Bour, Valentin Pollart, Clarisse Tarrou and Charly Mancel for the DeepSquare Association.
+ * @dev Implementation of vote delegation contract for a voting feature
+ */
 contract VotingDelegation is Ownable {
-    IERC20Metadata public immutable DPS;
+    // @dev Contract defining the DPS token
+    IERC20Metadata public DPS;
+
+    // @dev The ballot factory
     BallotFactory public ballotFactory;
 
     struct Grants {
@@ -14,18 +23,29 @@ contract VotingDelegation is Ownable {
         address[] delegators;
     }
 
+    // @dev The minimum amount of DPS a user must have to receive vote delegations (25k DPS)
     uint256 immutable delegatingLimit = 25e3 * 1e18;
 
-    mapping(address => mapping(bytes32 => Grants)) internal delegates; // proxy => tag => voters
+    // @dev A list of delegations received by a user user per topic
+    mapping(address => mapping(bytes32 => Grants)) internal delegates; // representative => tag => delegators
 
-    mapping(address => mapping(bytes32 => address)) internal proxyVoters; // voter => tag => proxy
+    // @dev The representative of a user per topic
+    mapping(address => mapping(bytes32 => address)) internal proxyVoters; // delegator => tag => representative
 
+    /**
+     * @param _DPS The DPS contract address
+     */
     constructor(IERC20Metadata _DPS) {
         require(address(_DPS) != address(0), "VotingDelegation: DPS address is zero.");
 
         DPS = _DPS;
     }
 
+    /**
+     * @notice Give delegation to another user on a topic. The representative MUST either have at least 25k DPS or be the zero address (which correspond to removing the delegation)
+     * @param to The user to give delegation to
+     * @param topic The topic on which you give delegation
+     */
     function delegate(address to, string memory topic) external {
         require(DPS.balanceOf(to) >= delegatingLimit || to == address(0), "VotingDelegation: Proxy has not enough DPS.");
         bytes32 topicHash = keccak256(bytes(topic));
@@ -47,6 +67,12 @@ contract VotingDelegation is Ownable {
         }
     }
 
+    /**
+     * @notice Computes the vote power a user have on a topic through delegation
+     * @dev The total does not include the user own vote power
+     * @param voter The address of the voter
+     * @param topic The delegation topic
+     */
     function delegationAmount(address voter, string memory topic) public view returns (uint256) {
         uint256 total;
         bytes32 topicHash = keccak256(bytes(topic));
@@ -56,10 +82,20 @@ contract VotingDelegation is Ownable {
         return total;
     }
 
+    /**
+     * @notice Returns whether or not the voter has given delegation on given topic
+     * @param voter The address of the voter
+     * @param topic The delegation topic
+     */
     function hasDelegated(address voter, string memory topic) external view returns (bool) {
         return proxyVoters[voter][keccak256(bytes(topic))] != address(0);
     }
 
+    /**
+     * @notice Returns all delegations a voter has on a given topic
+     * @param to The address of the voter
+     * @param topic The delegation topic
+     */
     function delegators(address to, string memory topic) external view returns(address[] memory) {
         bytes32 topicHash = keccak256(bytes(topic));
         address[] memory proxies = new address[](delegates[to][topicHash].delegators.length);
@@ -69,6 +105,11 @@ contract VotingDelegation is Ownable {
         return proxies;
     }
 
+    /**
+     * @notice Returns the address of the representative of a voter has on a given topic
+     * @param from The address of the voter
+     * @param topic The delegation topic
+     */
     function representative(address from, string memory topic) external view returns(address) {
         return proxyVoters[from][keccak256(bytes(topic))];
     }
