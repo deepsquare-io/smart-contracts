@@ -1,8 +1,12 @@
 import { Presets, SingleBar } from 'cli-progress';
 import { ethers, network } from 'hardhat';
+import { BigNumber } from '@ethersproject/bignumber';
 import users from '../data/users.json';
-import { DeepSquare__factory, LockingSecurity__factory } from '../typings';
-import { Sale__factory } from '../typings/factories/contracts';
+import { ZERO_ADDRESS } from '../lib/constants';
+import { DeepSquare } from '../typings/contracts/DeepSquare';
+import { DeepSquare__factory } from '../typings/factories/contracts/DeepSquare__factory';
+import { LockingSecurity__factory } from '../typings/factories/contracts/LockingSecurity__factory';
+import { Sale__factory } from '../typings/factories/contracts/Sale__factory';
 
 type NetworkName = 'hardhat' | 'mainnet' | 'fuji';
 type ContractName = 'DeepSquare' | 'Sale';
@@ -24,10 +28,19 @@ async function main() {
   const networkName = network.name as NetworkName;
   const [deployer] = await ethers.getSigners();
 
+  console.log('Network: ', networkName);
   console.log('Deployer: ', deployer.address);
 
-  const DeepSquareFactory = new DeepSquare__factory(deployer);
-  const DeepSquare = DeepSquareFactory.attach(addresses.DeepSquare[networkName]);
+  let DeepSquare: DeepSquare;
+  if (networkName === 'fuji') {
+    const DeepSquareFactory = new DeepSquare__factory(deployer);
+    DeepSquare = await DeepSquareFactory.deploy(ZERO_ADDRESS);
+  } else {
+    const DeepSquareFactory = new DeepSquare__factory(deployer);
+    DeepSquare = DeepSquareFactory.attach(addresses.DeepSquare[networkName]);
+  }
+
+  console.log('DPS: ', DeepSquare.address);
 
   const SaleFactory = new Sale__factory(deployer);
   const Sale = SaleFactory.attach(addresses.Sale[networkName]);
@@ -42,15 +55,35 @@ async function main() {
   console.log('Gnosis: ', gnosisAddress);
 
   if (networkName !== 'mainnet') {
+    await DeepSquare.setSecurity(LockingSecurity.address);
+    console.log('Security: OK');
+
+    await DeepSquare.approve(LockingSecurity.address, await DeepSquare.balanceOf(deployer.address));
+    console.log('\nApprove: OK');
+
+    console.log(await DeepSquare.allowance(deployer.address, LockingSecurity.address));
+    console.log('balance:', await DeepSquare.balanceOf(deployer.address));
+
     const progress = new SingleBar({}, Presets.shades_classic);
     progress.start(Object.keys(users).length, 0);
 
-    for (let i = 0; i < users.length; i++) {
+    for (const [user, balance] of (users as Array<[string, string]>).values()) {
       progress.increment();
-      await LockingSecurity.lock(users[i], {
-        value: (await DeepSquare.balanceOf(users[i])).mul(25).div(100),
-        release: Math.floor(Date.now() / 1000) + 3600000,
-      });
+      if (networkName === 'fuji') {
+        await LockingSecurity.vest(user, {
+          value: BigNumber.from(balance).mul(25).div(100),
+          release: Math.floor(Date.now() / 1000) + 4 * 3600,
+        });
+        await LockingSecurity.vest(user, {
+          value: BigNumber.from(balance).mul(75).div(100),
+          release: Math.floor(Date.now() / 1000) + 20 * 3600,
+        });
+      } else {
+        await LockingSecurity.lock(user, {
+          value: BigNumber.from(balance).mul(25).div(100),
+          release: Math.floor(Date.now() / 1000) + 4 * 3600,
+        });
+      }
     }
 
     progress.stop();

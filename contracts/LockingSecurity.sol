@@ -16,7 +16,7 @@ import "./interfaces/ISecurity.sol";
  * former SPENDER role.
  * In the future, we will probably write v2 of this contract which will save gas by using time-ordered locks.
  */
-contract LockingSecurity is ISecurity, AccessControl {
+contract LockingSecurity is ISecurity, AccessControl, Ownable {
     struct Lock {
         uint256 value; // The lock DPS amount
         uint256 release; // The release date in seconds since the epoch
@@ -86,7 +86,9 @@ contract LockingSecurity is ISecurity, AccessControl {
     }
 
     /**
-     * @notice Compute how much DPS is available (=not locked) for a given account.
+     * @notice Compute how much DPS is available (=not locked) for a given account at a given date.
+     * @param account The address of the account to check.
+     * @param currentDate The date to check.
      */
     function available(address account, uint256 currentDate) public view returns (uint256) {
         uint256 a = DPS.balanceOf(account);
@@ -97,6 +99,7 @@ contract LockingSecurity is ISecurity, AccessControl {
 
     /**
      * @notice Allow the owner to upgrade the bridge.
+     * @param newBridge New address of the bridge.
      */
     function upgradeBridge(address newBridge) external onlyRole(DEFAULT_ADMIN_ROLE) {
         bridge = newBridge;
@@ -104,6 +107,8 @@ contract LockingSecurity is ISecurity, AccessControl {
 
     /**
      * @notice Lock DPS to an investor.
+     * @param investor Address of the investor.
+     * @param details The amount to lock and the release date in epoch.
      */
     function lock(address investor, Lock memory details) external onlyRole(DEFAULT_ADMIN_ROLE) {
         locks[investor].push(details);
@@ -112,6 +117,8 @@ contract LockingSecurity is ISecurity, AccessControl {
     /**
      * @notice Lock and transfer DPS to an investor at the same time.
      * @dev The sender has to allow the contract to transfer DPS first using the increaseAllowance method first.
+     * @param investor Address of the investor.
+     * @param details The amount to lock and the release date in epoch.
      */
     function vest(address investor, Lock memory details) external onlyRole(DEFAULT_ADMIN_ROLE) {
         locks[investor].push(details);

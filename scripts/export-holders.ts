@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { ethers, network } from 'hardhat';
-import { DeepSquare__factory } from '../typings';
+import { DeepSquare__factory } from '../typings/factories/contracts/DeepSquare__factory';
 
 type NetworkName = 'hardhat' | 'mainnet' | 'fuji';
 type ContractName = 'DeepSquare';
@@ -35,8 +35,16 @@ async function main() {
 
   holders.delete('0xaEAE6CA5a34327b557181ae1E9E62BF2B5eB1D7F'); // gnosis safe
   holders.delete('0x8c94e12C2d05b2060DF9D9732980bca363F3F58a'); // sale contract
+  holders.delete('0xb4A981d2663455aEE53193Da8e7c61c3579301cb'); // sale contract
+  holders.delete('0xDA0096EB18c43A84f9E2EEF7FE6B7eD0Be29fEFa'); // deployment address
+  holders.delete('0xC891fCbF84423dCeda561bB95388efFDb376C322'); // airdrop
 
-  fs.writeFile('./data/users.json', JSON.stringify(Array.from(holders.values())), () => {
+  const balances: Map<string, string> = new Map<string, string>();
+  for (const holder of holders) {
+    balances.set(holder, (await DeepSquare.balanceOf(holder)).toString());
+  }
+
+  fs.writeFile('./data/users.json', JSON.stringify(Array.from(balances)), () => {
     return;
   });
 }
