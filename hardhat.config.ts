@@ -25,7 +25,8 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: 31337,
       forking: {
-        url: 'https://api.avax.network/ext/bc/C/rpc',
+        // url: 'https://api.avax.network/ext/bc/C/rpc',
+        url: 'https://api.avax-test.network/ext/bc/C/rpc',
       },
       gas: 8000000,
     },
