@@ -7,6 +7,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 // import users from '../data/users.json';
 import { ZERO_ADDRESS } from '../lib/constants';
+import waitTx from '../lib/waitTx';
 import { DeepSquare } from '../typings/contracts/DeepSquare';
 import { DeepSquare__factory } from '../typings/factories/contracts/DeepSquare__factory';
 import { LockingSecurity__factory } from '../typings/factories/contracts/LockingSecurity__factory';
@@ -122,12 +123,14 @@ async function main() {
   } else {
     const DeepSquareFactory = new DeepSquare__factory(deployer);
     DeepSquare = await DeepSquareFactory.deploy(ZERO_ADDRESS);
+    await DeepSquare.deployed();
   }
 
   console.log('DPS:', DeepSquare.address);
 
   const LockingSecurityFactory = new LockingSecurity__factory(deployer);
   const LockingSecurity = await LockingSecurityFactory.deploy(DeepSquare.address);
+  await LockingSecurity.deployed();
   console.log('LockingSecurity:', LockingSecurity.address);
 
   const gnosisAddress = await LockingSecurity.owner();
@@ -135,12 +138,12 @@ async function main() {
   console.log('TEST:', await LockingSecurity.hasRole(await LockingSecurity.DEFAULT_ADMIN_ROLE(), deployer.address));
 
   if (networkName !== 'mainnet') {
-    await DeepSquare.setSecurity(LockingSecurity.address);
+    await waitTx(DeepSquare.setSecurity(LockingSecurity.address));
     console.log('Security: OK');
 
-    await LockingSecurity.grantRole(await LockingSecurity.SALE(), LockingSecurity.address);
+    await waitTx(LockingSecurity.grantRole(await LockingSecurity.SALE(), LockingSecurity.address));
 
-    await DeepSquare.approve(LockingSecurity.address, await DeepSquare.balanceOf(deployer.address));
+    await waitTx(DeepSquare.approve(LockingSecurity.address, await DeepSquare.balanceOf(deployer.address)));
     console.log('Approve: OK');
 
     console.log(await DeepSquare.allowance(deployer.address, LockingSecurity.address));
@@ -153,16 +156,20 @@ async function main() {
       progress.increment();
 
       // 25%
-      await LockingSecurity.vest(user, {
-        value: BigNumber.from(balance).mul(25).div(100),
-        release: Math.floor(Date.now() / 1000) + 4 * 3600,
-      });
+      await waitTx(
+        LockingSecurity.vest(user, {
+          value: BigNumber.from(balance).mul(25).div(100),
+          release: Math.floor(Date.now() / 1000) + 4 * 3600,
+        }),
+      );
 
       // 75%
-      await LockingSecurity.vest(user, {
-        value: BigNumber.from(balance).mul(75).div(100),
-        release: Math.floor(Date.now() / 1000) + 20 * 3600,
-      });
+      await waitTx(
+        LockingSecurity.vest(user, {
+          value: BigNumber.from(balance).mul(75).div(100),
+          release: Math.floor(Date.now() / 1000) + 20 * 3600,
+        }),
+      );
     }
 
     progress.stop();
