@@ -39,7 +39,7 @@ describe('Ballot Factory', async () => {
       const [ballotAddress] = await ballotFactory
         .createBallot('foo', 'qux', ['bar', 'baz'])
         .then(async (t) => (await t.wait()).events?.find((e) => e.event === 'BallotCreated')?.args ?? []);
-      expect(await ballotFactory.getBallots()).to.deep.equals([ballotAddress]);
+      expect(await ballotFactory.getActiveBallots()).to.deep.equals([ballotAddress]);
     });
   });
 
