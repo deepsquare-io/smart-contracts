@@ -43,7 +43,7 @@ describe('Ballot Factory', async () => {
     });
   });
 
-  describe.only('archiveBallot', () => {
+  describe('archiveBallot', () => {
     it('should archive an active ballot', async () => {
       await ballotFactory.setImplementationAddress(ballotImplementation.address);
       const [ballotAddress] = await ballotFactory
