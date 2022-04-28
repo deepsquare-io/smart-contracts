@@ -136,12 +136,11 @@ async function main() {
   const gnosisAddress = await LockingSecurity.owner();
   console.log('LockingSecurity.owner:', await LockingSecurity.owner());
   console.log('TEST:', await LockingSecurity.hasRole(await LockingSecurity.DEFAULT_ADMIN_ROLE(), deployer.address));
+  await waitTx(LockingSecurity.grantRole(await LockingSecurity.SALE(), LockingSecurity.address));
 
   if (networkName !== 'mainnet') {
     await waitTx(DeepSquare.setSecurity(LockingSecurity.address));
     console.log('Security: OK');
-
-    await waitTx(LockingSecurity.grantRole(await LockingSecurity.SALE(), LockingSecurity.address));
 
     await waitTx(DeepSquare.approve(LockingSecurity.address, await DeepSquare.balanceOf(deployer.address)));
     console.log('Approve: OK');
