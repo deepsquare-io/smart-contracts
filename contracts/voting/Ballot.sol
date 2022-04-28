@@ -131,6 +131,21 @@ contract Ballot is Ownable, Initializable {
     }
 
     /**
+     * @notice Returns if given voter has voted
+     * @param voter The voter
+     */
+    function hasVoted(address voter) external view returns(bool) {
+        return votes[voter].hasVoted;
+    }
+
+    /**
+     * @notice Returns the sender's vote
+     */
+    function getVote() external view returns(uint32) {
+        return votes[msg.sender].choiceIndex;
+    }
+
+    /**
      * @notice Close the vote, preventing users to vote afterwards
      * @dev The caller MUST be the ballot factory owner
      */
@@ -146,6 +161,4 @@ contract Ballot is Ownable, Initializable {
         }
         factory.archiveBallot();
     }
-
-
 }

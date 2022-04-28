@@ -35,6 +35,8 @@ export interface BallotInterface extends utils.Interface {
     "factory()": FunctionFragment;
     "getChoices()": FunctionFragment;
     "getResults()": FunctionFragment;
+    "getVote()": FunctionFragment;
+    "hasVoted(address)": FunctionFragment;
     "init(address,address,address,string,string,string[])": FunctionFragment;
     "owner()": FunctionFragment;
     "proxy()": FunctionFragment;
@@ -55,6 +57,8 @@ export interface BallotInterface extends utils.Interface {
       | "factory"
       | "getChoices"
       | "getResults"
+      | "getVote"
+      | "hasVoted"
       | "init"
       | "owner"
       | "proxy"
@@ -82,6 +86,8 @@ export interface BallotInterface extends utils.Interface {
     functionFragment: "getResults",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "getVote", values?: undefined): string;
+  encodeFunctionData(functionFragment: "hasVoted", values: [string]): string;
   encodeFunctionData(
     functionFragment: "init",
     values: [string, string, string, string, string, string[]]
@@ -111,6 +117,8 @@ export interface BallotInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getChoices", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getResults", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getVote", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "hasVoted", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "init", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "proxy", data: BytesLike): Result;
@@ -192,6 +200,10 @@ export interface Ballot extends BaseContract {
 
     getResults(overrides?: CallOverrides): Promise<[BigNumber[]]>;
 
+    getVote(overrides?: CallOverrides): Promise<[number]>;
+
+    hasVoted(voter: string, overrides?: CallOverrides): Promise<[boolean]>;
+
     init(
       _DPS: string,
       _proxy: string,
@@ -246,6 +258,10 @@ export interface Ballot extends BaseContract {
 
   getResults(overrides?: CallOverrides): Promise<BigNumber[]>;
 
+  getVote(overrides?: CallOverrides): Promise<number>;
+
+  hasVoted(voter: string, overrides?: CallOverrides): Promise<boolean>;
+
   init(
     _DPS: string,
     _proxy: string,
@@ -297,6 +313,10 @@ export interface Ballot extends BaseContract {
     getChoices(overrides?: CallOverrides): Promise<string[]>;
 
     getResults(overrides?: CallOverrides): Promise<BigNumber[]>;
+
+    getVote(overrides?: CallOverrides): Promise<number>;
+
+    hasVoted(voter: string, overrides?: CallOverrides): Promise<boolean>;
 
     init(
       _DPS: string,
@@ -359,6 +379,10 @@ export interface Ballot extends BaseContract {
 
     getResults(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getVote(overrides?: CallOverrides): Promise<BigNumber>;
+
+    hasVoted(voter: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     init(
       _DPS: string,
       _proxy: string,
@@ -416,6 +440,13 @@ export interface Ballot extends BaseContract {
     getChoices(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getResults(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getVote(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    hasVoted(
+      voter: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     init(
       _DPS: string,
