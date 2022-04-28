@@ -17,8 +17,11 @@ contract BallotFactory is Ownable {
     // @dev Contract defining the DPS token
     IERC20Metadata public DPS;
 
-    // @dev The list of all ballot contract clones
-    address[] public ballotAddresses;
+    // @dev The list of all active ballot contract clones
+    address[] public activeBallotAddresses;
+
+    // @dev The list of all archived ballot contract clones
+    address[] public archivedBallotAddresses;
 
     // @dev The address of the ballot implementation used as ballot contract proxy
     address public implementationAddress;
@@ -50,8 +53,25 @@ contract BallotFactory is Ownable {
         Ballot implementation = Ballot(implementationAddress);
         address cloneAddress = Clones.clone(implementationAddress);
         Ballot(cloneAddress).init(implementation.DPS(), implementation.proxy(), this, subject, topic, choices);
-        ballotAddresses.push(cloneAddress);
+        activeBallotAddresses.push(cloneAddress);
         emit BallotCreated(cloneAddress);
+    }
+
+    /**
+     * @notice Archive a ballot and remove it from the active ballot list
+     * @dev It can be perform only by the ballot itself by calling this method within its close method.
+     */
+    function archiveBallot() external {
+        bool isBallotContract = false;
+        for(uint i = 0; i < activeBallotAddresses.length; i++) {
+            if (activeBallotAddresses[i] == msg.sender) {
+                isBallotContract = true;
+                archivedBallotAddresses.push(activeBallotAddresses[i]);
+                activeBallotAddresses[i] = activeBallotAddresses[activeBallotAddresses.length - 1];
+                activeBallotAddresses.pop();
+                return;
+            }
+        }
     }
 
     /**
@@ -64,9 +84,16 @@ contract BallotFactory is Ownable {
     }
 
     /**
-     * @notice Returns all ballot clone addresses.
+     * @notice Returns all active ballot clone addresses.
      */
-    function getBallots() external view returns (address[] memory) {
-        return ballotAddresses;
+    function getActiveBallots() external view returns (address[] memory) {
+        return activeBallotAddresses;
+    }
+
+    /**
+     * @notice Returns all archived ballot clone addresses.
+     */
+    function getArchivedBallots() external view returns (address[] memory) {
+        return archivedBallotAddresses;
     }
 }

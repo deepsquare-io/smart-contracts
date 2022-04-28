@@ -5,6 +5,7 @@ import { DeepSquare } from '../typings/contracts/DeepSquare';
 import { Ballot } from '../typings/contracts/voting/Ballot';
 import { BallotFactory } from '../typings/contracts/voting/BallotFactory';
 import { BallotFactory__factory } from '../typings/factories/contracts/voting/BallotFactory__factory';
+import { Ballot__factory } from '../typings/factories/contracts/voting/Ballot__factory';
 import setup from './testing/setup';
 import setupVoting from './testing/setupVoting';
 
@@ -39,6 +40,18 @@ describe('Ballot Factory', async () => {
         .createBallot('foo', 'qux', ['bar', 'baz'])
         .then(async (t) => (await t.wait()).events?.find((e) => e.event === 'BallotCreated')?.args ?? []);
       expect(await ballotFactory.getBallots()).to.deep.equals([ballotAddress]);
+    });
+  });
+
+  describe.only('archiveBallot', () => {
+    it('should archive an active ballot', async () => {
+      await ballotFactory.setImplementationAddress(ballotImplementation.address);
+      const [ballotAddress] = await ballotFactory
+        .createBallot('foo', 'qux', ['bar', 'baz'])
+        .then(async (t) => (await t.wait()).events?.find((e) => e.event === 'BallotCreated')?.args ?? []);
+      await new Ballot__factory(owner).attach(ballotAddress).close();
+      expect(await ballotFactory.getActiveBallots()).to.deep.equals([]);
+      expect(await ballotFactory.getArchivedBallots()).to.deep.equals([ballotAddress]);
     });
   });
 

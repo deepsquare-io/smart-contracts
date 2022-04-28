@@ -49,10 +49,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC165__factory>;
     getContractFactory(
-      name: "Ballot",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Ballot__factory>;
-    getContractFactory(
       name: "DeepSquare",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.DeepSquare__factory>;
@@ -60,10 +56,6 @@ declare module "hardhat/types/runtime" {
       name: "Eligibility",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Eligibility__factory>;
-    getContractFactory(
-      name: "BallotFactory",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.BallotFactory__factory>;
     getContractFactory(
       name: "IEligibility",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -92,10 +84,6 @@ declare module "hardhat/types/runtime" {
       name: "SpenderSecurity",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SpenderSecurity__factory>;
-    getContractFactory(
-      name: "ExposedBallot",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ExposedBallot__factory>;
     getContractFactory(
       name: "BridgeToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -128,10 +116,6 @@ declare module "hardhat/types/runtime" {
       name: "ExposedBallot",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ExposedBallot__factory>;
-    getContractFactory(
-      name: "VotingDelegation",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.VotingDelegation__factory>;
     getContractFactory(
       name: "VotingDelegation",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -183,11 +167,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IERC165>;
     getContractAt(
-      name: "Ballot",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Ballot>;
-    getContractAt(
       name: "DeepSquare",
       address: string,
       signer?: ethers.Signer
@@ -197,11 +176,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Eligibility>;
-    getContractAt(
-      name: "BallotFactory",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.BallotFactory>;
     getContractAt(
       name: "IEligibility",
       address: string,
@@ -237,11 +211,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.SpenderSecurity>;
-    getContractAt(
-      name: "ExposedBallot",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ExposedBallot>;
     getContractAt(
       name: "BridgeToken",
       address: string,
@@ -282,11 +251,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ExposedBallot>;
-    getContractAt(
-      name: "VotingDelegation",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.VotingDelegation>;
     getContractAt(
       name: "VotingDelegation",
       address: string,

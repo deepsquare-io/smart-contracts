@@ -29,9 +29,12 @@ import type {
 export interface BallotFactoryInterface extends utils.Interface {
   functions: {
     "DPS()": FunctionFragment;
-    "ballotAddresses(uint256)": FunctionFragment;
+    "activeBallotAddresses(uint256)": FunctionFragment;
+    "archiveBallot()": FunctionFragment;
+    "archivedBallotAddresses(uint256)": FunctionFragment;
     "createBallot(string,string,string[])": FunctionFragment;
-    "getBallots()": FunctionFragment;
+    "getActiveBallots()": FunctionFragment;
+    "getArchivedBallots()": FunctionFragment;
     "implementationAddress()": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
@@ -42,9 +45,12 @@ export interface BallotFactoryInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "DPS"
-      | "ballotAddresses"
+      | "activeBallotAddresses"
+      | "archiveBallot"
+      | "archivedBallotAddresses"
       | "createBallot"
-      | "getBallots"
+      | "getActiveBallots"
+      | "getArchivedBallots"
       | "implementationAddress"
       | "owner"
       | "renounceOwnership"
@@ -54,7 +60,15 @@ export interface BallotFactoryInterface extends utils.Interface {
 
   encodeFunctionData(functionFragment: "DPS", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "ballotAddresses",
+    functionFragment: "activeBallotAddresses",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "archiveBallot",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "archivedBallotAddresses",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -62,7 +76,11 @@ export interface BallotFactoryInterface extends utils.Interface {
     values: [string, string, string[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "getBallots",
+    functionFragment: "getActiveBallots",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getArchivedBallots",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -85,14 +103,29 @@ export interface BallotFactoryInterface extends utils.Interface {
 
   decodeFunctionResult(functionFragment: "DPS", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "ballotAddresses",
+    functionFragment: "activeBallotAddresses",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "archiveBallot",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "archivedBallotAddresses",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "createBallot",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getBallots", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getActiveBallots",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getArchivedBallots",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "implementationAddress",
     data: BytesLike
@@ -168,7 +201,16 @@ export interface BallotFactory extends BaseContract {
   functions: {
     DPS(overrides?: CallOverrides): Promise<[string]>;
 
-    ballotAddresses(
+    activeBallotAddresses(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    archiveBallot(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    archivedBallotAddresses(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
@@ -180,7 +222,9 @@ export interface BallotFactory extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    getBallots(overrides?: CallOverrides): Promise<[string[]]>;
+    getActiveBallots(overrides?: CallOverrides): Promise<[string[]]>;
+
+    getArchivedBallots(overrides?: CallOverrides): Promise<[string[]]>;
 
     implementationAddress(overrides?: CallOverrides): Promise<[string]>;
 
@@ -203,7 +247,16 @@ export interface BallotFactory extends BaseContract {
 
   DPS(overrides?: CallOverrides): Promise<string>;
 
-  ballotAddresses(
+  activeBallotAddresses(
+    arg0: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  archiveBallot(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  archivedBallotAddresses(
     arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
@@ -215,7 +268,9 @@ export interface BallotFactory extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  getBallots(overrides?: CallOverrides): Promise<string[]>;
+  getActiveBallots(overrides?: CallOverrides): Promise<string[]>;
+
+  getArchivedBallots(overrides?: CallOverrides): Promise<string[]>;
 
   implementationAddress(overrides?: CallOverrides): Promise<string>;
 
@@ -238,7 +293,14 @@ export interface BallotFactory extends BaseContract {
   callStatic: {
     DPS(overrides?: CallOverrides): Promise<string>;
 
-    ballotAddresses(
+    activeBallotAddresses(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    archiveBallot(overrides?: CallOverrides): Promise<void>;
+
+    archivedBallotAddresses(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
@@ -250,7 +312,9 @@ export interface BallotFactory extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    getBallots(overrides?: CallOverrides): Promise<string[]>;
+    getActiveBallots(overrides?: CallOverrides): Promise<string[]>;
+
+    getArchivedBallots(overrides?: CallOverrides): Promise<string[]>;
 
     implementationAddress(overrides?: CallOverrides): Promise<string>;
 
@@ -286,7 +350,16 @@ export interface BallotFactory extends BaseContract {
   estimateGas: {
     DPS(overrides?: CallOverrides): Promise<BigNumber>;
 
-    ballotAddresses(
+    activeBallotAddresses(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    archiveBallot(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    archivedBallotAddresses(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -298,7 +371,9 @@ export interface BallotFactory extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    getBallots(overrides?: CallOverrides): Promise<BigNumber>;
+    getActiveBallots(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getArchivedBallots(overrides?: CallOverrides): Promise<BigNumber>;
 
     implementationAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -322,7 +397,16 @@ export interface BallotFactory extends BaseContract {
   populateTransaction: {
     DPS(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    ballotAddresses(
+    activeBallotAddresses(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    archiveBallot(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    archivedBallotAddresses(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -334,7 +418,11 @@ export interface BallotFactory extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    getBallots(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getActiveBallots(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getArchivedBallots(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     implementationAddress(
       overrides?: CallOverrides

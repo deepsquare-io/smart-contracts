@@ -144,6 +144,7 @@ contract Ballot is Ownable, Initializable {
             address voter = voters[i];
             resultStorage[votes[voter].choiceIndex] += DPS.balanceOf(voter) + proxy.delegationAmount(voter, topic);
         }
+        factory.archiveBallot();
     }
 
 
