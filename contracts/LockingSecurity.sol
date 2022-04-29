@@ -124,4 +124,13 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
         locks[investor].push(details);
         DPS.transferFrom(msg.sender, investor, details.value);
     }
+
+    /**
+     * @notice Returns the list of an investors locked funds.
+     * @dev Works as a getter.
+     * @param investor Address of the investor.
+     */
+    function getLocks(address investor) public view returns (Lock[] memory){
+        return locks[investor];
+    }
 }

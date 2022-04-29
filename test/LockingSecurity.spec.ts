@@ -147,4 +147,20 @@ describe('LockingSecurity', () => {
       expect(await DPS.balanceOf(accounts[1].address)).to.equals(amount);
     });
   });
+
+  describe('getLocks', () => {
+    it("should return an investor's locks", async () => {
+      const now = Math.floor(Date.now() / 1000);
+      await agentDPS.transfer(accounts[0], 10);
+      await Security.lock(accounts[0].address, {
+        value: agentDPS.unit(10),
+        release: now + 3600,
+      });
+
+      const actualLocks = await Security.getLocks(accounts[0].address);
+
+      expect(actualLocks[0].release).to.equals(now + 3600);
+      expect(actualLocks[0].value).to.equals(agentDPS.unit(10));
+    });
+  });
 });

@@ -42,6 +42,7 @@ export interface LockingSecurityInterface extends utils.Interface {
     "SALE()": FunctionFragment;
     "available(address,uint256)": FunctionFragment;
     "bridge()": FunctionFragment;
+    "getLocks(address)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
@@ -66,6 +67,7 @@ export interface LockingSecurityInterface extends utils.Interface {
       | "SALE"
       | "available"
       | "bridge"
+      | "getLocks"
       | "getRoleAdmin"
       | "grantRole"
       | "hasRole"
@@ -94,6 +96,7 @@ export interface LockingSecurityInterface extends utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "bridge", values?: undefined): string;
+  encodeFunctionData(functionFragment: "getLocks", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
     values: [BytesLike]
@@ -160,6 +163,7 @@ export interface LockingSecurityInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "SALE", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "available", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "bridge", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getLocks", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
@@ -300,6 +304,11 @@ export interface LockingSecurity extends BaseContract {
 
     bridge(overrides?: CallOverrides): Promise<[string]>;
 
+    getLocks(
+      investor: string,
+      overrides?: CallOverrides
+    ): Promise<[LockingSecurity.LockStructOutput[]]>;
+
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
     grantRole(
@@ -396,6 +405,11 @@ export interface LockingSecurity extends BaseContract {
 
   bridge(overrides?: CallOverrides): Promise<string>;
 
+  getLocks(
+    investor: string,
+    overrides?: CallOverrides
+  ): Promise<LockingSecurity.LockStructOutput[]>;
+
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   grantRole(
@@ -489,6 +503,11 @@ export interface LockingSecurity extends BaseContract {
     ): Promise<BigNumber>;
 
     bridge(overrides?: CallOverrides): Promise<string>;
+
+    getLocks(
+      investor: string,
+      overrides?: CallOverrides
+    ): Promise<LockingSecurity.LockStructOutput[]>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -626,6 +645,8 @@ export interface LockingSecurity extends BaseContract {
 
     bridge(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getLocks(investor: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     getRoleAdmin(
       role: BytesLike,
       overrides?: CallOverrides
@@ -725,6 +746,11 @@ export interface LockingSecurity extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     bridge(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getLocks(
+      investor: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     getRoleAdmin(
       role: BytesLike,
