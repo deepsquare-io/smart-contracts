@@ -6,7 +6,7 @@ import "../Ballot.sol";
 
 contract ExposedBallot is Ballot {
 
-    constructor() Ballot() {}
+    constructor(IERC20Metadata _DPS, VotingDelegation _proxy) Ballot(_DPS, _proxy) {}
 
     struct ResultSample {
         address voter;

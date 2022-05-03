@@ -24,7 +24,7 @@ describe('Ballot', () => {
     ({ owner, accounts, DPS, agentDPS } = await setup());
     ({ votingDelegation, ballotFactory } = await setupVoting(owner, DPS));
 
-    ballot = await new ExposedBallot__factory(owner).deploy();
+    ballot = await new ExposedBallot__factory(owner).deploy(DPS.address, votingDelegation.address);
   });
 
   describe('init', () => {

@@ -32,7 +32,7 @@ export interface BallotFactoryInterface extends utils.Interface {
     "activeBallotAddresses(uint256)": FunctionFragment;
     "archiveBallot()": FunctionFragment;
     "archivedBallotAddresses(uint256)": FunctionFragment;
-    "createBallot(string,string,string[])": FunctionFragment;
+    "createBallot(string,string,string,string[])": FunctionFragment;
     "getActiveBallots()": FunctionFragment;
     "getArchivedBallots()": FunctionFragment;
     "implementationAddress()": FunctionFragment;
@@ -73,7 +73,7 @@ export interface BallotFactoryInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "createBallot",
-    values: [string, string, string[]]
+    values: [string, string, string, string[]]
   ): string;
   encodeFunctionData(
     functionFragment: "getActiveBallots",
@@ -216,7 +216,8 @@ export interface BallotFactory extends BaseContract {
     ): Promise<[string]>;
 
     createBallot(
-      subject: string,
+      title: string,
+      description: string,
       topic: string,
       choices: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -262,7 +263,8 @@ export interface BallotFactory extends BaseContract {
   ): Promise<string>;
 
   createBallot(
-    subject: string,
+    title: string,
+    description: string,
     topic: string,
     choices: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -306,7 +308,8 @@ export interface BallotFactory extends BaseContract {
     ): Promise<string>;
 
     createBallot(
-      subject: string,
+      title: string,
+      description: string,
       topic: string,
       choices: string[],
       overrides?: CallOverrides
@@ -365,7 +368,8 @@ export interface BallotFactory extends BaseContract {
     ): Promise<BigNumber>;
 
     createBallot(
-      subject: string,
+      title: string,
+      description: string,
       topic: string,
       choices: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -412,7 +416,8 @@ export interface BallotFactory extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     createBallot(
-      subject: string,
+      title: string,
+      description: string,
       topic: string,
       choices: string[],
       overrides?: Overrides & { from?: string | Promise<string> }

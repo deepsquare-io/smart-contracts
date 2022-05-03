@@ -45,14 +45,15 @@ contract BallotFactory is Ownable {
 
     /**
      * @notice Creates a new ballot contract clone
-     * @param subject The subject or question of the vote
+     * @param title The title or question of the vote
+     * @param description The description of the vote
      * @param topic The topic of the vote
      * @param choices The different choices for this vote
      */
-    function createBallot(string memory subject, string memory topic, string[] memory choices) external onlyOwner {
+    function createBallot(string memory title, string memory description, string memory topic, string[] memory choices) external onlyOwner {
         Ballot implementation = Ballot(implementationAddress);
         address cloneAddress = Clones.clone(implementationAddress);
-        Ballot(cloneAddress).init(implementation.DPS(), implementation.proxy(), this, subject, topic, choices);
+        Ballot(cloneAddress).init(implementation.DPS(), implementation.proxy(), this, title, description, topic, choices);
         activeBallotAddresses.push(cloneAddress);
         emit BallotCreated(cloneAddress);
     }

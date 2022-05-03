@@ -25,14 +25,19 @@ contract Ballot is Ownable, Initializable {
     BallotFactory public factory;
 
     struct Vote {
-        uint32 choiceIndex;
+        bytes32 choice;
         bool hasVoted;
     }
 
     /**
-     * @notice The subject or question of the vote
+     * @notice The title or question of the vote
      */
-    string public subject;
+    bytes32 public title;
+
+    /**
+     * @notice The description of the vote
+     */
+    bytes32 public description;
 
     /**
      * @notice Whether users can still vote or not
@@ -42,17 +47,17 @@ contract Ballot is Ownable, Initializable {
     /**
      * @notice The topic of the vote, used to know if user has delegated or has delegation on this vote
      */
-    string public topic;
+    bytes32 public topic;
 
     /**
-     * @notice The diffrent choices of the vote
+     * @notice The different choices of the vote
      */
-    string[] public choices;
+    bytes32[] public choices;
 
     /**
      * @notice The results of this vote, which are available only once the vote has been closed
      */
-    uint256[] public resultStorage;
+    mapping(bytes32 => uint256) public resultStorage;
 
     /**
      * @notice The minimum amount a user must have to be able to vote (25k DPS)
@@ -70,21 +75,33 @@ contract Ballot is Ownable, Initializable {
     mapping(address => Vote) internal votes;
 
     /**
+     * @dev It is necessary to set these values in the ballot implementation since the balot factory use them to initialize clones
+     */
+    constructor(IERC20Metadata _DPS, VotingDelegation _proxy) {
+        DPS = _DPS;
+        proxy = _proxy;
+    }
+
+    /**
      * @notice Set up all state variable for clone contracts.
      * @dev Can only be called once, usually right after contract creation.
      * @param _DPS The contract defining the DPS token
      * @param _proxy The contract allowing users to delegates their vote on specific topics
      * @param _factory The factory that created this clone contract instance
-     * @param _subject The subject or question of the vote
+     * @param _title The subject or question of the vote
+     * @param _description The subject or question of the vote
      * @param _topic The topic of the vote
      * @param _choices The different choices for this vote
      */
-    function init(IERC20Metadata _DPS, VotingDelegation _proxy, BallotFactory _factory, string memory _subject, string memory _topic, string[] memory _choices) public initializer {
-        subject = _subject;
-        topic = _topic;
+    function init(IERC20Metadata _DPS, VotingDelegation _proxy, BallotFactory _factory, string memory _title, string memory _description, string memory _topic, string[] memory _choices) public initializer {
+        title = keccak256(bytes(_title));
+        description = keccak256(bytes(_description));
+        topic = keccak256(bytes(_topic));
         closed = false;
-        choices = _choices;
-        resultStorage = new uint256[](choices.length);
+        choices = new bytes32[](_choices.length);
+        for(uint i = 0; i < _choices.length; i++) {
+            choices[i] = keccak256(bytes(_choices[i]));
+        }
         DPS = _DPS;
         proxy = _proxy;
         factory = _factory;
@@ -93,41 +110,45 @@ contract Ballot is Ownable, Initializable {
     /**
      * @notice Returns all choices of the vote
      */
-    function getChoices() external view returns(string[] memory) {
+    function getChoices() external view returns(bytes32[] memory) {
         return choices;
     }
 
-    /**
-     * @notice Returns all results of the vote.
-     * @dev Available only once the vote has been closed.
-     */
-    function getResults() external view returns (uint256[] memory) {
-        return resultStorage;
+    function isValidChoice(bytes32 choiceHash) public view returns (bool) {
+        for (uint i = 0; i < choices.length; i++) {
+            if (choices[i] == choiceHash) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
      * @notice Send vote for given choice.
      * @dev Requirements:
      * - Vote MUST be open.
-     * - Choice MUST be available in the choices array.
+     * - Choice MUST be a valid choice (belongs to the choices array).
      * - Voter MUST NOT have delegated his vote.
      * - Voter MUST have at least 25k DPS.
-     * @param choiceIndex the index of the selected choice in the choices array
+     * @param choice The choice one want to vote for.
      */
-    function vote(uint32 choiceIndex) external {
+    function vote(string memory choice) external {
         require(!closed, "Voting: Ballot is closed.");
-        require(choices.length > choiceIndex, "Voting: Choice index is too high.");
 
         require(!proxy.hasDelegated(msg.sender,topic), "Voting: Vote is delegated."); // Verify that voter has not granted proxy to somebody.
 
         require(DPS.balanceOf(msg.sender) >= votingLimit, "Voting: Not enough DPS to vote."); // 25k DPS limit
+
+        bytes32 choiceHash = keccak256(bytes(choice));
+
+        require(isValidChoice(choiceHash), "Voting: Choice is invalid.");
 
         if(!votes[msg.sender].hasVoted) {
             votes[msg.sender].hasVoted = true;
             voters.push(msg.sender);
         }
 
-        votes[msg.sender].choiceIndex = choiceIndex;
+        votes[msg.sender].choice = choiceHash;
     }
 
     /**
@@ -139,10 +160,10 @@ contract Ballot is Ownable, Initializable {
     }
 
     /**
-     * @notice Returns the sender's vote
+     * @notice Returns the voter's vote
      */
-    function getVote() external view returns(uint32) {
-        return votes[msg.sender].choiceIndex;
+    function getVote(address voter) external view returns(bytes32) {
+        return votes[voter].choice;
     }
 
     /**
@@ -157,8 +178,9 @@ contract Ballot is Ownable, Initializable {
 
         for(uint i = 0; i < voters.length; i++) { // if A has granted proxy to B
             address voter = voters[i];
-            resultStorage[votes[voter].choiceIndex] += DPS.balanceOf(voter) + proxy.delegationAmount(voter, topic);
+            resultStorage[votes[voter].choice] += DPS.balanceOf(voter) + proxy.delegationAmount(voter, topic);
         }
+
         factory.archiveBallot();
     }
 }

@@ -28,11 +28,10 @@ import type {
 export interface VotingDelegationInterface extends utils.Interface {
   functions: {
     "DPS()": FunctionFragment;
-    "ballotFactory()": FunctionFragment;
     "delegate(address,string)": FunctionFragment;
-    "delegationAmount(address,string)": FunctionFragment;
+    "delegationAmount(address,bytes32)": FunctionFragment;
     "delegators(address,string)": FunctionFragment;
-    "hasDelegated(address,string)": FunctionFragment;
+    "hasDelegated(address,bytes32)": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "representative(address,string)": FunctionFragment;
@@ -42,7 +41,6 @@ export interface VotingDelegationInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "DPS"
-      | "ballotFactory"
       | "delegate"
       | "delegationAmount"
       | "delegators"
@@ -55,16 +53,12 @@ export interface VotingDelegationInterface extends utils.Interface {
 
   encodeFunctionData(functionFragment: "DPS", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "ballotFactory",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "delegate",
     values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "delegationAmount",
-    values: [string, string]
+    values: [string, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "delegators",
@@ -72,7 +66,7 @@ export interface VotingDelegationInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "hasDelegated",
-    values: [string, string]
+    values: [string, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -89,10 +83,6 @@ export interface VotingDelegationInterface extends utils.Interface {
   ): string;
 
   decodeFunctionResult(functionFragment: "DPS", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "ballotFactory",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "delegate", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "delegationAmount",
@@ -165,8 +155,6 @@ export interface VotingDelegation extends BaseContract {
   functions: {
     DPS(overrides?: CallOverrides): Promise<[string]>;
 
-    ballotFactory(overrides?: CallOverrides): Promise<[string]>;
-
     delegate(
       to: string,
       topic: string,
@@ -175,7 +163,7 @@ export interface VotingDelegation extends BaseContract {
 
     delegationAmount(
       voter: string,
-      topic: string,
+      topic: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -187,7 +175,7 @@ export interface VotingDelegation extends BaseContract {
 
     hasDelegated(
       voter: string,
-      topic: string,
+      topic: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -211,8 +199,6 @@ export interface VotingDelegation extends BaseContract {
 
   DPS(overrides?: CallOverrides): Promise<string>;
 
-  ballotFactory(overrides?: CallOverrides): Promise<string>;
-
   delegate(
     to: string,
     topic: string,
@@ -221,7 +207,7 @@ export interface VotingDelegation extends BaseContract {
 
   delegationAmount(
     voter: string,
-    topic: string,
+    topic: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -233,7 +219,7 @@ export interface VotingDelegation extends BaseContract {
 
   hasDelegated(
     voter: string,
-    topic: string,
+    topic: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
@@ -257,8 +243,6 @@ export interface VotingDelegation extends BaseContract {
   callStatic: {
     DPS(overrides?: CallOverrides): Promise<string>;
 
-    ballotFactory(overrides?: CallOverrides): Promise<string>;
-
     delegate(
       to: string,
       topic: string,
@@ -267,7 +251,7 @@ export interface VotingDelegation extends BaseContract {
 
     delegationAmount(
       voter: string,
-      topic: string,
+      topic: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -279,7 +263,7 @@ export interface VotingDelegation extends BaseContract {
 
     hasDelegated(
       voter: string,
-      topic: string,
+      topic: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -313,8 +297,6 @@ export interface VotingDelegation extends BaseContract {
   estimateGas: {
     DPS(overrides?: CallOverrides): Promise<BigNumber>;
 
-    ballotFactory(overrides?: CallOverrides): Promise<BigNumber>;
-
     delegate(
       to: string,
       topic: string,
@@ -323,7 +305,7 @@ export interface VotingDelegation extends BaseContract {
 
     delegationAmount(
       voter: string,
-      topic: string,
+      topic: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -335,7 +317,7 @@ export interface VotingDelegation extends BaseContract {
 
     hasDelegated(
       voter: string,
-      topic: string,
+      topic: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -360,8 +342,6 @@ export interface VotingDelegation extends BaseContract {
   populateTransaction: {
     DPS(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    ballotFactory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     delegate(
       to: string,
       topic: string,
@@ -370,7 +350,7 @@ export interface VotingDelegation extends BaseContract {
 
     delegationAmount(
       voter: string,
-      topic: string,
+      topic: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -382,7 +362,7 @@ export interface VotingDelegation extends BaseContract {
 
     hasDelegated(
       voter: string,
-      topic: string,
+      topic: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

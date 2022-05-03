@@ -15,9 +15,6 @@ contract VotingDelegation is Ownable {
     // @dev Contract defining the DPS token
     IERC20Metadata public DPS;
 
-    // @dev The ballot factory
-    BallotFactory public ballotFactory;
-
     struct Grants {
         mapping(address => uint256) indexes;
         address[] delegators;
@@ -73,11 +70,10 @@ contract VotingDelegation is Ownable {
      * @param voter The address of the voter
      * @param topic The delegation topic
      */
-    function delegationAmount(address voter, string memory topic) public view returns (uint256) {
+    function delegationAmount(address voter, bytes32 topic) public view returns (uint256) {
         uint256 total;
-        bytes32 topicHash = keccak256(bytes(topic));
-        for(uint32 i = 0; i < delegates[voter][topicHash].delegators.length; i++) {
-            total += DPS.balanceOf(delegates[voter][topicHash].delegators[i]);
+        for(uint32 i = 0; i < delegates[voter][topic].delegators.length; i++) {
+            total += DPS.balanceOf(delegates[voter][topic].delegators[i]);
         }
         return total;
     }
@@ -87,8 +83,8 @@ contract VotingDelegation is Ownable {
      * @param voter The address of the voter
      * @param topic The delegation topic
      */
-    function hasDelegated(address voter, string memory topic) external view returns (bool) {
-        return proxyVoters[voter][keccak256(bytes(topic))] != address(0);
+    function hasDelegated(address voter, bytes32 topic) external view returns (bool) {
+        return proxyVoters[voter][topic] != address(0);
     }
 
     /**

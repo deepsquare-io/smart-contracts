@@ -1,9 +1,10 @@
 import { ethers, network } from 'hardhat';
 import { formatUnits, parseUnits } from '@ethersproject/units';
-import { Ballot__factory } from '../typings/factories/contracts/Ballot__factory';
+import waitTx from "../lib/waitTx";
 import { DeepSquare__factory } from '../typings/factories/contracts/DeepSquare__factory';
-import { VotingDelegation__factory } from '../typings/factories/contracts/VotingDelegation__factory';
-import { BallotFactory__factory } from '../typings/factories/contracts/factories/BallotFactory__factory';
+import { BallotFactory__factory } from '../typings/factories/contracts/voting/BallotFactory__factory';
+import { Ballot__factory } from '../typings/factories/contracts/voting/Ballot__factory';
+import { VotingDelegation__factory } from '../typings/factories/contracts/voting/VotingDelegation__factory';
 
 type NetworkName = 'hardhat' | 'mainnet' | 'fuji';
 type ContractName = 'DeepSquare';
@@ -31,13 +32,16 @@ async function main() {
   const avaxBalance = await deployer.getBalance();
 
   const votingDelegation = await new VotingDelegation__factory(deployer).deploy(DeepSquare.address);
+  await votingDelegation.deployed();
   console.log('votingDelegation:', votingDelegation.address);
   const ballotImplementation = await new Ballot__factory(deployer).deploy(DeepSquare.address, votingDelegation.address);
+  await ballotImplementation.deployed();
   console.log('ballotImplementation:', ballotImplementation.address);
   const ballotFactory = await new BallotFactory__factory(deployer).deploy(
     DeepSquare.address,
     ballotImplementation.address,
   );
+  await ballotFactory.deployed();
   console.log('ballotFactory:', ballotFactory.address);
 
   if (networkName === 'fuji') {
@@ -49,16 +53,19 @@ async function main() {
     const cloneAddress: string = (await ballotCreationTransaction.wait()).events?.pop()?.args?.[0];
     console.log('Voting clone deployed at:', cloneAddress);
     const clone = new Ballot__factory(deployer).attach(cloneAddress);
+    console.log('Attached to clone');
 
-    await DeepSquare.connect(dpsHolder).transfer(accounts[0].address, parseUnits('50000', 18));
-    await clone.connect(accounts[0]).vote(0);
+    await waitTx(DeepSquare.connect(dpsHolder).transfer(accounts[0].address, parseUnits('50000', 18)));
+    console.log('Transferred DPS to voter 0');
+    await waitTx(clone.connect(accounts[0]).vote(0));
     console.log('Voting with:' + accounts[0].address);
 
-    await DeepSquare.connect(dpsHolder).transfer(accounts[1].address, parseUnits('25000', 18));
-    await clone.connect(accounts[1]).vote(1);
+    await waitTx(DeepSquare.connect(dpsHolder).transfer(accounts[1].address, parseUnits('25000', 18)));
+    console.log('Transferred DPS to voter 1');
+    await waitTx(clone.connect(accounts[1]).vote(1));
     console.log('Voting with:' + accounts[1].address);
 
-    await clone.close();
+    await waitTx(clone.close());
     console.log('Vote results: ');
     const choices = await clone.getChoices();
     for (const [index, result] of (await clone.getResults()).entries()) {
@@ -66,11 +73,11 @@ async function main() {
     }
   }
 
-  await votingDelegation.transferOwnership(gnosisAddress);
+  await waitTx(votingDelegation.transferOwnership(gnosisAddress));
   console.log('Transferred voting delegation contract ownership to ' + gnosisAddress);
-  await ballotImplementation.renounceOwnership();
+  await waitTx(ballotImplementation.renounceOwnership());
   console.log('Renounced to ballot implementation ownership.');
-  await ballotFactory.transferOwnership(gnosisAddress);
+  await waitTx(ballotFactory.transferOwnership(gnosisAddress));
   console.log('Transferred ballot factory contract ownership to ' + gnosisAddress);
 
   console.log('Deployment cost : ' + formatUnits(avaxBalance.sub(await deployer.getBalance()), 18));
