@@ -1,11 +1,10 @@
+import { id } from 'ethers/lib/utils';
 import { ethers, network } from 'hardhat';
-import { formatUnits, parseUnits } from '@ethersproject/units';
+import waitTx from '../lib/waitTx';
 import { DeepSquare__factory } from '../typings/factories/contracts/DeepSquare__factory';
 import { BallotFactory__factory } from '../typings/factories/contracts/voting/BallotFactory__factory';
 import { Ballot__factory } from '../typings/factories/contracts/voting/Ballot__factory';
 import { VotingDelegation__factory } from '../typings/factories/contracts/voting/VotingDelegation__factory';
-import waitTx from "../lib/waitTx";
-import {BigNumber} from "@ethersproject/bignumber";
 
 type NetworkName = 'hardhat' | 'mainnet' | 'fuji';
 type ContractName = 'DeepSquare';
@@ -27,13 +26,13 @@ async function main() {
 
   const gnosisAddress = await DeepSquare.owner();
 
-  const proxy = new VotingDelegation__factory(deployer).attach('0x0C7a9a7eBd57Fc9e0afbeed697CF1eFa0C5B6F79');
+  const proxy = new VotingDelegation__factory(deployer).attach('0x8a0DE2Bd6eCA72DfA85422cC113CE9D538aB582A');
 
   console.log('deployer:', deployer.address);
   console.log('gnosis:', gnosisAddress);
-  const ballotFactory = await new BallotFactory__factory(deployer).attach('0x6f872A3579C7Cf1439Ef25e53E9Cd00f2bB4B13F');
+  const ballotFactory = await new BallotFactory__factory(deployer).attach('0x5B8dE5367E9b94bF3577F8675dfa50a1101c4DcA');
   console.log('ballotFactory:', ballotFactory.address);
-  const ballot = await new Ballot__factory(deployer).attach('0x1CFC93D985844673cd9298A6725Ac9B0EE57Cca5');
+  const ballot = await new Ballot__factory(deployer).attach('0xE55De8f141b006930B3A092cf00258BC4F9E1e8A');
   //
   // console.log('Vote is', (await ballot.closed()) ? 'closed' : 'open');
   //
@@ -51,12 +50,26 @@ async function main() {
   //
   // await waitTx(ballot.vote(BigNumber.from(0)));
 
-  // await waitTx(
-  //   ballotFactory
-  //     .connect(dpsHolder)
-  //     .createBallot('Is the test deployment working properly ?', 'testing', ['Yes', 'No']),
-  // );
-  console.log(await ballot.getResults());
+  await waitTx(
+    ballotFactory
+      .connect(dpsHolder)
+      .createBallot(
+        'Is the test deployment working properly ?',
+        'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?',
+        'testing',
+        [
+          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+          'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
+          'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+        ],
+      ),
+  );
+  // await waitTx(ballot.connect(dpsHolder).close());
+  console.log(await ballotFactory.getActiveBallots());
+  console.log(await DeepSquare.balanceOf('0x7aeac7429b348c8979a19DeA94D0cCfd888589c2'));
+  console.log(await ballot.resultStorage(id('Yes')));
+  console.log(await ballot.resultStorage(id('No')));
+
   // console.log(await ballot.getVote(deployer.address));
 }
 

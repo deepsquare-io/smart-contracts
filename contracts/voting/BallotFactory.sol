@@ -30,7 +30,7 @@ contract BallotFactory is Ownable {
      * @dev Event fired each time a ballot contract clone is created
      * @param ballotAddress The address of the created clone contract
      */
-    event BallotCreated(address ballotAddress);
+    event BallotCreated(address ballotAddress, string title, string description, string topic, string[] choices);
 
     /**
      * @param _DPS The DPS contract address
@@ -55,7 +55,7 @@ contract BallotFactory is Ownable {
         address cloneAddress = Clones.clone(implementationAddress);
         Ballot(cloneAddress).init(implementation.DPS(), implementation.proxy(), this, title, description, topic, choices);
         activeBallotAddresses.push(cloneAddress);
-        emit BallotCreated(cloneAddress);
+        emit BallotCreated(cloneAddress, title, description, topic, choices);
     }
 
     /**

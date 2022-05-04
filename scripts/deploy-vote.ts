@@ -47,6 +47,7 @@ async function main() {
   if (networkName === 'fuji') {
     const ballotCreationTransaction = await ballotFactory.createBallot(
       'Is this deployment functional ?',
+      'Can you see the description ? Are all parameters set up correctly ?',
       'Deployment',
       ['Yes', 'No'],
     );
@@ -57,20 +58,15 @@ async function main() {
 
     await waitTx(DeepSquare.connect(dpsHolder).transfer(accounts[0].address, parseUnits('50000', 18)));
     console.log('Transferred DPS to voter 0');
-    await waitTx(clone.connect(accounts[0]).vote(0));
+    await waitTx(clone.connect(accounts[0]).vote('Yes'));
     console.log('Voting with:' + accounts[0].address);
 
     await waitTx(DeepSquare.connect(dpsHolder).transfer(accounts[1].address, parseUnits('25000', 18)));
     console.log('Transferred DPS to voter 1');
-    await waitTx(clone.connect(accounts[1]).vote(1));
+    await waitTx(clone.connect(accounts[1]).vote('No'));
     console.log('Voting with:' + accounts[1].address);
 
     await waitTx(clone.close());
-    console.log('Vote results: ');
-    const choices = await clone.getChoices();
-    for (const [index, result] of (await clone.getResults()).entries()) {
-      console.log(`${choices[index]}: ${result.toString()}`);
-    }
   }
 
   await waitTx(votingDelegation.transferOwnership(gnosisAddress));

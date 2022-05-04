@@ -47,6 +47,7 @@ export interface BallotInterface extends utils.Interface {
     "topic()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "vote(string)": FunctionFragment;
+    "votingLimit()": FunctionFragment;
   };
 
   getFunction(
@@ -70,6 +71,7 @@ export interface BallotInterface extends utils.Interface {
       | "topic"
       | "transferOwnership"
       | "vote"
+      | "votingLimit"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "DPS", values?: undefined): string;
@@ -115,6 +117,10 @@ export interface BallotInterface extends utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "vote", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "votingLimit",
+    values?: undefined
+  ): string;
 
   decodeFunctionResult(functionFragment: "DPS", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "choices", data: BytesLike): Result;
@@ -150,6 +156,10 @@ export interface BallotInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "vote", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "votingLimit",
+    data: BytesLike
+  ): Result;
 
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
@@ -259,6 +269,8 @@ export interface Ballot extends BaseContract {
       choice: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    votingLimit(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   DPS(overrides?: CallOverrides): Promise<string>;
@@ -321,6 +333,8 @@ export interface Ballot extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  votingLimit(overrides?: CallOverrides): Promise<BigNumber>;
+
   callStatic: {
     DPS(overrides?: CallOverrides): Promise<string>;
 
@@ -377,6 +391,8 @@ export interface Ballot extends BaseContract {
     ): Promise<void>;
 
     vote(choice: string, overrides?: CallOverrides): Promise<void>;
+
+    votingLimit(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {
@@ -453,6 +469,8 @@ export interface Ballot extends BaseContract {
       choice: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    votingLimit(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -527,5 +545,7 @@ export interface Ballot extends BaseContract {
       choice: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    votingLimit(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

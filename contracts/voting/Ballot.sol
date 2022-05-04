@@ -62,7 +62,7 @@ contract Ballot is Ownable, Initializable {
     /**
      * @notice The minimum amount a user must have to be able to vote (25k DPS)
      */
-    uint256 immutable votingLimit = 25e3 * 1e18;
+    uint256 public immutable votingLimit = 25e3 * 1e18;
 
     /**
      * @notice The list of all voters

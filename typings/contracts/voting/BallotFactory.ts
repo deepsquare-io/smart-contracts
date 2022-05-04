@@ -145,7 +145,7 @@ export interface BallotFactoryInterface extends utils.Interface {
   ): Result;
 
   events: {
-    "BallotCreated(address)": EventFragment;
+    "BallotCreated(address,string,string,string,string[])": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
   };
 
@@ -155,8 +155,15 @@ export interface BallotFactoryInterface extends utils.Interface {
 
 export interface BallotCreatedEventObject {
   ballotAddress: string;
+  title: string;
+  description: string;
+  topic: string;
+  choices: string[];
 }
-export type BallotCreatedEvent = TypedEvent<[string], BallotCreatedEventObject>;
+export type BallotCreatedEvent = TypedEvent<
+  [string, string, string, string, string[]],
+  BallotCreatedEventObject
+>;
 
 export type BallotCreatedEventFilter = TypedEventFilter<BallotCreatedEvent>;
 
@@ -337,8 +344,20 @@ export interface BallotFactory extends BaseContract {
   };
 
   filters: {
-    "BallotCreated(address)"(ballotAddress?: null): BallotCreatedEventFilter;
-    BallotCreated(ballotAddress?: null): BallotCreatedEventFilter;
+    "BallotCreated(address,string,string,string,string[])"(
+      ballotAddress?: null,
+      title?: null,
+      description?: null,
+      topic?: null,
+      choices?: null
+    ): BallotCreatedEventFilter;
+    BallotCreated(
+      ballotAddress?: null,
+      title?: null,
+      description?: null,
+      topic?: null,
+      choices?: null
+    ): BallotCreatedEventFilter;
 
     "OwnershipTransferred(address,address)"(
       previousOwner?: string | null,
