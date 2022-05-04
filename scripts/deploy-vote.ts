@@ -1,6 +1,6 @@
 import { ethers, network } from 'hardhat';
 import { formatUnits, parseUnits } from '@ethersproject/units';
-import waitTx from "../lib/waitTx";
+import waitTx from '../lib/waitTx';
 import { DeepSquare__factory } from '../typings/factories/contracts/DeepSquare__factory';
 import { BallotFactory__factory } from '../typings/factories/contracts/voting/BallotFactory__factory';
 import { Ballot__factory } from '../typings/factories/contracts/voting/Ballot__factory';
