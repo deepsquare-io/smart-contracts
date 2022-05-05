@@ -37,7 +37,7 @@ describe('Ballot Factory', async () => {
     it('should create a new ballot', async () => {
       await ballotFactory.setImplementationAddress(ballotImplementation.address);
       const [ballotAddress] = await ballotFactory
-        .createBallot('foo', 'qux', ['bar', 'baz'])
+        .createBallot('foo', 'quux', 'qux', ['bar', 'baz'])
         .then(async (t) => (await t.wait()).events?.find((e) => e.event === 'BallotCreated')?.args ?? []);
       expect(await ballotFactory.getActiveBallots()).to.deep.equals([ballotAddress]);
     });
@@ -47,7 +47,7 @@ describe('Ballot Factory', async () => {
     it('should archive an active ballot', async () => {
       await ballotFactory.setImplementationAddress(ballotImplementation.address);
       const [ballotAddress] = await ballotFactory
-        .createBallot('foo', 'qux', ['bar', 'baz'])
+        .createBallot('foo', 'quux', 'qux', ['bar', 'baz'])
         .then(async (t) => (await t.wait()).events?.find((e) => e.event === 'BallotCreated')?.args ?? []);
       await new Ballot__factory(owner).attach(ballotAddress).close();
       expect(await ballotFactory.getActiveBallots()).to.deep.equals([]);

@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { id } from '@ethersproject/hash';
 import { parseUnits } from '@ethersproject/units';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
@@ -59,12 +60,14 @@ describe('Voting delegation', async () => {
     });
   });
 
-  describe('proxyAmount', () => {
-    it('should returns total proxy vote power', async () => {
+  describe('delegationAmount', () => {
+    it('should returns total delegation vote power', async () => {
       await agentDPS.transfer(accounts[0], 55555, 18);
       await agentDPS.transfer(accounts[1], 25000, 18);
       await votingDelegation.connect(accounts[0]).delegate(accounts[1].address, 'foo');
-      expect(await votingDelegation.delegationAmount(accounts[1].address, 'foo')).to.equals(parseUnits('55555', 18));
+      expect(await votingDelegation.delegationAmount(accounts[1].address, id('foo'))).to.equals(
+        parseUnits('55555', 18),
+      );
     });
   });
 
@@ -73,8 +76,8 @@ describe('Voting delegation', async () => {
       await agentDPS.transfer(accounts[0], 25000, 18);
       await agentDPS.transfer(accounts[1], 25000, 18);
       await votingDelegation.connect(accounts[0]).delegate(accounts[1].address, 'foo');
-      expect(await votingDelegation.hasDelegated(accounts[0].address, 'foo')).to.equals(true);
-      expect(await votingDelegation.hasDelegated(accounts[1].address, 'foo')).to.equals(false);
+      expect(await votingDelegation.hasDelegated(accounts[0].address, id('foo'))).to.equals(true);
+      expect(await votingDelegation.hasDelegated(accounts[1].address, id('foo'))).to.equals(false);
     });
   });
 });

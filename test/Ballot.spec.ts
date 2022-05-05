@@ -1,6 +1,5 @@
 import { expect } from 'chai';
-import { BigNumber } from '@ethersproject/bignumber';
-import { parseUnits } from '@ethersproject/units';
+import { id } from '@ethersproject/hash';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DeepSquare } from '../typings/contracts/DeepSquare';
 import { BallotFactory } from '../typings/contracts/voting/BallotFactory';
@@ -11,7 +10,7 @@ import { ERC20Agent } from './testing/ERC20Agent';
 import setup from './testing/setup';
 import setupVoting from './testing/setupVoting';
 
-describe.only('Ballot', () => {
+describe('Ballot', () => {
   let owner: SignerWithAddress;
   let accounts: SignerWithAddress[];
   let DPS: DeepSquare;
@@ -33,10 +32,21 @@ describe.only('Ballot', () => {
         'baz',
         'qux',
       ]);
-      expect(await ballot.title()).to.equals('foo');
-      expect(await ballot.topic()).to.equals('bar');
-      expect(await ballot.getChoices()).to.deep.equals(['baz', 'qux']);
-      // expect(await ballot.getResults()).to.deep.equals([BigNumber.from(0), BigNumber.from(0)]);
+      expect(await ballot.title()).to.equals(id('foo'));
+      expect(await ballot.description()).to.equals(id('bar'));
+      expect(await ballot.topic()).to.equals(id('bar'));
+      expect(await ballot.getChoices()).to.deep.equals([id('baz'), id('qux')]);
+    });
+  });
+
+  describe('isValidChoice', () => {
+    it('should return if given choice is a valid vote choice', async () => {
+      await ballot.init(DPS.address, votingDelegation.address, ballotFactory.address, 'foo', 'bar', 'bar', [
+        'baz',
+        'qux',
+      ]);
+      expect(await ballot.isValidChoice(id('baz'))).to.equals(true);
+      expect(await ballot.isValidChoice(id('baq'))).to.equals(false);
     });
   });
 
@@ -51,9 +61,6 @@ describe.only('Ballot', () => {
       await ballot.close();
       await expect(ballot.connect(accounts[0]).vote('bar')).to.revertedWith('Voting: Ballot is closed.');
     });
-    it('should throw if proposal does not exist', async () => {
-      await expect(ballot.connect(accounts[0]).vote('baz')).to.revertedWith('Voting: Choice index is too high.');
-    });
     it('should throw if voter has granted proxy on the topic', async () => {
       await agentDPS.transfer(accounts[1], 25000, 18);
       await votingDelegation.connect(accounts[0]).delegate(accounts[1].address, 'qux');
@@ -62,12 +69,16 @@ describe.only('Ballot', () => {
     it('should throw if voter has less than 25k DPS', async () => {
       await expect(ballot.connect(accounts[0]).vote('bar')).to.revertedWith('Voting: Not enough DPS to vote.');
     });
+    it('should throw if proposal does not exist', async () => {
+      await agentDPS.transfer(accounts[0], 25000, 18);
+      await expect(ballot.connect(accounts[0]).vote('baq')).to.revertedWith('Voting: Choice is invalid.');
+    });
     it('should vote', async () => {
       await agentDPS.transfer(accounts[0], 25000, 18);
       await ballot.connect(accounts[0]).vote('bar');
-      expect(await ballot._results()).to.deep.equals([[accounts[0].address, [0, true]]]);
+      expect(await ballot._results()).to.deep.equals([[accounts[0].address, [id('bar'), true]]]);
       await ballot.connect(accounts[0]).vote('baz');
-      expect(await ballot._results()).to.deep.equals([[accounts[0].address, [1, true]]]);
+      expect(await ballot._results()).to.deep.equals([[accounts[0].address, [id('baz'), true]]]);
     });
   });
 
