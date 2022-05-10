@@ -93,7 +93,7 @@ contract Ballot is Ownable, Initializable {
      * @param _topic The topic of the vote
      * @param _choices The different choices for this vote
      */
-    function init(IERC20Metadata _DPS, VotingDelegation _proxy, BallotFactory _factory, string memory _title, string memory _description, string memory _topic, string[] memory _choices) public initializer {
+    function init(IERC20Metadata _DPS, VotingDelegation _proxy, string memory _title, string memory _description, string memory _topic, string[] memory _choices) public initializer {
         title = keccak256(bytes(_title));
         description = keccak256(bytes(_description));
         topic = keccak256(bytes(_topic));
@@ -104,7 +104,7 @@ contract Ballot is Ownable, Initializable {
         }
         DPS = _DPS;
         proxy = _proxy;
-        factory = _factory;
+        factory = BallotFactory(msg.sender);
     }
 
     /**

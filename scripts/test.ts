@@ -32,7 +32,7 @@ async function main() {
   console.log('gnosis:', gnosisAddress);
   const ballotFactory = await new BallotFactory__factory(deployer).attach('0x5B8dE5367E9b94bF3577F8675dfa50a1101c4DcA');
   console.log('ballotFactory:', ballotFactory.address);
-  const ballot = await new Ballot__factory(deployer).attach('0xE55De8f141b006930B3A092cf00258BC4F9E1e8A');
+  const ballot = await new Ballot__factory(deployer).attach('0x8a2F0e2b584d0e652cb6C75eb58a827EaE6341fb');
   //
   // console.log('Vote is', (await ballot.closed()) ? 'closed' : 'open');
   //
@@ -65,11 +65,13 @@ async function main() {
   //     ),
   // );
   // await waitTx(ballot.connect(dpsHolder).close());
-  console.log(await ballotFactory.getActiveBallots());
-  console.log(await DeepSquare.balanceOf('0x7aeac7429b348c8979a19DeA94D0cCfd888589c2'));
-  console.log(await ballot.resultStorage(id('Yes')));
-  console.log(await ballot.resultStorage(id('No')));
-  console.log(await proxy.representative('0x2FA6894875bb444e2e3f5911a557094FFCFc6638', 'Deployment'));
+  // console.log(await ballotFactory.getActiveBallots());
+  // console.log(await DeepSquare.balanceOf('0x7aeac7429b348c8979a19DeA94D0cCfd888589c2'));
+  // console.log(await ballot.resultStorage(id('Yes')));
+  // console.log(await ballot.resultStorage(id('No')));
+  // console.log(await proxy.representative('0x2FA6894875bb444e2e3f5911a557094FFCFc6638', 'Deployment'));
+  console.log(await ballot.hasVoted('0x2FA6894875bb444e2e3f5911a557094FFCFc6638'));
+  console.log(await ballot.getVote('0x2FA6894875bb444e2e3f5911a557094FFCFc6638'));
 
   // console.log(await ballot.getVote(deployer.address));
 }
