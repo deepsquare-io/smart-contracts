@@ -53,6 +53,7 @@ export interface LockingSecurityInterface extends utils.Interface {
     "renounceOwnership()": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
+    "schedule(address)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "upgradeBridge(address)": FunctionFragment;
@@ -78,6 +79,7 @@ export interface LockingSecurityInterface extends utils.Interface {
       | "renounceOwnership"
       | "renounceRole"
       | "revokeRole"
+      | "schedule"
       | "supportsInterface"
       | "transferOwnership"
       | "upgradeBridge"
@@ -134,6 +136,7 @@ export interface LockingSecurityInterface extends utils.Interface {
     functionFragment: "revokeRole",
     values: [BytesLike, string]
   ): string;
+  encodeFunctionData(functionFragment: "schedule", values: [string]): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
@@ -183,6 +186,7 @@ export interface LockingSecurityInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "schedule", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
     data: BytesLike
@@ -361,6 +365,11 @@ export interface LockingSecurity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    schedule(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<[LockingSecurity.LockStructOutput[]]>;
+
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
@@ -460,6 +469,11 @@ export interface LockingSecurity extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  schedule(
+    account: string,
+    overrides?: CallOverrides
+  ): Promise<LockingSecurity.LockStructOutput[]>;
+
   supportsInterface(
     interfaceId: BytesLike,
     overrides?: CallOverrides
@@ -558,6 +572,11 @@ export interface LockingSecurity extends BaseContract {
       account: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    schedule(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<LockingSecurity.LockStructOutput[]>;
 
     supportsInterface(
       interfaceId: BytesLike,
@@ -700,6 +719,8 @@ export interface LockingSecurity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    schedule(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
@@ -803,6 +824,11 @@ export interface LockingSecurity extends BaseContract {
       role: BytesLike,
       account: string,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    schedule(
+      account: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     supportsInterface(

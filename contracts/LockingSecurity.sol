@@ -68,6 +68,15 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
     }
 
     /**
+     * @notice Get the vesting schedule of an account.
+     * @dev There is date or amount sorting guarantee.
+     * @param account The address to check
+     */
+    function schedule(address account) external view returns (Lock[] memory) {
+        return locks[account];
+    }
+
+    /**
      * @notice Compute how much tokens are locked for a give account.
      * @dev This acts a as "minimum balance".
      * @param account The address to check
