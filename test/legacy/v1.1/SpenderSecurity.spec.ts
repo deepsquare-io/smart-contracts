@@ -2,9 +2,9 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { parseUnits } from '@ethersproject/units';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { SpenderSecurity } from '../typings/contracts/SpenderSecurity';
-import { SpenderSecurity__factory } from '../typings/factories/contracts/SpenderSecurity__factory';
-import { MissingRoleError } from './testing/AccessControl';
+import { SpenderSecurity } from '../../../typings/contracts/legacy/v1.1/SpenderSecurity';
+import { SpenderSecurity__factory } from '../../../typings/factories/contracts/legacy/v1.1/SpenderSecurity__factory';
+import { MissingRoleError } from '../../testing/AccessControl';
 
 describe('SpenderSecurity', () => {
   let deployer: SignerWithAddress;

@@ -24,7 +24,7 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
-} from "../common";
+} from "../../../common";
 
 export interface SpenderSecurityInterface extends utils.Interface {
   functions: {
