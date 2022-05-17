@@ -186,7 +186,7 @@ contract Sale is Ownable {
         uint256 amountDPS = _validate(msg.sender, amountSTC);
 
         // Using .transfer() might cause an out-of-gas revert if using gnosis safe as owner
-        (bool sent, ) = payable(owner()).call{ value: msg.value }("");
+        (bool sent, ) = payable(owner()).call{ value: msg.value }(""); // solhint-disable-line avoid-low-level-calls
         require(sent, "Sale: failed to forward AVAX");
         _transferDPS(msg.sender, amountDPS);
     }

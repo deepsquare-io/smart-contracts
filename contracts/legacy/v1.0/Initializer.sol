@@ -38,7 +38,7 @@ contract Initializer is Ownable {
         require(recipients.length == amounts.length, "Initializer: arguments size mismatch");
 
         for (uint256 i = 0; i < recipients.length; i++) {
-            require(DPS.transfer(recipients[i], amounts[i]));
+            require(DPS.transfer(recipients[i], amounts[i])); // solhint-disable-line reason-string
         }
 
         return true;
