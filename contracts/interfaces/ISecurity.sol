@@ -20,5 +20,5 @@ interface ISecurity {
         address from,
         address to,
         uint256 amount
-    ) external view;
+    ) external;
 }

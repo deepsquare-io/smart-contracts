@@ -9,7 +9,13 @@ import { Sale__factory } from '../typings/factories/contracts/Sale__factory';
 import { Initializer__factory } from '../typings/factories/contracts/legacy/v1.0/Initializer__factory';
 import { SpenderSecurity__factory } from '../typings/factories/contracts/legacy/v1.1/SpenderSecurity__factory';
 import { BridgeToken__factory } from '../typings/factories/contracts/vendor/BridgeToken.sol/BridgeToken__factory';
-import { DPS_TOTAL_SUPPLY, GNOSIS_ADDRESS, PRIVATE_SALE2_ADDRESS, ZERO_ADDRESS } from './constants';
+import {
+  DPS_TOTAL_SUPPLY,
+  ELIGIBILITY_WRITER_ADDRESS,
+  GNOSIS_ADDRESS,
+  PRIVATE_SALE2_ADDRESS,
+  ZERO_ADDRESS,
+} from './constants';
 import deploy from './deploy';
 import fetchBalances from './fetch/fetchBalances';
 import fetchValidations from './fetch/fetchValidations';
@@ -77,6 +83,7 @@ export default async function fork() {
 
   await waitTx(initializer.destruct());
   await waitTx(spender.revokeRole(await spender.SPENDER(), initializer.address));
+  await waitTx(eligibility.revokeRole(await eligibility.WRITER(), initializer.address));
 
   // Deploy Sale
   const saleMainnet = Sale__factory.connect(PRIVATE_SALE2_ADDRESS, mainnet);
@@ -91,6 +98,8 @@ export default async function fork() {
   ]);
 
   await waitTx(DeepSquare.transfer(sale.address, await saleMainnet.remaining()));
+  await waitTx(spender.grantRole(await spender.SPENDER(), sale.address));
+  await waitTx(eligibility.grantRole(await eligibility.WRITER(), ELIGIBILITY_WRITER_ADDRESS));
 
   return {
     DeepSquare,

@@ -399,8 +399,8 @@ export interface LockingSecurity extends BaseContract {
       from: string,
       to: string,
       amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[void]>;
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     vest(
       investor: string,
@@ -510,8 +510,8 @@ export interface LockingSecurity extends BaseContract {
     from: string,
     to: string,
     amount: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<void>;
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   vest(
     investor: string,
@@ -772,7 +772,7 @@ export interface LockingSecurity extends BaseContract {
       from: string,
       to: string,
       amount: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     vest(
@@ -889,7 +889,7 @@ export interface LockingSecurity extends BaseContract {
       from: string,
       to: string,
       amount: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     vest(

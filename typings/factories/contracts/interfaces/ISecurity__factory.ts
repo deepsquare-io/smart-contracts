@@ -35,7 +35,7 @@ const _abi = [
     ],
     name: "validateTokenTransfer",
     outputs: [],
-    stateMutability: "view",
+    stateMutability: "nonpayable",
     type: "function",
   },
 ];

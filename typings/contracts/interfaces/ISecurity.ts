@@ -7,6 +7,8 @@ import type {
   BigNumberish,
   BytesLike,
   CallOverrides,
+  ContractTransaction,
+  Overrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -74,8 +76,8 @@ export interface ISecurity extends BaseContract {
       from: string,
       to: string,
       amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[void]>;
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   validateTokenTransfer(
@@ -83,8 +85,8 @@ export interface ISecurity extends BaseContract {
     from: string,
     to: string,
     amount: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<void>;
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   callStatic: {
     validateTokenTransfer(
@@ -104,7 +106,7 @@ export interface ISecurity extends BaseContract {
       from: string,
       to: string,
       amount: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -114,7 +116,7 @@ export interface ISecurity extends BaseContract {
       from: string,
       to: string,
       amount: BigNumberish,
-      overrides?: CallOverrides
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }
