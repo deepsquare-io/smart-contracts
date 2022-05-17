@@ -43,7 +43,7 @@ describe.only('LockingSecurity', () => {
     it('should return if the sender has the role SALE', async () => {
       await Security.grantRole(id('SALE'), accounts[0].address);
       await expect(
-        Security.connect(accounts[0].address).validateTokenTransfer(
+        Security.connect(accounts[0]).validateTokenTransfer(
           accounts[0].address,
           accounts[0].address,
           accounts[0].address,

@@ -58,14 +58,27 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
         address from,
         address to,
         uint256 amount
-    ) external view {
+    ) external {
         if (sender == bridge || hasRole(DEFAULT_ADMIN_ROLE, sender) || hasRole(SALE, sender)) {
             return;
         }
 
         require(to == bridge, "LockingSecurity: destination is not the bridge");
+
         // solhint-disable-next-line not-rely-on-time
         require(amount < available(from, block.timestamp), "LockingSecurity: transfer amount exceeds available tokens");
+
+        // solhint-disable-next-line not-rely-on-time
+        Lock[] memory newSchedule = schedule(from, block.timestamp);
+
+        // If schedule length is different than the locks, it means that some locks need to be deleted
+        if (_locks[from].length != newSchedule.length) {
+            delete _locks[from];
+
+            for (uint256 i = 0; i < newSchedule.length; i++) {
+                _locks[from][i] = newSchedule[i];
+            }
+        }
     }
 
     /**
