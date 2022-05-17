@@ -13,12 +13,13 @@ async function main() {
     throw new Error('TODO');
   }
 
-  const { DeepSquare } = await fork();
+  const { DeepSquare, sale } = await fork();
   const [deployer] = await ethers.getSigners();
 
   const LockingSecurityFactory = new LockingSecurity__factory(deployer);
   const LockingSecurity = await deploy(LockingSecurityFactory, [DeepSquare.address]);
   await waitTx(LockingSecurity.grantRole(await LockingSecurity.SALE(), LockingSecurity.address));
+  await waitTx(LockingSecurity.grantRole(await LockingSecurity.SALE(), sale.address));
   await waitTx(DeepSquare.setSecurity(LockingSecurity.address));
 
   const progress = new SingleBar({}, Presets.shades_classic);
