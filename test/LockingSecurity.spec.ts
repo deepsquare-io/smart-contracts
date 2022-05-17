@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { describe } from 'mocha';
+import { BigNumber } from '@ethersproject/bignumber';
 import { id } from '@ethersproject/hash';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
@@ -8,7 +9,9 @@ import { LockingSecurity } from '../typings/contracts/LockingSecurity';
 import { ERC20Agent } from './testing/ERC20Agent';
 import setup from './testing/setup';
 
-describe('LockingSecurity', () => {
+import LockStruct = LockingSecurity.LockStruct;
+
+describe.only('LockingSecurity', () => {
   let owner: SignerWithAddress;
   let accounts: SignerWithAddress[];
   let DPS: DeepSquare;
@@ -17,6 +20,12 @@ describe('LockingSecurity', () => {
 
   beforeEach(async () => {
     ({ owner, accounts, Security, DPS, agentDPS } = await setup());
+  });
+
+  describe('constructor', () => {
+    it('should be initialized with proper values', async () => {
+      expect(await Security.DPS()).to.equals(DPS.address);
+    });
   });
 
   describe('validateTokenTransfer', async () => {
@@ -43,7 +52,7 @@ describe('LockingSecurity', () => {
       ).to.not.be.reverted;
     });
 
-    it('should reverse if the recipient is not the bridge', async () => {
+    it('should revert if the recipient is not the bridge', async () => {
       await expect(
         Security.validateTokenTransfer(
           accounts[0].address,
@@ -54,7 +63,7 @@ describe('LockingSecurity', () => {
       ).to.be.revertedWith('LockingSecurity: destination is not the bridge');
     });
 
-    it("should reverse if the sender's funds are too low", async () => {
+    it("should revert if the sender's funds are too low", async () => {
       const now = Math.floor(Date.now() / 1000);
       await agentDPS.transfer(accounts[0], 10);
       await Security.lock(accounts[0].address, { value: agentDPS.unit(2), release: now + 3600 });
@@ -83,17 +92,17 @@ describe('LockingSecurity', () => {
   });
 
   describe('locks', async () => {
-    // TODO
-  });
+    it('should return the locks details for given address', async () => {
+      const lock1: LockStruct = { value: 1, release: 2 };
+      const lock2: LockStruct = { value: 3, release: 4 };
 
-  describe('locked', () => {
-    it("should return account's locked funds", async () => {
-      const now = Math.floor(Date.now() / 1000);
-      await Security.lock(accounts[0].address, {
-        value: agentDPS.unit(100),
-        release: now + 3600,
-      });
-      expect(await Security.locked(accounts[0].address, now)).to.equals(agentDPS.unit(100));
+      await Security.lock(accounts[0].address, lock1);
+      await Security.lock(accounts[0].address, lock2);
+
+      expect(await Security.locks(accounts[0].address)).to.deep.equals([
+        [BigNumber.from(lock1.value), BigNumber.from(lock1.release)],
+        [BigNumber.from(lock2.value), BigNumber.from(lock2.release)],
+      ]);
     });
   });
 
@@ -105,11 +114,30 @@ describe('LockingSecurity', () => {
         value: agentDPS.unit(10),
         release: now + 3600,
       });
+      await Security.lock(accounts[0].address, {
+        value: agentDPS.unit(10),
+        release: now - 3600,
+      });
 
       const actualLocks = await Security.schedule(accounts[0].address, now);
 
       expect(actualLocks[0].release).to.equals(now + 3600);
       expect(actualLocks[0].value).to.equals(agentDPS.unit(10));
+    });
+  });
+
+  describe('locked', () => {
+    it("should return account's locked funds", async () => {
+      const now = Math.floor(Date.now() / 1000);
+      await Security.lock(accounts[0].address, {
+        value: agentDPS.unit(100),
+        release: now - 3600,
+      });
+      await Security.lock(accounts[0].address, {
+        value: agentDPS.unit(100),
+        release: now + 3600,
+      });
+      expect(await Security.locked(accounts[0].address, now)).to.equals(agentDPS.unit(100));
     });
   });
 
@@ -150,6 +178,30 @@ describe('LockingSecurity', () => {
     });
   });
 
+  describe('lockBatch', () => {
+    it('it should revert if length of parameters are differents', async () => {
+      const lock1: LockStruct = { value: 1, release: 2 };
+
+      await expect(Security.lockBatch([accounts[0].address, accounts[1].address], [lock1])).to.revertedWith(
+        'LockingSecurity: lock batch size mismatch',
+      );
+    });
+
+    it('it should execute batch locking', async () => {
+      const lock1: LockStruct = { value: 1, release: 2 };
+      const lock2: LockStruct = { value: 3, release: 4 };
+
+      await Security.lockBatch([accounts[0].address, accounts[1].address], [lock1, lock2]);
+
+      expect(await Security.locks(accounts[0].address)).to.deep.equals([
+        [BigNumber.from(lock1.value), BigNumber.from(lock1.release)],
+      ]);
+      expect(await Security.locks(accounts[1].address)).to.deep.equals([
+        [BigNumber.from(lock2.value), BigNumber.from(lock2.release)],
+      ]);
+    });
+  });
+
   describe('vest', () => {
     it('should lock and transfer DPS to the investor', async () => {
       const now = Math.floor(Date.now() / 1000);
@@ -165,6 +217,36 @@ describe('LockingSecurity', () => {
       expect(await Security.locked(accounts[1].address, now)).to.equals(amount);
       expect(await Security.available(accounts[1].address, now)).to.equals(0);
       expect(await DPS.balanceOf(accounts[1].address)).to.equals(amount);
+    });
+  });
+
+  describe('vestBatch', () => {
+    it('it should revert if length of parameters are differents', async () => {
+      const lock1: LockStruct = { value: 1, release: 2 };
+
+      await expect(Security.vestBatch([accounts[0].address, accounts[1].address], [lock1])).to.revertedWith(
+        'LockingSecurity: vest batch size mismatch',
+      );
+    });
+    it('should lock and transfer DPS to the investor', async () => {
+      await Security.grantRole(id('SALE'), Security.address);
+
+      const lock1: LockStruct = { value: 1, release: 2 };
+      const lock2: LockStruct = { value: 3, release: 4 };
+
+      await DPS.increaseAllowance(Security.address, BigNumber.from(lock1.value).add(lock2.value));
+
+      await Security.vestBatch([accounts[0].address, accounts[1].address], [lock1, lock2]);
+
+      expect(await Security.locks(accounts[0].address)).to.deep.equals([
+        [BigNumber.from(lock1.value), BigNumber.from(lock1.release)],
+      ]);
+      expect(await Security.locks(accounts[1].address)).to.deep.equals([
+        [BigNumber.from(lock2.value), BigNumber.from(lock2.release)],
+      ]);
+
+      expect(await DPS.balanceOf(accounts[0].address)).to.equals(lock1.value);
+      expect(await DPS.balanceOf(accounts[1].address)).to.equals(lock2.value);
     });
   });
 });

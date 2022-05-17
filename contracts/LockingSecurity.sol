@@ -121,8 +121,6 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
         uint256 sum = 0;
 
         for (uint256 i = 0; i < _activeLocks.length; i++) {
-            if (_activeLocks[i].release < currentDate) continue;
-
             sum += _activeLocks[i].value;
         }
 
