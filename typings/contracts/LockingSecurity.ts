@@ -42,23 +42,24 @@ export interface LockingSecurityInterface extends utils.Interface {
     "SALE()": FunctionFragment;
     "available(address,uint256)": FunctionFragment;
     "bridge()": FunctionFragment;
-    "getLocks(address)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
     "lock(address,(uint256,uint256))": FunctionFragment;
+    "lockBatch(address[],(uint256,uint256)[])": FunctionFragment;
     "locked(address,uint256)": FunctionFragment;
-    "locks(address,uint256)": FunctionFragment;
+    "locks(address)": FunctionFragment;
     "owner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
-    "schedule(address)": FunctionFragment;
+    "schedule(address,uint256)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "upgradeBridge(address)": FunctionFragment;
     "validateTokenTransfer(address,address,address,uint256)": FunctionFragment;
     "vest(address,(uint256,uint256))": FunctionFragment;
+    "vestBatch(address[],(uint256,uint256)[])": FunctionFragment;
   };
 
   getFunction(
@@ -68,11 +69,11 @@ export interface LockingSecurityInterface extends utils.Interface {
       | "SALE"
       | "available"
       | "bridge"
-      | "getLocks"
       | "getRoleAdmin"
       | "grantRole"
       | "hasRole"
       | "lock"
+      | "lockBatch"
       | "locked"
       | "locks"
       | "owner"
@@ -85,6 +86,7 @@ export interface LockingSecurityInterface extends utils.Interface {
       | "upgradeBridge"
       | "validateTokenTransfer"
       | "vest"
+      | "vestBatch"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -98,7 +100,6 @@ export interface LockingSecurityInterface extends utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "bridge", values?: undefined): string;
-  encodeFunctionData(functionFragment: "getLocks", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
     values: [BytesLike]
@@ -116,13 +117,14 @@ export interface LockingSecurityInterface extends utils.Interface {
     values: [string, LockingSecurity.LockStruct]
   ): string;
   encodeFunctionData(
+    functionFragment: "lockBatch",
+    values: [string[], LockingSecurity.LockStruct[]]
+  ): string;
+  encodeFunctionData(
     functionFragment: "locked",
     values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "locks",
-    values: [string, BigNumberish]
-  ): string;
+  encodeFunctionData(functionFragment: "locks", values: [string]): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -136,7 +138,10 @@ export interface LockingSecurityInterface extends utils.Interface {
     functionFragment: "revokeRole",
     values: [BytesLike, string]
   ): string;
-  encodeFunctionData(functionFragment: "schedule", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "schedule",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
@@ -157,6 +162,10 @@ export interface LockingSecurityInterface extends utils.Interface {
     functionFragment: "vest",
     values: [string, LockingSecurity.LockStruct]
   ): string;
+  encodeFunctionData(
+    functionFragment: "vestBatch",
+    values: [string[], LockingSecurity.LockStruct[]]
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "DEFAULT_ADMIN_ROLE",
@@ -166,7 +175,6 @@ export interface LockingSecurityInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "SALE", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "available", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "bridge", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "getLocks", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
@@ -174,6 +182,7 @@ export interface LockingSecurityInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "lock", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "lockBatch", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "locked", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "locks", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
@@ -204,6 +213,7 @@ export interface LockingSecurityInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "vest", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "vestBatch", data: BytesLike): Result;
 
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
@@ -308,11 +318,6 @@ export interface LockingSecurity extends BaseContract {
 
     bridge(overrides?: CallOverrides): Promise<[string]>;
 
-    getLocks(
-      investor: string,
-      overrides?: CallOverrides
-    ): Promise<[LockingSecurity.LockStructOutput[]]>;
-
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
     grantRole(
@@ -333,6 +338,12 @@ export interface LockingSecurity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    lockBatch(
+      investors: string[],
+      details: LockingSecurity.LockStruct[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     locked(
       account: string,
       currentDate: BigNumberish,
@@ -340,12 +351,9 @@ export interface LockingSecurity extends BaseContract {
     ): Promise<[BigNumber]>;
 
     locks(
-      arg0: string,
-      arg1: BigNumberish,
+      investor: string,
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { value: BigNumber; release: BigNumber }
-    >;
+    ): Promise<[LockingSecurity.LockStructOutput[]]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
@@ -367,6 +375,7 @@ export interface LockingSecurity extends BaseContract {
 
     schedule(
       account: string,
+      currentDate: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[LockingSecurity.LockStructOutput[]]>;
 
@@ -398,6 +407,12 @@ export interface LockingSecurity extends BaseContract {
       details: LockingSecurity.LockStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    vestBatch(
+      investors: string[],
+      details: LockingSecurity.LockStruct[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
@@ -413,11 +428,6 @@ export interface LockingSecurity extends BaseContract {
   ): Promise<BigNumber>;
 
   bridge(overrides?: CallOverrides): Promise<string>;
-
-  getLocks(
-    investor: string,
-    overrides?: CallOverrides
-  ): Promise<LockingSecurity.LockStructOutput[]>;
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -439,6 +449,12 @@ export interface LockingSecurity extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  lockBatch(
+    investors: string[],
+    details: LockingSecurity.LockStruct[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   locked(
     account: string,
     currentDate: BigNumberish,
@@ -446,10 +462,9 @@ export interface LockingSecurity extends BaseContract {
   ): Promise<BigNumber>;
 
   locks(
-    arg0: string,
-    arg1: BigNumberish,
+    investor: string,
     overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber] & { value: BigNumber; release: BigNumber }>;
+  ): Promise<LockingSecurity.LockStructOutput[]>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
@@ -471,6 +486,7 @@ export interface LockingSecurity extends BaseContract {
 
   schedule(
     account: string,
+    currentDate: BigNumberish,
     overrides?: CallOverrides
   ): Promise<LockingSecurity.LockStructOutput[]>;
 
@@ -503,6 +519,12 @@ export interface LockingSecurity extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  vestBatch(
+    investors: string[],
+    details: LockingSecurity.LockStruct[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
 
@@ -517,11 +539,6 @@ export interface LockingSecurity extends BaseContract {
     ): Promise<BigNumber>;
 
     bridge(overrides?: CallOverrides): Promise<string>;
-
-    getLocks(
-      investor: string,
-      overrides?: CallOverrides
-    ): Promise<LockingSecurity.LockStructOutput[]>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -543,6 +560,12 @@ export interface LockingSecurity extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    lockBatch(
+      investors: string[],
+      details: LockingSecurity.LockStruct[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     locked(
       account: string,
       currentDate: BigNumberish,
@@ -550,12 +573,9 @@ export interface LockingSecurity extends BaseContract {
     ): Promise<BigNumber>;
 
     locks(
-      arg0: string,
-      arg1: BigNumberish,
+      investor: string,
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber] & { value: BigNumber; release: BigNumber }
-    >;
+    ): Promise<LockingSecurity.LockStructOutput[]>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
@@ -575,6 +595,7 @@ export interface LockingSecurity extends BaseContract {
 
     schedule(
       account: string,
+      currentDate: BigNumberish,
       overrides?: CallOverrides
     ): Promise<LockingSecurity.LockStructOutput[]>;
 
@@ -601,6 +622,12 @@ export interface LockingSecurity extends BaseContract {
     vest(
       investor: string,
       details: LockingSecurity.LockStruct,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    vestBatch(
+      investors: string[],
+      details: LockingSecurity.LockStruct[],
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -664,8 +691,6 @@ export interface LockingSecurity extends BaseContract {
 
     bridge(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getLocks(investor: string, overrides?: CallOverrides): Promise<BigNumber>;
-
     getRoleAdmin(
       role: BytesLike,
       overrides?: CallOverrides
@@ -689,17 +714,19 @@ export interface LockingSecurity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    lockBatch(
+      investors: string[],
+      details: LockingSecurity.LockStruct[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     locked(
       account: string,
       currentDate: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    locks(
-      arg0: string,
-      arg1: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    locks(investor: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -719,7 +746,11 @@ export interface LockingSecurity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    schedule(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+    schedule(
+      account: string,
+      currentDate: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     supportsInterface(
       interfaceId: BytesLike,
@@ -749,6 +780,12 @@ export interface LockingSecurity extends BaseContract {
       details: LockingSecurity.LockStruct,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    vestBatch(
+      investors: string[],
+      details: LockingSecurity.LockStruct[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -767,11 +804,6 @@ export interface LockingSecurity extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     bridge(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getLocks(
-      investor: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     getRoleAdmin(
       role: BytesLike,
@@ -796,6 +828,12 @@ export interface LockingSecurity extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    lockBatch(
+      investors: string[],
+      details: LockingSecurity.LockStruct[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     locked(
       account: string,
       currentDate: BigNumberish,
@@ -803,8 +841,7 @@ export interface LockingSecurity extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     locks(
-      arg0: string,
-      arg1: BigNumberish,
+      investor: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -828,6 +865,7 @@ export interface LockingSecurity extends BaseContract {
 
     schedule(
       account: string,
+      currentDate: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -857,6 +895,12 @@ export interface LockingSecurity extends BaseContract {
     vest(
       investor: string,
       details: LockingSecurity.LockStruct,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    vestBatch(
+      investors: string[],
+      details: LockingSecurity.LockStruct[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

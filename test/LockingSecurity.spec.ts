@@ -19,61 +19,6 @@ describe('LockingSecurity', () => {
     ({ owner, accounts, Security, DPS, agentDPS } = await setup());
   });
 
-  describe('upgradeBridge', async () => {
-    it('should upgrade the bridge address', async () => {
-      await Security.upgradeBridge('0x0000000000000000000000000000000000000001');
-      expect(await Security.bridge()).to.equal('0x0000000000000000000000000000000000000001');
-    });
-  });
-
-  describe('locked', () => {
-    it("should return account's locked funds", async () => {
-      const now = Math.floor(Date.now() / 1000);
-      await Security.lock(accounts[0].address, {
-        value: agentDPS.unit(100),
-        release: now + 3600,
-      });
-      expect(await Security.locked(accounts[0].address, now)).to.equals(agentDPS.unit(100));
-    });
-  });
-
-  describe('available', () => {
-    it('should return 0 if the locked amount is greater thant the account balance', async () => {
-      const now = Math.floor(Date.now() / 1000);
-      await agentDPS.transfer(accounts[0], 10);
-      await Security.lock(accounts[0].address, {
-        value: agentDPS.unit(100),
-        release: now + 3600,
-      });
-    });
-
-    it('should return how much DPS is available', async () => {
-      const now = Math.floor(Date.now() / 1000);
-
-      await agentDPS.transfer(accounts[0], 100);
-      await Security.lock(accounts[0].address, {
-        value: agentDPS.unit(10),
-        release: now + 3600,
-      });
-
-      expect(await Security.available(accounts[0].address, now)).to.equals(agentDPS.unit(90));
-    });
-  });
-
-  describe('lock', () => {
-    it('should lock 10,000 DPS for the account #0', async () => {
-      const now = Math.floor(Date.now() / 1000);
-      await agentDPS.transfer(accounts[0], 10);
-      await Security.lock(accounts[0].address, {
-        value: agentDPS.unit(10),
-        release: now + 3600,
-      });
-
-      expect(await Security.locked(accounts[0].address, now)).to.equals(agentDPS.unit(10));
-      expect(await Security.available(accounts[0].address, now)).to.equals(0);
-    });
-  });
-
   describe('validateTokenTransfer', async () => {
     it('should return if the sender is the bridge', async () => {
       await expect(
@@ -130,6 +75,81 @@ describe('LockingSecurity', () => {
     });
   });
 
+  describe('upgradeBridge', async () => {
+    it('should upgrade the bridge address', async () => {
+      await Security.upgradeBridge('0x0000000000000000000000000000000000000001');
+      expect(await Security.bridge()).to.equal('0x0000000000000000000000000000000000000001');
+    });
+  });
+
+  describe('locks', async () => {
+    // TODO
+  });
+
+  describe('locked', () => {
+    it("should return account's locked funds", async () => {
+      const now = Math.floor(Date.now() / 1000);
+      await Security.lock(accounts[0].address, {
+        value: agentDPS.unit(100),
+        release: now + 3600,
+      });
+      expect(await Security.locked(accounts[0].address, now)).to.equals(agentDPS.unit(100));
+    });
+  });
+
+  describe('schedule', () => {
+    it("should return an investor's locks", async () => {
+      const now = Math.floor(Date.now() / 1000);
+      await agentDPS.transfer(accounts[0], 10);
+      await Security.lock(accounts[0].address, {
+        value: agentDPS.unit(10),
+        release: now + 3600,
+      });
+
+      const actualLocks = await Security.schedule(accounts[0].address, now);
+
+      expect(actualLocks[0].release).to.equals(now + 3600);
+      expect(actualLocks[0].value).to.equals(agentDPS.unit(10));
+    });
+  });
+
+  describe('available', () => {
+    it('should return 0 if the locked amount is greater thant the account balance', async () => {
+      const now = Math.floor(Date.now() / 1000);
+      await agentDPS.transfer(accounts[0], 10);
+      await Security.lock(accounts[0].address, {
+        value: agentDPS.unit(100),
+        release: now + 3600,
+      });
+    });
+
+    it('should return how much DPS is available', async () => {
+      const now = Math.floor(Date.now() / 1000);
+
+      await agentDPS.transfer(accounts[0], 100);
+      await Security.lock(accounts[0].address, {
+        value: agentDPS.unit(10),
+        release: now + 3600,
+      });
+
+      expect(await Security.available(accounts[0].address, now)).to.equals(agentDPS.unit(90));
+    });
+  });
+
+  describe('lock', () => {
+    it('should lock 10,000 DPS for the account #0', async () => {
+      const now = Math.floor(Date.now() / 1000);
+      await agentDPS.transfer(accounts[0], 10);
+      await Security.lock(accounts[0].address, {
+        value: agentDPS.unit(10),
+        release: now + 3600,
+      });
+
+      expect(await Security.locked(accounts[0].address, now)).to.equals(agentDPS.unit(10));
+      expect(await Security.available(accounts[0].address, now)).to.equals(0);
+    });
+  });
+
   describe('vest', () => {
     it('should lock and transfer DPS to the investor', async () => {
       const now = Math.floor(Date.now() / 1000);
@@ -145,22 +165,6 @@ describe('LockingSecurity', () => {
       expect(await Security.locked(accounts[1].address, now)).to.equals(amount);
       expect(await Security.available(accounts[1].address, now)).to.equals(0);
       expect(await DPS.balanceOf(accounts[1].address)).to.equals(amount);
-    });
-  });
-
-  describe('getLocks', () => {
-    it("should return an investor's locks", async () => {
-      const now = Math.floor(Date.now() / 1000);
-      await agentDPS.transfer(accounts[0], 10);
-      await Security.lock(accounts[0].address, {
-        value: agentDPS.unit(10),
-        release: now + 3600,
-      });
-
-      const actualLocks = await Security.getLocks(accounts[0].address);
-
-      expect(actualLocks[0].release).to.equals(now + 3600);
-      expect(actualLocks[0].value).to.equals(agentDPS.unit(10));
     });
   });
 });

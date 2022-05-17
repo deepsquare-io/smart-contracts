@@ -13,12 +13,12 @@
   "license": "MIT",
   "maintainers": [
     "Mathieu Bour <mathieu@squarefactory.io>",
-    "Clarisse Tarrou <clarisse@squarefactory.io>"
+    "Clarisse Tarrou <clarisse@squarefactory.io>",
+    "Valentin Pollart <valentin@squarefactory.io>"
   ],
   "contributors": [
     "Julien Schneider <julien@squarefactory.io>",
-    "Charly Mancel <charly@squarefactory.io>",
-    "Valentin Pollart <valentin@squarefactory.io>"
+    "Charly Mancel <charly@squarefactory.io>"
   ],
   "funding": "https://deepsquare.io",
   "scripts": {
@@ -53,6 +53,7 @@
     "@typechain/hardhat": "^6.0.0",
     "@types/chai": "^4.3.0",
     "@types/cli-progress": "^3.9.2",
+    "@types/lodash": "^4.14.182",
     "@types/mocha": "^9.1.0",
     "@types/node": "^17.0.23",
     "@types/rimraf": "^3.0.2",
@@ -69,6 +70,7 @@
     "fast-glob": "^3.2.11",
     "hardhat": "^2.9.3",
     "hardhat-gas-reporter": "^1.0.8",
+    "lodash": "^4.17.21",
     "prettier": "^2.6.2",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
     "rimraf": "^3.0.2",
@@ -81,5 +83,8 @@
   "private": true,
   "engines": {
     "node": "^16"
+  },
+  "dependencies": {
+    "tslog": "^3.3.3"
   }
 }

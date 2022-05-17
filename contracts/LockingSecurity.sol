@@ -38,7 +38,7 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
      * @dev The vesting locks, mapped by account addresses.
      * There is no guarantee that the locks are ordered by release date time.
      */
-    mapping(address => Lock[]) public locks;
+    mapping(address => Lock[]) private _locks;
 
     constructor(IERC20 _token) ISecurity() {
         DPS = _token;
@@ -68,12 +68,46 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
     }
 
     /**
+     * @notice Allow the owner to upgrade the bridge.
+     * @param newBridge New address of the bridge.
+     */
+    function upgradeBridge(address newBridge) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        bridge = newBridge;
+    }
+
+    /**
+     * @notice Returns the list of an investors locked funds.
+     * @dev Works as a getter.
+     * @param investor Address of the investor.
+     */
+    function locks(address investor) public view returns (Lock[] memory) {
+        return _locks[investor];
+    }
+
+    /**
      * @notice Get the vesting schedule of an account.
      * @dev There is date or amount sorting guarantee.
      * @param account The address to check
      */
-    function schedule(address account) external view returns (Lock[] memory) {
-        return locks[account];
+    function schedule(address account, uint256 currentDate) public view returns (Lock[] memory) {
+        Lock[] memory _accountLocks = locks(account);
+        Lock[] memory _tmpLocks = new Lock[](_accountLocks.length);
+        uint256 found = 0;
+
+        for (uint256 i = 0; i < _accountLocks.length; i++) {
+            if (_accountLocks[i].release < currentDate) continue;
+
+            _tmpLocks[found] = _accountLocks[i];
+            found++;
+        }
+
+        Lock[] memory _activeLocks = new Lock[](found);
+
+        for (uint256 j = 0; j < found; j++) {
+            _activeLocks[j] = _tmpLocks[j];
+        }
+
+        return _activeLocks;
     }
 
     /**
@@ -83,12 +117,13 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
      * @param currentDate The date reference to use.
      */
     function locked(address account, uint256 currentDate) public view returns (uint256) {
+        Lock[] memory _activeLocks = schedule(account, currentDate);
         uint256 sum = 0;
 
-        for (uint256 i = 0; i < locks[account].length; i++) {
-            if (locks[account][i].release < currentDate) continue;
+        for (uint256 i = 0; i < _activeLocks.length; i++) {
+            if (_activeLocks[i].release < currentDate) continue;
 
-            sum += locks[account][i].value;
+            sum += _activeLocks[i].value;
         }
 
         return sum;
@@ -107,20 +142,25 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
     }
 
     /**
-     * @notice Allow the owner to upgrade the bridge.
-     * @param newBridge New address of the bridge.
-     */
-    function upgradeBridge(address newBridge) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        bridge = newBridge;
-    }
-
-    /**
      * @notice Lock DPS to an investor.
      * @param investor Address of the investor.
      * @param details The amount to lock and the release date in epoch.
      */
-    function lock(address investor, Lock memory details) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        locks[investor].push(details);
+    function lock(address investor, Lock memory details) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _locks[investor].push(details);
+    }
+
+    /**
+     * @notice Batch lock DPS to investors.
+     * @param investors Address of the investors.
+     * @param details The lock details.
+     */
+    function lockBatch(address[] memory investors, Lock[] memory details) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(investors.length == details.length, "LockingSecurity: lock batch size mismatch");
+
+        for (uint256 i = 0; i < investors.length; i++) {
+            lock(investors[i], details[i]);
+        }
     }
 
     /**
@@ -129,17 +169,21 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
      * @param investor Address of the investor.
      * @param details The amount to lock and the release date in epoch.
      */
-    function vest(address investor, Lock memory details) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        locks[investor].push(details);
+    function vest(address investor, Lock memory details) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _locks[investor].push(details);
         DPS.transferFrom(msg.sender, investor, details.value);
     }
 
     /**
-     * @notice Returns the list of an investors locked funds.
-     * @dev Works as a getter.
-     * @param investor Address of the investor.
+     * @notice Batch lock DPS to investors.
+     * @param investors Address of the investors.
+     * @param details The lock details.
      */
-    function getLocks(address investor) public view returns (Lock[] memory){
-        return locks[investor];
+    function vestBatch(address[] memory investors, Lock[] memory details) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(investors.length == details.length, "LockingSecurity: vest batch size mismatch");
+
+        for (uint256 i = 0; i < investors.length; i++) {
+            vest(investors[i], details[i]);
+        }
     }
 }
