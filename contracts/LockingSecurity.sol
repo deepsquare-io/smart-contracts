@@ -66,7 +66,10 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
         require(to == bridge, "LockingSecurity: destination is not the bridge");
 
         // solhint-disable-next-line not-rely-on-time
-        require(amount < available(from, block.timestamp), "LockingSecurity: transfer amount exceeds available tokens");
+        require(
+            amount <= available(from, block.timestamp),
+            "LockingSecurity: transfer amount exceeds available tokens"
+        );
 
         // solhint-disable-next-line not-rely-on-time
         Lock[] memory newSchedule = schedule(from, block.timestamp);
