@@ -53,8 +53,8 @@ contract Bridge is Ownable {
             "Bridge: total balances are not below minimum"
         );
 
-        (, uint256 limit) = eligibility.lookup(msg.sender);
-        require(amount <= limit, "Bridge: amount exceeds permitted limit");
+        (uint256 tier, uint256 limit) = eligibility.lookup(msg.sender);
+        require(tier != 0 && (amount <= limit || limit == 0), "Bridge: amount exceeds permitted limit");
 
         SQR.transferFrom(msg.sender, address(this), amount);
         DPS.transfer(msg.sender, amount);
