@@ -57,7 +57,7 @@ are considered as a security standard.
 
 The [DeepSquare.sol](contracts/DeepSquare.sol) contract represents ERC-20-compatible DPS token.
 The DPS token has currently restricted transfer options, as described in
-the [DeepSquare whitepaper][DeepSquare whitepaper]
+the [DeepSquare whitepaper][deepsquare whitepaper]
 
 ### SQR utility token
 
@@ -87,7 +87,7 @@ This is equivalent to force the account to keep a minimum DPS balance.
 
 ## References
 
-- [DeepSquare whitepaper][DeepSquare whitepaper]
+- [DeepSquare whitepaper][deepsquare whitepaper]
 - [Avalanche whitepapers](https://www.avalabs.org/whitepapers)
 
-[DeepSquare whitepaper]: https://deepsquare.gitbook.io/white-paper/nbKUltb7gLjwAhl9vMcw/
+[deepsquare whitepaper]: https://deepsquare.gitbook.io/white-paper/nbKUltb7gLjwAhl9vMcw/
