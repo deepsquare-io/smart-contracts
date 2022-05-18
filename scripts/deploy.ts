@@ -6,14 +6,16 @@ import deploy from '../lib/deploy';
 import fetchBalances from '../lib/fetch/fetchBalances';
 import fork from '../lib/fork';
 import waitTx from '../lib/waitTx';
+import { Bridge__factory } from '../typings/factories/contracts/Bridge__factory';
 import { LockingSecurity__factory } from '../typings/factories/contracts/LockingSecurity__factory';
+import { Square__factory } from '../typings/factories/contracts/Square__factory';
 
 async function main() {
   if (network.name === 'mainnet') {
     throw new Error('TODO');
   }
 
-  const { DeepSquare, sale } = await fork();
+  const { DeepSquare, eligibility, sale } = await fork();
   const [deployer] = await ethers.getSigners();
 
   const LockingSecurityFactory = new LockingSecurity__factory(deployer);
@@ -58,6 +60,11 @@ async function main() {
   }
 
   progress.stop();
+
+  // Deploy SQR and bridge
+  const Square = await deploy(new Square__factory(deployer), []);
+  const bridge = await deploy(new Bridge__factory(deployer), [DeepSquare.address, Square.address, eligibility.address]);
+  await waitTx(Square.transfer(bridge.address, await Square.balanceOf(deployer.address)));
 }
 
 main().catch((e) => {
