@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import { describe } from 'mocha';
-import { useFakeTimers } from 'sinon';
 import { BigNumber } from '@ethersproject/bignumber';
 import { id } from '@ethersproject/hash';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -9,6 +8,7 @@ import { DeepSquare } from '../typings/contracts/DeepSquare';
 import { LockingSecurity } from '../typings/contracts/LockingSecurity';
 import { ERC20Agent } from './testing/ERC20Agent';
 import setup from './testing/setup';
+import time from './testing/time';
 
 import LockStruct = LockingSecurity.LockStruct;
 
@@ -251,52 +251,42 @@ describe('LockingSecurity', () => {
     });
   });
 
-  describe.only('As a user', () => {
-    it('I should be able to transfer 0 DPS at time 9', async () => {
-      await Security.grantRole(id('SALE'), Security.address);
-      await Security.upgradeBridge(accounts[1].address);
-      await DPS.increaseAllowance(Security.address, agentDPS.unit(2000000));
+  it('Locked funds should not be transferable', async () => {
+    await Security.grantRole(id('SALE'), Security.address);
+    await Security.upgradeBridge(accounts[1].address);
+    await DPS.increaseAllowance(Security.address, agentDPS.unit(2000000));
+    const { getCurrentTime, setTime } = time();
 
-      await Security.vestBatch(
-        [accounts[0].address, accounts[0].address],
-        [
-          {
-            value: agentDPS.unit(100000),
-            release: 10,
-          },
-          { value: agentDPS.unit(50000), release: 20 },
-        ],
-      );
+    const start = await getCurrentTime();
 
-      const clock = useFakeTimers();
+    await Security.vestBatch(
+      [accounts[0].address, accounts[0].address],
+      [
+        {
+          value: agentDPS.unit(100000),
+          release: start + 10,
+        },
+        { value: agentDPS.unit(50000), release: start + 20 },
+      ],
+    );
 
-      setTimeout(async () => {
-        console.log('9');
-        await agentDPS.expectBalanceOf(accounts[0], agentDPS.unit(150000));
-        await expect(DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.unit(1))).to.revertedWith(
-          'LockingSecurity: transfer amount exceeds available tokens',
-        );
-      }, 9);
+    await setTime(start + 5);
+    await agentDPS.expectBalanceOf(accounts[0], agentDPS.unit(150000));
+    await expect(DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.unit(1))).to.revertedWith(
+      'LockingSecurity: transfer amount exceeds available tokens',
+    );
 
-      setTimeout(async () => {
-        console.log('10');
-        await DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.unit(100000));
-        await expect(DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.unit(1))).to.not.be.reverted;
-        await expect(DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.unit(1))).to.revertedWith(
-          'LockingSecurity: transfer amount exceeds available tokens',
-        );
-      }, 10);
+    await setTime(start + 10);
+    await DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.unit(100000));
+    await expect(DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.unit(1))).to.revertedWith(
+      'LockingSecurity: transfer amount exceeds available tokens',
+    );
+    await agentDPS.expectBalanceOf(accounts[0], agentDPS.unit(50000));
+    await agentDPS.expectBalanceOf(accounts[1], agentDPS.unit(100000));
 
-      setTimeout(async () => {
-        console.log('20');
-        await agentDPS.expectBalanceOf(accounts[0], agentDPS.unit(150000));
-        await DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.unit(1500000));
-        await agentDPS.expectBalanceOf(accounts[0], agentDPS.unit(0));
-        await agentDPS.expectBalanceOf(accounts[1], agentDPS.unit(15000000));
-      }, 20);
-
-      clock.runAll();
-      clock.restore();
-    });
+    await setTime(start + 20);
+    await DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.unit(50000));
+    await agentDPS.expectBalanceOf(accounts[0], agentDPS.unit(0));
+    await agentDPS.expectBalanceOf(accounts[1], agentDPS.unit(150000));
   });
 });

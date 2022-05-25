@@ -66,17 +66,21 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
         require(to == bridge, "LockingSecurity: destination is not the bridge");
 
         // solhint-disable-next-line not-rely-on-time
-        require(amount < available(from, block.timestamp), "LockingSecurity: transfer amount exceeds available tokens");
+        require(amount <= available(from, block.timestamp), "LockingSecurity: transfer amount exceeds available tokens");
 
         // solhint-disable-next-line not-rely-on-time
         Lock[] memory newSchedule = schedule(from, block.timestamp);
 
         // If schedule length is different than the locks, it means that some locks need to be deleted
         if (_locks[from].length != newSchedule.length) {
-            delete _locks[from];
+            uint oldLength = _locks[from].length;
 
             for (uint256 i = 0; i < newSchedule.length; i++) {
                 _locks[from][i] = newSchedule[i];
+            }
+
+            for (uint256 i = 0; i < oldLength - newSchedule.length; i++) {
+                _locks[from].pop();
             }
         }
     }
@@ -109,7 +113,7 @@ contract LockingSecurity is ISecurity, AccessControl, Ownable {
         uint256 found = 0;
 
         for (uint256 i = 0; i < _accountLocks.length; i++) {
-            if (_accountLocks[i].release < currentDate) continue;
+            if (_accountLocks[i].release <= currentDate) continue;
 
             _tmpLocks[found] = _accountLocks[i];
             found++;
