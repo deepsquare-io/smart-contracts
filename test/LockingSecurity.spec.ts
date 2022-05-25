@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { describe } from 'mocha';
+import { useFakeTimers } from 'sinon';
 import { BigNumber } from '@ethersproject/bignumber';
 import { id } from '@ethersproject/hash';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -179,7 +180,7 @@ describe('LockingSecurity', () => {
   });
 
   describe('lockBatch', () => {
-    it('it should revert if length of parameters are differents', async () => {
+    it('it should revert if length of parameters are different', async () => {
       const lock1: LockStruct = { value: 1, release: 2 };
 
       await expect(Security.lockBatch([accounts[0].address, accounts[1].address], [lock1])).to.revertedWith(
@@ -221,7 +222,7 @@ describe('LockingSecurity', () => {
   });
 
   describe('vestBatch', () => {
-    it('it should revert if length of parameters are differents', async () => {
+    it('it should revert if length of parameters are different', async () => {
       const lock1: LockStruct = { value: 1, release: 2 };
 
       await expect(Security.vestBatch([accounts[0].address, accounts[1].address], [lock1])).to.revertedWith(
@@ -247,6 +248,55 @@ describe('LockingSecurity', () => {
 
       expect(await DPS.balanceOf(accounts[0].address)).to.equals(lock1.value);
       expect(await DPS.balanceOf(accounts[1].address)).to.equals(lock2.value);
+    });
+  });
+
+  describe.only('As a user', () => {
+    it('I should be able to transfer 0 DPS at time 9', async () => {
+      await Security.grantRole(id('SALE'), Security.address);
+      await Security.upgradeBridge(accounts[1].address);
+      await DPS.increaseAllowance(Security.address, agentDPS.unit(2000000));
+
+      await Security.vestBatch(
+        [accounts[0].address, accounts[0].address],
+        [
+          {
+            value: agentDPS.unit(100000),
+            release: 10,
+          },
+          { value: agentDPS.unit(50000), release: 20 },
+        ],
+      );
+
+      const clock = useFakeTimers();
+
+      setTimeout(async () => {
+        console.log('9');
+        await agentDPS.expectBalanceOf(accounts[0], agentDPS.unit(150000));
+        await expect(DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.unit(1))).to.revertedWith(
+          'LockingSecurity: transfer amount exceeds available tokens',
+        );
+      }, 9);
+
+      setTimeout(async () => {
+        console.log('10');
+        await DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.unit(100000));
+        await expect(DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.unit(1))).to.not.be.reverted;
+        await expect(DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.unit(1))).to.revertedWith(
+          'LockingSecurity: transfer amount exceeds available tokens',
+        );
+      }, 10);
+
+      setTimeout(async () => {
+        console.log('20');
+        await agentDPS.expectBalanceOf(accounts[0], agentDPS.unit(150000));
+        await DPS.connect(accounts[0]).transfer(accounts[1].address, agentDPS.unit(1500000));
+        await agentDPS.expectBalanceOf(accounts[0], agentDPS.unit(0));
+        await agentDPS.expectBalanceOf(accounts[1], agentDPS.unit(15000000));
+      }, 20);
+
+      clock.runAll();
+      clock.restore();
     });
   });
 });

@@ -31,7 +31,7 @@ are considered as a security standard.
       <a href="https://github.com/ArcticSubmarine">
         <img src="https://avatars.githubusercontent.com/u/48919999?v=3?s=150" width="150px;" alt=""/>
         <br />
-        <b>Mathieu Bour</b>
+        <b>Clarisse Tarrou</b>
       </a>
     </td>
     <td align="center">
