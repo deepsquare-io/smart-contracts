@@ -436,7 +436,6 @@ describe('Sale', () => {
       await setupAccount(accounts[0], { tier: 1 });
       await Sale.deliverDPS(agentSTC.unit(1000), accounts[0].address);
       const initialSold = await Sale.sold();
-      console.log(initialSold);
       await Sale.close();
       expect(await Sale.sold()).to.equals(initialSold);
     });
