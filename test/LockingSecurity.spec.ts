@@ -11,7 +11,7 @@ import setup from './testing/setup';
 
 import LockStruct = LockingSecurity.LockStruct;
 
-describe.only('LockingSecurity', () => {
+describe('LockingSecurity', () => {
   let owner: SignerWithAddress;
   let accounts: SignerWithAddress[];
   let DPS: DeepSquare;
