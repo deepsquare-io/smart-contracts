@@ -443,8 +443,15 @@ describe('Sale', () => {
       await Sale.close();
 
       expect(await Sale.owner()).to.equals(ZERO_ADDRESS);
-      expect(await DPS.balanceOf(await Sale.address)).to.equals(0);
+      expect(await DPS.balanceOf(Sale.address)).to.equals(0);
       expect(await DPS.balanceOf(saleOwner)).to.equals(initialBalance.add(remaining));
+    });
+    it('should have the correct sold amount', async () => {
+      await setupAccount(accounts[0], { tier: 1 });
+      await Sale.deliverDPS(agentSTC.unit(1000), accounts[0].address);
+      const initialSold = await Sale.sold();
+      await Sale.close();
+      expect(await Sale.sold()).to.equals(initialSold);
     });
   });
 });
