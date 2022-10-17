@@ -278,6 +278,13 @@ describe('Sale', () => {
       ).to.be.revertedWith('Sale: amount lower than minimum');
     });
 
+    it('should revert if sale is paused', async () => {
+      await Sale.setPause(true);
+      await expect(Sale.connect(accounts[0]).purchaseDPSWithAVAX({ value: parseUnits('1000', 18) })).to.be.revertedWith(
+        'Sale is paused',
+      );
+    });
+
     it('should revert if investor is not eligible', async () => {
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 0 });
       await ethers.provider.send('hardhat_setBalance', [accounts[0].address, parseUnits('2000', 18).toHexString()]);
@@ -313,6 +320,13 @@ describe('Sale', () => {
 
     it('should revert if investor tries to buy less that the minimum purchase', async () => {
       await expect(Sale.purchaseDPSWithSTC(agentSTC.unit(100))).to.be.revertedWith('Sale: amount lower than minimum');
+    });
+
+    it('should revert if sale is paused', async () => {
+      await Sale.setPause(true);
+      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(1000))).to.be.revertedWith(
+        'Sale is paused',
+      );
     });
 
     it('should revert if investor is not eligible', async () => {

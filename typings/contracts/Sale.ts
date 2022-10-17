@@ -38,6 +38,7 @@ export interface SaleInterface extends utils.Interface {
     "convertSTCtoDPS(uint256)": FunctionFragment;
     "deliverDPS(uint256,address)": FunctionFragment;
     "eligibility()": FunctionFragment;
+    "isPaused()": FunctionFragment;
     "minimumPurchaseSTC()": FunctionFragment;
     "owner()": FunctionFragment;
     "purchaseDPSWithAVAX()": FunctionFragment;
@@ -47,6 +48,7 @@ export interface SaleInterface extends utils.Interface {
     "remaining()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setAggregator(address)": FunctionFragment;
+    "setPause(bool)": FunctionFragment;
     "sold()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
@@ -62,6 +64,7 @@ export interface SaleInterface extends utils.Interface {
       | "convertSTCtoDPS"
       | "deliverDPS"
       | "eligibility"
+      | "isPaused"
       | "minimumPurchaseSTC"
       | "owner"
       | "purchaseDPSWithAVAX"
@@ -71,6 +74,7 @@ export interface SaleInterface extends utils.Interface {
       | "remaining"
       | "renounceOwnership"
       | "setAggregator"
+      | "setPause"
       | "sold"
       | "transferOwnership"
   ): FunctionFragment;
@@ -102,6 +106,7 @@ export interface SaleInterface extends utils.Interface {
     functionFragment: "eligibility",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "isPaused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "minimumPurchaseSTC",
     values?: undefined
@@ -126,6 +131,7 @@ export interface SaleInterface extends utils.Interface {
     functionFragment: "setAggregator",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "setPause", values: [boolean]): string;
   encodeFunctionData(functionFragment: "sold", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
@@ -153,6 +159,7 @@ export interface SaleInterface extends utils.Interface {
     functionFragment: "eligibility",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "isPaused", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "minimumPurchaseSTC",
     data: BytesLike
@@ -177,6 +184,7 @@ export interface SaleInterface extends utils.Interface {
     functionFragment: "setAggregator",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "setPause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sold", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
@@ -275,6 +283,8 @@ export interface Sale extends BaseContract {
 
     eligibility(overrides?: CallOverrides): Promise<[string]>;
 
+    isPaused(overrides?: CallOverrides): Promise<[boolean]>;
+
     minimumPurchaseSTC(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
@@ -300,6 +310,11 @@ export interface Sale extends BaseContract {
 
     setAggregator(
       newAggregator: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setPause(
+      _isPaused: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -344,6 +359,8 @@ export interface Sale extends BaseContract {
 
   eligibility(overrides?: CallOverrides): Promise<string>;
 
+  isPaused(overrides?: CallOverrides): Promise<boolean>;
+
   minimumPurchaseSTC(overrides?: CallOverrides): Promise<BigNumber>;
 
   owner(overrides?: CallOverrides): Promise<string>;
@@ -369,6 +386,11 @@ export interface Sale extends BaseContract {
 
   setAggregator(
     newAggregator: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setPause(
+    _isPaused: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -411,6 +433,8 @@ export interface Sale extends BaseContract {
 
     eligibility(overrides?: CallOverrides): Promise<string>;
 
+    isPaused(overrides?: CallOverrides): Promise<boolean>;
+
     minimumPurchaseSTC(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<string>;
@@ -434,6 +458,8 @@ export interface Sale extends BaseContract {
       newAggregator: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    setPause(_isPaused: boolean, overrides?: CallOverrides): Promise<void>;
 
     sold(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -494,6 +520,8 @@ export interface Sale extends BaseContract {
 
     eligibility(overrides?: CallOverrides): Promise<BigNumber>;
 
+    isPaused(overrides?: CallOverrides): Promise<BigNumber>;
+
     minimumPurchaseSTC(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
@@ -519,6 +547,11 @@ export interface Sale extends BaseContract {
 
     setAggregator(
       newAggregator: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setPause(
+      _isPaused: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -564,6 +597,8 @@ export interface Sale extends BaseContract {
 
     eligibility(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    isPaused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     minimumPurchaseSTC(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -591,6 +626,11 @@ export interface Sale extends BaseContract {
 
     setAggregator(
       newAggregator: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setPause(
+      _isPaused: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
