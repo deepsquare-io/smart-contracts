@@ -33,8 +33,6 @@ contract Sale is Ownable {
     /// @notice How many DPS tokens were sold during the sale.
     uint256 public sold;
 
-    bool public isPaused;
-
     /**
      * Token purchase event.
      * @param investor The investor address.
@@ -72,7 +70,6 @@ contract Sale is Ownable {
         rate = _rate;
         minimumPurchaseSTC = _minimumPurchaseSTC;
         sold = _initialSold;
-        isPaused = false;
     }
 
     /**
@@ -183,14 +180,13 @@ contract Sale is Ownable {
      * The invested amount will be msg.value.
      */
     function purchaseDPSWithAVAX() external payable {
-        require(!isPaused, "Sale is paused");
         uint256 amountSTC = convertAVAXtoSTC(msg.value);
 
         require(amountSTC >= minimumPurchaseSTC, "Sale: amount lower than minimum");
         uint256 amountDPS = _validate(msg.sender, amountSTC);
 
         // Using .transfer() might cause an out-of-gas revert if using gnosis safe as owner
-        (bool sent, ) = payable(owner()).call{ value: msg.value }(""); // solhint-disable-line avoid-low-level-calls
+        (bool sent, ) = payable(owner()).call{ value: msg.value }("");
         require(sent, "Sale: failed to forward AVAX");
         _transferDPS(msg.sender, amountDPS);
     }
@@ -200,7 +196,6 @@ contract Sale is Ownable {
      * @param amountSTC The amount of stablecoin to invest.
      */
     function purchaseDPSWithSTC(uint256 amountSTC) external {
-        require(!isPaused, "Sale is paused");
         require(amountSTC >= minimumPurchaseSTC, "Sale: amount lower than minimum");
         uint256 amountDPS = _validate(msg.sender, amountSTC);
 
@@ -219,17 +214,10 @@ contract Sale is Ownable {
     }
 
     /**
-     * @notice Pause the sale so that only the owner can deliverDps.
-     */
-    function setPause(bool _isPaused) external onlyOwner {
-        isPaused = _isPaused;
-    }
-
-    /**
      * @notice Close the sale by sending the remaining tokens back to the owner and then renouncing ownership.
      */
     function close() external onlyOwner {
-        DPS.transfer(owner(), DPS.balanceOf(address(this))); // Transfer all the DPS back to the owner
+        _transferDPS(owner(), DPS.balanceOf(address(this))); // Transfer all the DPS back to the owner
         renounceOwnership();
     }
 }
