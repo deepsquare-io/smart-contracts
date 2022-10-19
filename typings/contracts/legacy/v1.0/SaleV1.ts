@@ -9,7 +9,6 @@ import type {
   CallOverrides,
   ContractTransaction,
   Overrides,
-  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -25,30 +24,24 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
-} from "../common";
+} from "../../../common";
 
-export interface SaleInterface extends utils.Interface {
+export interface SaleV1Interface extends utils.Interface {
   functions: {
     "DPS()": FunctionFragment;
     "STC()": FunctionFragment;
-    "aggregator()": FunctionFragment;
     "close()": FunctionFragment;
-    "convertAVAXtoSTC(uint256)": FunctionFragment;
     "convertDPStoSTC(uint256)": FunctionFragment;
     "convertSTCtoDPS(uint256)": FunctionFragment;
     "deliverDPS(uint256,address)": FunctionFragment;
     "eligibility()": FunctionFragment;
-    "isPaused()": FunctionFragment;
     "minimumPurchaseSTC()": FunctionFragment;
     "owner()": FunctionFragment;
-    "purchaseDPSWithAVAX()": FunctionFragment;
-    "purchaseDPSWithSTC(uint256)": FunctionFragment;
+    "purchaseDPS(uint256)": FunctionFragment;
     "raised()": FunctionFragment;
     "rate()": FunctionFragment;
     "remaining()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "setAggregator(address)": FunctionFragment;
-    "setPause(bool)": FunctionFragment;
     "sold()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
@@ -57,39 +50,25 @@ export interface SaleInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "DPS"
       | "STC"
-      | "aggregator"
       | "close"
-      | "convertAVAXtoSTC"
       | "convertDPStoSTC"
       | "convertSTCtoDPS"
       | "deliverDPS"
       | "eligibility"
-      | "isPaused"
       | "minimumPurchaseSTC"
       | "owner"
-      | "purchaseDPSWithAVAX"
-      | "purchaseDPSWithSTC"
+      | "purchaseDPS"
       | "raised"
       | "rate"
       | "remaining"
       | "renounceOwnership"
-      | "setAggregator"
-      | "setPause"
       | "sold"
       | "transferOwnership"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "DPS", values?: undefined): string;
   encodeFunctionData(functionFragment: "STC", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "aggregator",
-    values?: undefined
-  ): string;
   encodeFunctionData(functionFragment: "close", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "convertAVAXtoSTC",
-    values: [BigNumberish]
-  ): string;
   encodeFunctionData(
     functionFragment: "convertDPStoSTC",
     values: [BigNumberish]
@@ -106,18 +85,13 @@ export interface SaleInterface extends utils.Interface {
     functionFragment: "eligibility",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "isPaused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "minimumPurchaseSTC",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "purchaseDPSWithAVAX",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "purchaseDPSWithSTC",
+    functionFragment: "purchaseDPS",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "raised", values?: undefined): string;
@@ -127,11 +101,6 @@ export interface SaleInterface extends utils.Interface {
     functionFragment: "renounceOwnership",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "setAggregator",
-    values: [string]
-  ): string;
-  encodeFunctionData(functionFragment: "setPause", values: [boolean]): string;
   encodeFunctionData(functionFragment: "sold", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
@@ -140,12 +109,7 @@ export interface SaleInterface extends utils.Interface {
 
   decodeFunctionResult(functionFragment: "DPS", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "STC", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "aggregator", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "close", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "convertAVAXtoSTC",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "convertDPStoSTC",
     data: BytesLike
@@ -159,18 +123,13 @@ export interface SaleInterface extends utils.Interface {
     functionFragment: "eligibility",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "isPaused", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "minimumPurchaseSTC",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "purchaseDPSWithAVAX",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "purchaseDPSWithSTC",
+    functionFragment: "purchaseDPS",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "raised", data: BytesLike): Result;
@@ -180,11 +139,6 @@ export interface SaleInterface extends utils.Interface {
     functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "setAggregator",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "setPause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sold", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
@@ -223,12 +177,12 @@ export type PurchaseEvent = TypedEvent<
 
 export type PurchaseEventFilter = TypedEventFilter<PurchaseEvent>;
 
-export interface Sale extends BaseContract {
+export interface SaleV1 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: SaleInterface;
+  interface: SaleV1Interface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -254,16 +208,9 @@ export interface Sale extends BaseContract {
 
     STC(overrides?: CallOverrides): Promise<[string]>;
 
-    aggregator(overrides?: CallOverrides): Promise<[string]>;
-
     close(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    convertAVAXtoSTC(
-      amountAVAX: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
 
     convertDPStoSTC(
       amountDPS: BigNumberish,
@@ -283,17 +230,11 @@ export interface Sale extends BaseContract {
 
     eligibility(overrides?: CallOverrides): Promise<[string]>;
 
-    isPaused(overrides?: CallOverrides): Promise<[boolean]>;
-
     minimumPurchaseSTC(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
-    purchaseDPSWithAVAX(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    purchaseDPSWithSTC(
+    purchaseDPS(
       amountSTC: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -305,16 +246,6 @@ export interface Sale extends BaseContract {
     remaining(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setAggregator(
-      newAggregator: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setPause(
-      _isPaused: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -330,16 +261,9 @@ export interface Sale extends BaseContract {
 
   STC(overrides?: CallOverrides): Promise<string>;
 
-  aggregator(overrides?: CallOverrides): Promise<string>;
-
   close(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  convertAVAXtoSTC(
-    amountAVAX: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
 
   convertDPStoSTC(
     amountDPS: BigNumberish,
@@ -359,17 +283,11 @@ export interface Sale extends BaseContract {
 
   eligibility(overrides?: CallOverrides): Promise<string>;
 
-  isPaused(overrides?: CallOverrides): Promise<boolean>;
-
   minimumPurchaseSTC(overrides?: CallOverrides): Promise<BigNumber>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
-  purchaseDPSWithAVAX(
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  purchaseDPSWithSTC(
+  purchaseDPS(
     amountSTC: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -381,16 +299,6 @@ export interface Sale extends BaseContract {
   remaining(overrides?: CallOverrides): Promise<BigNumber>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setAggregator(
-    newAggregator: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setPause(
-    _isPaused: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -406,14 +314,7 @@ export interface Sale extends BaseContract {
 
     STC(overrides?: CallOverrides): Promise<string>;
 
-    aggregator(overrides?: CallOverrides): Promise<string>;
-
     close(overrides?: CallOverrides): Promise<void>;
-
-    convertAVAXtoSTC(
-      amountAVAX: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     convertDPStoSTC(
       amountDPS: BigNumberish,
@@ -433,15 +334,11 @@ export interface Sale extends BaseContract {
 
     eligibility(overrides?: CallOverrides): Promise<string>;
 
-    isPaused(overrides?: CallOverrides): Promise<boolean>;
-
     minimumPurchaseSTC(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
-    purchaseDPSWithAVAX(overrides?: CallOverrides): Promise<void>;
-
-    purchaseDPSWithSTC(
+    purchaseDPS(
       amountSTC: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -453,13 +350,6 @@ export interface Sale extends BaseContract {
     remaining(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
-    setAggregator(
-      newAggregator: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setPause(_isPaused: boolean, overrides?: CallOverrides): Promise<void>;
 
     sold(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -491,15 +381,8 @@ export interface Sale extends BaseContract {
 
     STC(overrides?: CallOverrides): Promise<BigNumber>;
 
-    aggregator(overrides?: CallOverrides): Promise<BigNumber>;
-
     close(
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    convertAVAXtoSTC(
-      amountAVAX: BigNumberish,
-      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     convertDPStoSTC(
@@ -520,17 +403,11 @@ export interface Sale extends BaseContract {
 
     eligibility(overrides?: CallOverrides): Promise<BigNumber>;
 
-    isPaused(overrides?: CallOverrides): Promise<BigNumber>;
-
     minimumPurchaseSTC(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
-    purchaseDPSWithAVAX(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    purchaseDPSWithSTC(
+    purchaseDPS(
       amountSTC: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -542,16 +419,6 @@ export interface Sale extends BaseContract {
     remaining(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setAggregator(
-      newAggregator: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setPause(
-      _isPaused: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -568,15 +435,8 @@ export interface Sale extends BaseContract {
 
     STC(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    aggregator(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     close(
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    convertAVAXtoSTC(
-      amountAVAX: BigNumberish,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     convertDPStoSTC(
@@ -597,19 +457,13 @@ export interface Sale extends BaseContract {
 
     eligibility(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    isPaused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     minimumPurchaseSTC(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    purchaseDPSWithAVAX(
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    purchaseDPSWithSTC(
+    purchaseDPS(
       amountSTC: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -621,16 +475,6 @@ export interface Sale extends BaseContract {
     remaining(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setAggregator(
-      newAggregator: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setPause(
-      _isPaused: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
