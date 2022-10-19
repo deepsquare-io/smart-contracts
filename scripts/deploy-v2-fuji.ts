@@ -70,7 +70,7 @@ async function main() {
     Aggregator.address,
     40,
     250e6,
-    await mainSale.sold(),
+    0, // await mainSale.sold()
   ]);
 
   // Configuration

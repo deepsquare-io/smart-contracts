@@ -7,7 +7,7 @@ import { ZERO_ADDRESS } from '../lib/constants';
 import waitTx from '../lib/waitTx';
 import { DeepSquare } from '../typings/contracts/DeepSquare';
 import { Eligibility } from '../typings/contracts/Eligibility';
-import { Sale as SaleV2 } from '../typings/contracts/Sale';
+import { Sale as SaleV3 } from '../typings/contracts/Sale';
 import { SpenderSecurity } from '../typings/contracts/SpenderSecurity';
 import { BridgeToken } from '../typings/contracts/vendor/BridgeToken.sol/BridgeToken';
 
@@ -52,7 +52,7 @@ async function main() {
   const Security = await deploy<SpenderSecurity>('SpenderSecurity');
   const DPS = await deploy<DeepSquare>('DeepSquare', [Security.address]);
   const Eligibility = await deploy<Eligibility>('Eligibility');
-  const Sale = await deploy<SaleV2>('Sale', [
+  const Sale = await deploy<SaleV3>('Sale', [
     DPS.address,
     USDC.address,
     Eligibility.address,
