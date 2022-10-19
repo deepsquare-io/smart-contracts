@@ -49,14 +49,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC165__factory>;
     getContractFactory(
-      name: "Advisors",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Advisors__factory>;
-    getContractFactory(
-      name: "CommunityDev",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.CommunityDev__factory>;
-    getContractFactory(
       name: "DeepSquare",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.DeepSquare__factory>;
@@ -77,13 +69,17 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Initializer__factory>;
     getContractFactory(
-      name: "Sale",
+      name: "SaleV1",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Sale__factory>;
+    ): Promise<Contracts.SaleV1__factory>;
     getContractFactory(
       name: "SpenderSecurity",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SpenderSecurity__factory>;
+    getContractFactory(
+      name: "SaleV2",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.SaleV2__factory>;
     getContractFactory(
       name: "LockingSecurity",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -96,18 +92,6 @@ declare module "hardhat/types/runtime" {
       name: "Sale",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Sale__factory>;
-    getContractFactory(
-      name: "Team",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Team__factory>;
-    getContractFactory(
-      name: "Transfer",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Transfer__factory>;
-    getContractFactory(
-      name: "Treasury",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Treasury__factory>;
     getContractFactory(
       name: "BridgeToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -175,16 +159,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IERC165>;
     getContractAt(
-      name: "Advisors",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Advisors>;
-    getContractAt(
-      name: "CommunityDev",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.CommunityDev>;
-    getContractAt(
       name: "DeepSquare",
       address: string,
       signer?: ethers.Signer
@@ -210,15 +184,20 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Initializer>;
     getContractAt(
-      name: "Sale",
+      name: "SaleV1",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.Sale>;
+    ): Promise<Contracts.SaleV1>;
     getContractAt(
       name: "SpenderSecurity",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.SpenderSecurity>;
+    getContractAt(
+      name: "SaleV2",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.SaleV2>;
     getContractAt(
       name: "LockingSecurity",
       address: string,
@@ -234,21 +213,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Sale>;
-    getContractAt(
-      name: "Team",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Team>;
-    getContractAt(
-      name: "Transfer",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Transfer>;
-    getContractAt(
-      name: "Treasury",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Treasury>;
     getContractAt(
       name: "BridgeToken",
       address: string,

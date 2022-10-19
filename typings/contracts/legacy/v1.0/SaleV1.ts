@@ -26,7 +26,7 @@ import type {
   OnEvent,
 } from "../../../common";
 
-export interface SaleInterface extends utils.Interface {
+export interface SaleV1Interface extends utils.Interface {
   functions: {
     "DPS()": FunctionFragment;
     "STC()": FunctionFragment;
@@ -177,12 +177,12 @@ export type PurchaseEvent = TypedEvent<
 
 export type PurchaseEventFilter = TypedEventFilter<PurchaseEvent>;
 
-export interface Sale extends BaseContract {
+export interface SaleV1 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: SaleInterface;
+  interface: SaleV1Interface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,

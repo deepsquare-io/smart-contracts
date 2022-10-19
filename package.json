@@ -22,13 +22,13 @@
   ],
   "funding": "https://deepsquare.io",
   "scripts": {
-    "format": "prettier --write '{**/*,*}.{js,ts,sol,json,yml,yaml,md}'",
+    "format": "prettier --write {**/*,*}.{js,ts,sol,json,yml,yaml,md}",
     "compile": "hardhat compile",
     "test": "hardhat test",
     "test:gas": "HH_REPORT_GAS=true hardhat test",
     "test:coverage": "hardhat coverage",
-    "solhint": "solhint 'contracts/**/*.sol'",
-    "eslint": "eslint '{scripts,test}/**/*.ts'",
+    "solhint": "solhint contracts/**/*.sol",
+    "eslint": "eslint {scripts,test}/**/*.ts",
     "fork:fuji": "hardhat node --fork https://api.avax-test.network/ext/bc/C/rpc"
   },
   "repository": "github:deepsquare-io/smart-contracts",

@@ -434,6 +434,12 @@ describe('Sale', () => {
     });
   });
 
+  describe('pause', () => {
+    it('should revert if caller is not the owner', async () => {
+      await expect(Sale.connect(accounts[0]).setPause(true)).to.be.revertedWith('Ownable: caller is not the owner');
+    });
+  });
+
   describe('close', () => {
     it('should transfer all its DPS to DPS owner and renounce ownership', async () => {
       const remaining = await Sale.remaining();
