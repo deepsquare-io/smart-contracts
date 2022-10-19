@@ -49,8 +49,9 @@ async function main() {
   };
 
   const USDC = await deploy<BridgeToken>('BridgeToken');
-  const Security = await deploy<LockingSecurity>('LockingSecurity');
-  const DPS = await deploy<DeepSquare>('DeepSquare', [Security.address]);
+  const DPS = await deploy<DeepSquare>('DeepSquare', [ZERO_ADDRESS]);
+  const Security = await deploy<LockingSecurity>('LockingSecurity', [DPS.address]);
+  await waitTx(DPS.setSecurity(Security.address));
   const Eligibility = await deploy<Eligibility>('Eligibility');
   const Sale = await deploy<SaleV3>('Sale', [
     DPS.address,
