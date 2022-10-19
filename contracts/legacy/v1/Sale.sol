@@ -10,7 +10,7 @@ import "../../Eligibility.sol";
  * @author Mathieu Bour, Julien Schneider, Charly Mancel, Valentin Pollart and Clarisse Tarrou for the DeepSquare Association.
  * @notice Conduct a token sale in exchange for a stablecoin (STC), e.g. USDC.
  */
-contract Sale is Ownable {
+contract SaleV1 is Ownable {
     /// @notice The DPS token contract being sold. It must have an owner() function in order to let the sale be closed.
     IERC20Metadata public immutable DPS;
 
