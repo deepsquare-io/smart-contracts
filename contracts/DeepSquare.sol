@@ -20,7 +20,8 @@ contract DeepSquare is ERC20, Ownable {
      */
     constructor(ISecurity initialSecurity) ERC20("DeepSquare", "DPS") {
         security = initialSecurity;
-        _mint(msg.sender, 210e6 * 1e18); // 210,000,000 wei = 210 millions token with 18 decimals
+        _mint(msg.sender, 210e6 * 1e18);
+        // 210,000,000 wei = 210 millions token with 18 decimals
     }
 
     /**

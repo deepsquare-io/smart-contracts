@@ -22,7 +22,7 @@ contract ReferralProgram is Ownable {
         require(recipients.length == amounts.length, "ReferralProgram: arguments size mismatch");
 
         for (uint256 i = 0; i < recipients.length; i++) {
-            require(DPS.transfer(recipients[i], amounts[i]));
+            require(DPS.transfer(recipients[i], amounts[i]), "ReferralProgram: DPS transfer failed");
         }
 
         return true;

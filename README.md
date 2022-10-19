@@ -64,6 +64,11 @@ The [Sale.sol](contracts/Sale.sol) contract allows to conduct the DPS private sa
 
 ![Sale process diagram](https://mermaid.ink/img/pako:eNqtVE1v2zAM_SuETxuajzbrDvOh2JAWWzZgG5phw4BcZImJhciSK1EpgqL_vZTlfKzpDgNmGJYgPz6-R9J-KKRTWJRFwLuIVuK1FisvmoUFvlrhSUvdCkswAxFgZjcYyPnT13NhMCG6VTpLXkg6hX3jY4MvhKOMXtO2o9jtDzQ5wGi77hKU3XMUnAFn4aOmT7GC91ATtaEcj1ea6liNpGvGCrENd1F4HGo3royTa1kLbdO2Gjdpt8sSxjvS42y9lnK_-_9Zj4iT05zdoyTwq-rVZHI-gMnbCT_eXLzOL9M1G15dneVylnCbuhcItEJLqXQbYbQSpJ09RHx1hOA26GE22AV--T0FHYAVeI40W6iFVQYVVFv4HBvtYOp863xHNTpw5XiWMDxU6BcvGIBq7Gg9hmj6EUCrTo1dvEueLpO7y2fGcpM_GOPugVweKl65YjYs2UDNmgOJyqB0-i8WM8ePBOV7bd29TdO1KDpawbO-KEDbTu_N7XQ4OU-UVgmvRn-o_gfdZ71wImxaCklzFbdw_X1-wCVIB90XblqjXINespr8eXEXwq6F3IvOQt_ZI54-fth1QeQxoOhtbkEMXIXUB9LoX6pQDvnZZ8lBAY15pjSxz9L4W5UxezN8UgyKBj0PtOJfyEM6XhSMabi0JW8VLkWagWJhHxka25TpRmm2WJRLYQIOChHJzbdWFiX5iDtQ_xvqUY9PPoWHCQ)
 
+## Vesting schedule
+
+The DPS vesting schedule is controlled by restricting the DPS transfers to the Bridge.
+This is equivalent to force the account to keep a minimum DPS balance.
+
 ## References
 
 - [DeepSquare whitepaper](https://github.com/deepsquare-io/Whitepaper/releases/latest/download/DeepSquare-WhitePaper.pdf)

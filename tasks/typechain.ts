@@ -1,7 +1,7 @@
-import { task } from 'hardhat/config';
+import { subtask } from 'hardhat/config';
 import { sync as rimraf } from 'rimraf';
 
-task('typechain', 'Generate Typechain typings for compiled contracts', async (taskArgs, hre, runSuper) => {
+subtask('typechain:generate-types', async (taskArgs, hre, runSuper) => {
   await runSuper(taskArgs);
 
   if (hre.config.typechain.outDir) {

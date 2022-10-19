@@ -7,8 +7,8 @@ import { ZERO_ADDRESS } from '../lib/constants';
 import waitTx from '../lib/waitTx';
 import { DeepSquare } from '../typings/contracts/DeepSquare';
 import { Eligibility } from '../typings/contracts/Eligibility';
+import { LockingSecurity } from '../typings/contracts/LockingSecurity';
 import { Sale as SaleV3 } from '../typings/contracts/Sale';
-import { SpenderSecurity } from '../typings/contracts/SpenderSecurity';
 import { BridgeToken } from '../typings/contracts/vendor/BridgeToken.sol/BridgeToken';
 
 async function deploy<T extends BaseContract>(name: string, args: unknown[] = []): Promise<T> {
@@ -49,7 +49,7 @@ async function main() {
   };
 
   const USDC = await deploy<BridgeToken>('BridgeToken');
-  const Security = await deploy<SpenderSecurity>('SpenderSecurity');
+  const Security = await deploy<LockingSecurity>('LockingSecurity');
   const DPS = await deploy<DeepSquare>('DeepSquare', [Security.address]);
   const Eligibility = await deploy<Eligibility>('Eligibility');
   const Sale = await deploy<SaleV3>('Sale', [

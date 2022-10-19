@@ -12,7 +12,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: '0.8.9',
+        version: '0.8.13',
         settings: {
           optimizer: {
             enabled: true,
@@ -23,9 +23,10 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      chainId: 31337,
+      chainId: 1337,
       forking: {
-        url: 'https://api.avax.network/ext/bc/C/rpc',
+        // url: 'https://api.avax.network/ext/bc/C/rpc',
+        url: 'https://api.avax-test.network/ext/bc/C/rpc',
       },
       gas: 8000000,
     },
