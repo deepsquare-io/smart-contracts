@@ -53,6 +53,7 @@ async function main() {
   const Security = await deploy<LockingSecurity>('LockingSecurity', [DPS.address]);
   await waitTx(DPS.setSecurity(Security.address));
   const Eligibility = await deploy<Eligibility>('Eligibility');
+  await waitTx(Eligibility.grantRole(await Eligibility.WRITER(), '0xCAFE0e6ac3384cb18344e57710B61F26654Dd347'));
   const Sale = await deploy<SaleV3>('Sale', [
     DPS.address,
     USDC.address,
@@ -62,7 +63,7 @@ async function main() {
     250e6,
     0,
   ]);
-
+  await waitTx(Security.grantRole(await Security.SALE(), Sale.address));
   // Configuration
   await waitTx(DPS.transfer(Sale.address, parseUnits('100000')));
   await waitTx(USDC.mint(deployer.address, BigNumber.from(100).mul(1e9).mul(1e6), ZERO_ADDRESS, 0, id('0000'))); // $100bn
