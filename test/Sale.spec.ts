@@ -37,7 +37,7 @@ describe('Sale', () => {
 
   async function setupAccount(
     account: SignerWithAddress,
-    config: Partial<{ balanceSTC: number; approved: number; tier: number }>,
+    config: Partial<{ balanceSTC: number; approved: number; }>,
   ) {
     if (config.balanceSTC && config.balanceSTC > 0) {
       await agentSTC.transfer(account, config.balanceSTC);
@@ -256,25 +256,6 @@ describe('Sale', () => {
       await Sale.setPause(true);
       await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(1000))).to.be.revertedWith(
         'Sale is paused',
-      );
-    });
-
-    it('should revert if investor tries to buy more tokens than its tier in a single transaction', async () => {
-      await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000 });
-
-      // tier 1 is 15k STC
-      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(16000))).to.be.revertedWith(
-        'Sale: exceeds tier limit',
-      );
-    });
-
-    it('should revert if investor tries to buy more tokens than its tier in multiple transactions', async () => {
-      await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000 });
-
-      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(8000))).to.not.be.reverted;
-      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(7000))).to.not.be.reverted;
-      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(1000))).to.be.revertedWith(
-        'Sale: exceeds tier limit',
       );
     });
 
