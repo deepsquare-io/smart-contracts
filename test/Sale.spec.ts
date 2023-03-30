@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import { randomBytes } from 'crypto';
 import { deployMockContract, MockContract } from 'ethereum-waffle';
 import { ethers } from 'hardhat';
 import { describe } from 'mocha';
@@ -35,10 +34,7 @@ describe('Sale', () => {
   const INITIAL_ROUND = parseUnits('7000000', 18); // 7M DPS
   let MINIMUM_PURCHASE_STC: BigNumber; // $250
 
-  async function setupAccount(
-    account: SignerWithAddress,
-    config: Partial<{ balanceSTC: number; approved: number; }>,
-  ) {
+  async function setupAccount(account: SignerWithAddress, config: Partial<{ balanceSTC: number; approved: number }>) {
     if (config.balanceSTC && config.balanceSTC > 0) {
       await agentSTC.transfer(account, config.balanceSTC);
     }
