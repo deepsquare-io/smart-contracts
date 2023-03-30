@@ -18,9 +18,6 @@ contract Sale is Ownable {
     /// @notice The stablecoin ERC20 contract.
     IERC20Metadata public immutable STC;
 
-    // @notice The eligibility contract.
-    IEligibility public immutable eligibility;
-
     /// @notice The Chainlink AVAX/USD pair aggregator.
     AggregatorV3Interface public aggregator;
 
@@ -45,7 +42,6 @@ contract Sale is Ownable {
     /**
      * @param _DPS The DPS contract address.
      * @param _STC The ERC20 stablecoin contract address (e.g, USDT, USDC, etc.).
-     * @param _eligibility The eligibility contract.
      * @param _aggregator The Chainlink AVAX/USD pair aggregator contract address.
      * @param _rate The DPS/STC rate in STC cents.
      * @param _initialSold How many DPS tokens were already sold.
@@ -53,7 +49,6 @@ contract Sale is Ownable {
     constructor(
         IERC20Metadata _DPS,
         IERC20Metadata _STC,
-        Eligibility _eligibility,
         AggregatorV3Interface _aggregator,
         uint8 _rate,
         uint256 _minimumPurchaseSTC,
@@ -61,13 +56,11 @@ contract Sale is Ownable {
     ) {
         require(address(_DPS) != address(0), "Sale: token is zero");
         require(address(_STC) != address(0), "Sale: stablecoin is zero");
-        require(address(_eligibility) != address(0), "Sale: eligibility is zero");
         require(address(_aggregator) != address(0), "Sale: aggregator is zero");
         require(_rate > 0, "Sale: rate is not positive");
 
         DPS = _DPS;
         STC = _STC;
-        eligibility = _eligibility;
         aggregator = _aggregator;
         rate = _rate;
         minimumPurchaseSTC = _minimumPurchaseSTC;
@@ -145,18 +138,6 @@ contract Sale is Ownable {
      */
     function _validate(address account, uint256 amountSTC) internal returns (uint256) {
         require(account != owner(), "Sale: investor is the sale owner");
-
-        (uint8 tier, uint256 limit) = eligibility.lookup(account);
-
-        require(tier > 0, "Sale: account is not eligible");
-
-        uint256 investmentSTC = convertDPStoSTC(DPS.balanceOf(account)) + amountSTC;
-        uint256 limitSTC = limit * (10**STC.decimals());
-
-        if (limitSTC != 0) {
-            // zero limit means that the tier has no restrictions
-            require(investmentSTC <= limitSTC, "Sale: exceeds tier limit");
-        }
 
         uint256 amountDPS = convertSTCtoDPS(amountSTC);
         require(DPS.balanceOf(address(this)) >= amountDPS, "Sale: no enough tokens remaining");

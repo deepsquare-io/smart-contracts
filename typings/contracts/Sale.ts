@@ -37,7 +37,6 @@ export interface SaleInterface extends utils.Interface {
     "convertDPStoSTC(uint256)": FunctionFragment;
     "convertSTCtoDPS(uint256)": FunctionFragment;
     "deliverDPS(uint256,address)": FunctionFragment;
-    "eligibility()": FunctionFragment;
     "isPaused()": FunctionFragment;
     "minimumPurchaseSTC()": FunctionFragment;
     "owner()": FunctionFragment;
@@ -63,7 +62,6 @@ export interface SaleInterface extends utils.Interface {
       | "convertDPStoSTC"
       | "convertSTCtoDPS"
       | "deliverDPS"
-      | "eligibility"
       | "isPaused"
       | "minimumPurchaseSTC"
       | "owner"
@@ -101,10 +99,6 @@ export interface SaleInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "deliverDPS",
     values: [BigNumberish, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "eligibility",
-    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "isPaused", values?: undefined): string;
   encodeFunctionData(
@@ -155,10 +149,6 @@ export interface SaleInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "deliverDPS", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "eligibility",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "isPaused", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "minimumPurchaseSTC",
@@ -281,8 +271,6 @@ export interface Sale extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    eligibility(overrides?: CallOverrides): Promise<[string]>;
-
     isPaused(overrides?: CallOverrides): Promise<[boolean]>;
 
     minimumPurchaseSTC(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -357,8 +345,6 @@ export interface Sale extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  eligibility(overrides?: CallOverrides): Promise<string>;
-
   isPaused(overrides?: CallOverrides): Promise<boolean>;
 
   minimumPurchaseSTC(overrides?: CallOverrides): Promise<BigNumber>;
@@ -430,8 +416,6 @@ export interface Sale extends BaseContract {
       account: string,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    eligibility(overrides?: CallOverrides): Promise<string>;
 
     isPaused(overrides?: CallOverrides): Promise<boolean>;
 
@@ -518,8 +502,6 @@ export interface Sale extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    eligibility(overrides?: CallOverrides): Promise<BigNumber>;
-
     isPaused(overrides?: CallOverrides): Promise<BigNumber>;
 
     minimumPurchaseSTC(overrides?: CallOverrides): Promise<BigNumber>;
@@ -594,8 +576,6 @@ export interface Sale extends BaseContract {
       account: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    eligibility(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     isPaused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

@@ -69,6 +69,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Initializer__factory>;
     getContractFactory(
+      name: "Sale",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Sale__factory>;
+    getContractFactory(
       name: "SaleV1",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SaleV1__factory>;
@@ -80,6 +84,10 @@ declare module "hardhat/types/runtime" {
       name: "SaleV2",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SaleV2__factory>;
+    getContractFactory(
+      name: "Sale",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Sale__factory>;
     getContractFactory(
       name: "LockingSecurity",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -184,6 +192,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Initializer>;
     getContractAt(
+      name: "Sale",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Sale>;
+    getContractAt(
       name: "SaleV1",
       address: string,
       signer?: ethers.Signer
@@ -198,6 +211,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.SaleV2>;
+    getContractAt(
+      name: "Sale",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Sale>;
     getContractAt(
       name: "LockingSecurity",
       address: string,
