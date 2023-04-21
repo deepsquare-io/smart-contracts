@@ -79,7 +79,6 @@ describe('Sale', () => {
     Sale = await new Sale__factory(owner).deploy(
       DPS.address,
       STC.address,
-      Eligibility.address,
       MockAggregator.address,
       40,
       MINIMUM_PURCHASE_STC,
@@ -94,71 +93,25 @@ describe('Sale', () => {
   describe('constructor', () => {
     it('should revert if the DPS contract is the zero address', async () => {
       await expect(
-        new Sale__factory(owner).deploy(
-          ZERO_ADDRESS,
-          STC.address,
-          Eligibility.address,
-          MockAggregator.address,
-          40,
-          MINIMUM_PURCHASE_STC,
-          0,
-        ),
+        new Sale__factory(owner).deploy(ZERO_ADDRESS, STC.address, MockAggregator.address, 40, MINIMUM_PURCHASE_STC, 0),
       ).to.be.revertedWith('Sale: token is zero');
     });
 
     it('should revert if the stable coin contract is the zero address', async () => {
       await expect(
-        new Sale__factory(owner).deploy(
-          DPS.address,
-          ZERO_ADDRESS,
-          Eligibility.address,
-          MockAggregator.address,
-          40,
-          MINIMUM_PURCHASE_STC,
-          0,
-        ),
+        new Sale__factory(owner).deploy(DPS.address, ZERO_ADDRESS, MockAggregator.address, 40, MINIMUM_PURCHASE_STC, 0),
       ).to.be.revertedWith('Sale: stablecoin is zero');
-    });
-
-    it('should revert if the eligibility contract is the zero address', async () => {
-      await expect(
-        new Sale__factory(owner).deploy(
-          DPS.address,
-          STC.address,
-          ZERO_ADDRESS,
-          MockAggregator.address,
-          40,
-          MINIMUM_PURCHASE_STC,
-          0,
-        ),
-      ).to.be.revertedWith('Sale: eligibility is zero');
     });
 
     it('should revert if the aggregator contract is the zero address', async () => {
       await expect(
-        new Sale__factory(owner).deploy(
-          DPS.address,
-          STC.address,
-          Eligibility.address,
-          ZERO_ADDRESS,
-          40,
-          MINIMUM_PURCHASE_STC,
-          0,
-        ),
+        new Sale__factory(owner).deploy(DPS.address, STC.address, ZERO_ADDRESS, 40, MINIMUM_PURCHASE_STC, 0),
       ).to.be.revertedWith('Sale: aggregator is zero');
     });
 
     it('should revert if the rate is not greater than zero', async () => {
       await expect(
-        new Sale__factory(owner).deploy(
-          DPS.address,
-          STC.address,
-          Eligibility.address,
-          MockAggregator.address,
-          0,
-          MINIMUM_PURCHASE_STC,
-          0,
-        ),
+        new Sale__factory(owner).deploy(DPS.address, STC.address, MockAggregator.address, 0, MINIMUM_PURCHASE_STC, 0),
       ).to.be.revertedWith('Sale: rate is not positive');
     });
   });

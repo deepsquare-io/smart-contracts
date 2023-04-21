@@ -53,10 +53,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.DeepSquare__factory>;
     getContractFactory(
-      name: "Eligibility",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Eligibility__factory>;
-    getContractFactory(
       name: "IEligibility",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IEligibility__factory>;
@@ -167,11 +163,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.DeepSquare>;
-    getContractAt(
-      name: "Eligibility",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Eligibility>;
     getContractAt(
       name: "IEligibility",
       address: string,
