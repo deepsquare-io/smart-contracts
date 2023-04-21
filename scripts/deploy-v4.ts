@@ -81,7 +81,6 @@ async function main() {
   const SaleArgs = [
     DeepSquare.address,
     addresses.USDC[networkName],
-    addresses.Eligibility[networkName],
     addresses.AggregatorV3[networkName],
     saleRate,
     minimumPurchaseStc,

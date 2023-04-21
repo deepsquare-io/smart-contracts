@@ -6,17 +6,14 @@ import { describe } from 'mocha';
 import { BigNumber } from '@ethersproject/bignumber';
 import { Contract } from '@ethersproject/contracts';
 import { id } from '@ethersproject/hash';
-import { keccak256 } from '@ethersproject/keccak256';
 import { parseEther, parseUnits } from '@ethersproject/units';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ZERO_ADDRESS } from '../lib/constants';
 import { DeepSquare } from '../typings/contracts/DeepSquare';
 import { Sale } from '../typings/contracts/Sale';
 import { SpenderSecurity } from '../typings/contracts/SpenderSecurity';
-import { Eligibility } from '../typings/contracts/legacy/v1.2/Eligibility';
 import { BridgeToken } from '../typings/contracts/vendor/BridgeToken.sol/BridgeToken';
 import { AggregatorV3Interface__factory } from '../typings/factories/@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface__factory';
-import { Eligibility__factory } from '../typings/factories/contracts/Eligibility__factory';
 import { Sale__factory } from '../typings/factories/contracts/Sale__factory';
 import { BridgeToken__factory } from '../typings/factories/contracts/vendor/BridgeToken.sol/BridgeToken__factory';
 import { createERC20Agent, ERC20Agent } from './testing/ERC20Agent';
@@ -28,7 +25,6 @@ describe('Sale', () => {
   let DPS: DeepSquare;
   let STC: BridgeToken;
   let Security: SpenderSecurity;
-  let Eligibility: Eligibility;
   let MockAggregator: MockContract;
   let Sale: Sale;
 
@@ -50,14 +46,6 @@ describe('Sale', () => {
     if (config.approved && config.approved > 0) {
       await STC.connect(account).approve(Sale.address, agentSTC.unit(config.approved));
     }
-
-    if (config.tier && config.tier > 0) {
-      await Eligibility.setResult(account.address, {
-        tier: config.tier,
-        validator: 'Jumio Corporation',
-        transactionId: keccak256(randomBytes(16)),
-      });
-    }
   }
 
   beforeEach(async () => {
@@ -69,8 +57,6 @@ describe('Sale', () => {
     await (STC as unknown as Contract).mint(owner.address, agentSTC.unit(1e9), ZERO_ADDRESS, 0, id('genesis'));
 
     MINIMUM_PURCHASE_STC = agentSTC.unit(250);
-
-    Eligibility = await new Eligibility__factory(owner).deploy();
 
     MockAggregator = await deployMockContract(owner, AggregatorV3Interface__factory.abi);
     await MockAggregator.mock.latestRoundData.returns(314, parseUnits('100', 8), 314, 314, 314); // Default mock rate value (1 AVAX <=> 100 USD)
@@ -237,15 +223,6 @@ describe('Sale', () => {
         'Sale is paused',
       );
     });
-
-    it('should revert if investor is not eligible', async () => {
-      await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 0 });
-      await ethers.provider.send('hardhat_setBalance', [accounts[0].address, parseUnits('2000', 18).toHexString()]);
-
-      await expect(Sale.connect(accounts[0]).purchaseDPSWithAVAX({ value: parseUnits('1000', 18) })).to.be.revertedWith(
-        'Sale: account is not eligible',
-      );
-    });
   });
 
   describe('purchaseDPSWithSTC', () => {
@@ -279,14 +256,6 @@ describe('Sale', () => {
       await Sale.setPause(true);
       await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(1000))).to.be.revertedWith(
         'Sale is paused',
-      );
-    });
-
-    it('should revert if investor is not eligible', async () => {
-      await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 0 });
-
-      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(1000))).to.be.revertedWith(
-        'Sale: account is not eligible',
       );
     });
 
@@ -352,12 +321,6 @@ describe('Sale', () => {
       await setupAccount(owner, { tier: 1 });
       await expect(Sale.deliverDPS(agentSTC.unit(1000), owner.address)).to.be.revertedWith(
         'Sale: investor is the sale owner',
-      );
-    });
-
-    it('should revert if beneficiary is not eligible', async () => {
-      await expect(Sale.deliverDPS(agentSTC.unit(1000), accounts[0].address)).to.be.revertedWith(
-        'Sale: account is not eligible',
       );
     });
 

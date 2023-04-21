@@ -130,12 +130,11 @@ contract Sale is Ownable {
      * @notice Validate that the account is allowed to buy DPS.
      * @dev Requirements:
      * - the account is not the sale owner.
-     * - the account is eligible.
      * @param account The account to check that should receive the DPS.
      * @param amountSTC The amount of stablecoin that will be used to purchase DPS.
      * @return The amount of DPS that should be transferred.
      */
-    function _validate(address account, uint256 amountSTC) internal returns (uint256) {
+    function _validate(address account, uint256 amountSTC) internal view returns (uint256) {
         require(account != owner(), "Sale: investor is the sale owner");
 
         uint256 amountDPS = convertSTCtoDPS(amountSTC);
