@@ -1,8 +1,10 @@
 import { ethers, network, run } from 'hardhat';
 import { parseEther } from '@ethersproject/units';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import waitTx from '../lib/waitTx';
 import { DeepSquare__factory } from '../typings/factories/contracts/DeepSquare__factory';
 import { Sale__factory } from '../typings/factories/contracts/Sale__factory';
+import { SaleV3__factory } from '../typings/factories/contracts/legacy/v1.2/SaleV3__factory';
 
 type NetworkName = 'hardhat' | 'mainnet' | 'fuji';
 type ContractName = 'USDC' | 'DeepSquare' | 'Eligibility' | 'PreviousSale' | 'Sale' | 'AggregatorV3' | 'Security';
@@ -11,17 +13,17 @@ const addresses: Record<ContractName, Record<NetworkName, string>> = {
   USDC: {
     hardhat: '0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e',
     mainnet: '0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e', //Centre: USD Coin or USDC
-    fuji: '0x40479524A1D4E8E160CB24B5D466e2a336327331',
+    fuji: '0x868cB9ab1436b071c32C68f0125c54c1eF21b11d',
   },
   DeepSquare: {
     hardhat: '0xf192cae2e7cd4048bea307368015e3647c49338e',
     mainnet: '0xf192cae2e7cd4048bea307368015e3647c49338e',
-    fuji: '0x7E8Ab41d9Fd280AAac0643d011E6241F6e540497',
+    fuji: '0xEeA08029DCcEBAe971039F4B4b2064D466baC2e5',
   },
   Eligibility: {
     hardhat: '0x52088e60AfB56E83cA0B6340B49F709e57973869',
     mainnet: '0x52088e60AfB56E83cA0B6340B49F709e57973869',
-    fuji: '0x64f8dE5BE4403E30e58394D3337d547F59be5035',
+    fuji: '0x3bFB1294843B91139e66D5919102a79e6C9701ee',
   },
   PreviousSale: {
     hardhat: '0x8c94e12C2d05b2060DF9D9732980bca363F3F58a',
@@ -31,7 +33,7 @@ const addresses: Record<ContractName, Record<NetworkName, string>> = {
   Sale: {
     hardhat: '0x8c94e12C2d05b2060DF9D9732980bca363F3F58a',
     mainnet: '0x8c94e12C2d05b2060DF9D9732980bca363F3F58a',
-    fuji: '0x5f4E48bDC794E9bcEAd4A47D766C2Db3973Ba2C3',
+    fuji: '0xE425D49F421C949F5BE93eE87baEcB607d241dF2',
   },
   AggregatorV3: {
     hardhat: '0x0A77230d17318075983913bC2145DB16C7366156',
@@ -73,7 +75,7 @@ async function main() {
   }
 
   const SaleFactory = new Sale__factory(deployer);
-  const saleRate = 60;
+  const saleRate = 70;
   const minimumPurchaseStc = 250e6;
   const initialSold = 0;
   const SaleArgs = [
@@ -95,7 +97,15 @@ async function main() {
     });
   }
 
-  await Sale.transferOwnership(gnosisAddress);
+  if (networkName === 'fuji') {
+    const previousSale = new SaleV3__factory().attach(addresses.Sale[networkName]);
+
+    await waitTx(DeepSquare.transfer(Sale.address, await DeepSquare.balanceOf(previousSale.address)));
+  }
+
+  await waitTx(Sale.setPause(true));
+
+  await waitTx(Sale.transferOwnership(gnosisAddress));
 
   console.debug('Sale:', Sale.address);
   console.debug('Sale.owner()', await Sale.owner());

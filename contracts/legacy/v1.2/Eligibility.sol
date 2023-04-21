@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
-import "./interfaces/IEligibility.sol";
+import "../../interfaces/IEligibility.sol";
 
 struct Result {
     uint8 tier; // The KYC tier.
