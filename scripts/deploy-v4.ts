@@ -26,14 +26,14 @@ const addresses: Record<ContractName, Record<NetworkName, string>> = {
     fuji: '0x3bFB1294843B91139e66D5919102a79e6C9701ee',
   },
   PreviousSale: {
-    hardhat: '0x8c94e12C2d05b2060DF9D9732980bca363F3F58a',
-    mainnet: '0x8c94e12C2d05b2060DF9D9732980bca363F3F58a',
-    fuji: '',
+    hardhat: '0x7e9Bd615749345b93102E90fFFf732A771e84133',
+    mainnet: '0x7e9Bd615749345b93102E90fFFf732A771e84133',
+    fuji: '0x56F09eA30a42351184fC74450aa47860e74488c4',
   },
   Sale: {
-    hardhat: '0x8c94e12C2d05b2060DF9D9732980bca363F3F58a',
-    mainnet: '0x8c94e12C2d05b2060DF9D9732980bca363F3F58a',
-    fuji: '0xE425D49F421C949F5BE93eE87baEcB607d241dF2',
+    hardhat: '0x797E041F1CD40701D4c7421eCbd7F0e4a3F78344',
+    mainnet: '0x797E041F1CD40701D4c7421eCbd7F0e4a3F78344',
+    fuji: '0x56F09eA30a42351184fC74450aa47860e74488c4',
   },
   AggregatorV3: {
     hardhat: '0x0A77230d17318075983913bC2145DB16C7366156',
