@@ -73,17 +73,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SaleV1__factory>;
     getContractFactory(
-      name: "SpenderSecurity",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.SpenderSecurity__factory>;
-    getContractFactory(
       name: "SaleV2",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.SaleV2__factory>;
-    getContractFactory(
-      name: "LockingSecurity",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.LockingSecurity__factory>;
     getContractFactory(
       name: "ReferralProgram",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -92,6 +84,10 @@ declare module "hardhat/types/runtime" {
       name: "Sale",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Sale__factory>;
+    getContractFactory(
+      name: "SpenderSecurity",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.SpenderSecurity__factory>;
     getContractFactory(
       name: "BridgeToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -189,20 +185,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.SaleV1>;
     getContractAt(
-      name: "SpenderSecurity",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.SpenderSecurity>;
-    getContractAt(
       name: "SaleV2",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.SaleV2>;
-    getContractAt(
-      name: "LockingSecurity",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.LockingSecurity>;
     getContractAt(
       name: "ReferralProgram",
       address: string,
@@ -213,6 +199,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Sale>;
+    getContractAt(
+      name: "SpenderSecurity",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.SpenderSecurity>;
     getContractAt(
       name: "BridgeToken",
       address: string,

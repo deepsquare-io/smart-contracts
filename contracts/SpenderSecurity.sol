@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "../../interfaces/ISecurity.sol";
+import "./interfaces/ISecurity.sol";
 
 /**
  * @title SpenderSecurity
