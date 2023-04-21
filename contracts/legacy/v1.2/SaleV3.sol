@@ -4,14 +4,14 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import "../v1.2/Eligibility.sol";
+import "./Eligibility.sol";
 
 /**
  * @title Token sale.
  * @author Mathieu Bour, Julien Schneider, Charly Mancel, Valentin Pollart and Clarisse Tarrou for the DeepSquare Association.
  * @notice Conduct a token sale in exchange for a stablecoin (STC), e.g. USDC.
  */
-contract SaleV2 is Ownable {
+contract SaleV3 is Ownable {
     /// @notice The DPS token contract being sold. It must have an owner() function in order to let the sale be closed.
     IERC20Metadata public immutable DPS;
 
@@ -32,6 +32,8 @@ contract SaleV2 is Ownable {
 
     /// @notice How many DPS tokens were sold during the sale.
     uint256 public sold;
+
+    bool public isPaused;
 
     /**
      * Token purchase event.
@@ -70,6 +72,7 @@ contract SaleV2 is Ownable {
         rate = _rate;
         minimumPurchaseSTC = _minimumPurchaseSTC;
         sold = _initialSold;
+        isPaused = false;
     }
 
     /**
@@ -180,13 +183,14 @@ contract SaleV2 is Ownable {
      * The invested amount will be msg.value.
      */
     function purchaseDPSWithAVAX() external payable {
+        require(!isPaused, "Sale is paused");
         uint256 amountSTC = convertAVAXtoSTC(msg.value);
 
         require(amountSTC >= minimumPurchaseSTC, "Sale: amount lower than minimum");
         uint256 amountDPS = _validate(msg.sender, amountSTC);
 
         // Using .transfer() might cause an out-of-gas revert if using gnosis safe as owner
-        (bool sent, ) = payable(owner()).call{ value: msg.value }("");
+        (bool sent, ) = payable(owner()).call{ value: msg.value }(""); // solhint-disable-line avoid-low-level-calls
         require(sent, "Sale: failed to forward AVAX");
         _transferDPS(msg.sender, amountDPS);
     }
@@ -196,6 +200,7 @@ contract SaleV2 is Ownable {
      * @param amountSTC The amount of stablecoin to invest.
      */
     function purchaseDPSWithSTC(uint256 amountSTC) external {
+        require(!isPaused, "Sale is paused");
         require(amountSTC >= minimumPurchaseSTC, "Sale: amount lower than minimum");
         uint256 amountDPS = _validate(msg.sender, amountSTC);
 
@@ -214,10 +219,17 @@ contract SaleV2 is Ownable {
     }
 
     /**
+     * @notice Pause the sale so that only the owner can deliverDps.
+     */
+    function setPause(bool _isPaused) external onlyOwner {
+        isPaused = _isPaused;
+    }
+
+    /**
      * @notice Close the sale by sending the remaining tokens back to the owner and then renouncing ownership.
      */
     function close() external onlyOwner {
-        _transferDPS(owner(), DPS.balanceOf(address(this))); // Transfer all the DPS back to the owner
+        DPS.transfer(owner(), DPS.balanceOf(address(this))); // Transfer all the DPS back to the owner
         renounceOwnership();
     }
 }
