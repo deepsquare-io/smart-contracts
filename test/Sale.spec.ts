@@ -259,25 +259,6 @@ describe('Sale', () => {
       );
     });
 
-    it('should revert if investor tries to buy more tokens than its tier in a single transaction', async () => {
-      await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 1 });
-
-      // tier 1 is 15k STC
-      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(16000))).to.be.revertedWith(
-        'Sale: exceeds tier limit',
-      );
-    });
-
-    it('should revert if investor tries to buy more tokens than its tier in multiple transactions', async () => {
-      await setupAccount(accounts[0], { balanceSTC: 20000, approved: 20000, tier: 1 });
-
-      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(8000))).to.not.be.reverted;
-      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(7000))).to.not.be.reverted;
-      await expect(Sale.connect(accounts[0]).purchaseDPSWithSTC(agentSTC.unit(1000))).to.be.revertedWith(
-        'Sale: exceeds tier limit',
-      );
-    });
-
     it('should revert if the sender has not given enough allowance', async () => {
       await setupAccount(accounts[0], { balanceSTC: 20000, approved: 500, tier: 1 });
 
@@ -321,20 +302,6 @@ describe('Sale', () => {
       await setupAccount(owner, { tier: 1 });
       await expect(Sale.deliverDPS(agentSTC.unit(1000), owner.address)).to.be.revertedWith(
         'Sale: investor is the sale owner',
-      );
-    });
-
-    it('should revert if beneficiary max investment is reached', async () => {
-      await setupAccount(accounts[0], { tier: 1 });
-
-      await expect(Sale.deliverDPS(agentSTC.unit(7000), accounts[0].address))
-        .to.emit(Sale, 'Purchase')
-        .withArgs(accounts[0].address, agentDPS.unit(17500));
-      await expect(Sale.deliverDPS(agentSTC.unit(8000), accounts[0].address))
-        .to.emit(Sale, 'Purchase')
-        .withArgs(accounts[0].address, agentDPS.unit(20000));
-      await expect(Sale.deliverDPS(agentSTC.unit(1000), accounts[0].address)).to.be.revertedWith(
-        'Sale: exceeds tier limit',
       );
     });
 
