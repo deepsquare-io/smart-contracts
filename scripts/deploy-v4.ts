@@ -28,12 +28,12 @@ const addresses: Record<ContractName, Record<NetworkName, string>> = {
   PreviousSale: {
     hardhat: '0x8c94e12C2d05b2060DF9D9732980bca363F3F58a',
     mainnet: '0x8c94e12C2d05b2060DF9D9732980bca363F3F58a',
-    fuji: '',
+    fuji: '0x56F09eA30a42351184fC74450aa47860e74488c4',
   },
   Sale: {
     hardhat: '0x8c94e12C2d05b2060DF9D9732980bca363F3F58a',
     mainnet: '0x8c94e12C2d05b2060DF9D9732980bca363F3F58a',
-    fuji: '0xE425D49F421C949F5BE93eE87baEcB607d241dF2',
+    fuji: '0x721Ae05A95E1Ac7595f526ce5B0c2545fCFe6e97',
   },
   AggregatorV3: {
     hardhat: '0x0A77230d17318075983913bC2145DB16C7366156',
@@ -104,7 +104,9 @@ async function main() {
 
   await waitTx(Sale.setPause(true));
 
-  await waitTx(Sale.transferOwnership(gnosisAddress));
+  if (networkName === 'mainnet') {
+    await waitTx(Sale.transferOwnership(gnosisAddress));
+  }
 
   console.debug('Sale:', Sale.address);
   console.debug('Sale.owner()', await Sale.owner());
