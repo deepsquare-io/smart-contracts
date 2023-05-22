@@ -112,6 +112,22 @@ declare module "hardhat/types/runtime" {
       name: "IERC20Metadata",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20Metadata__factory>;
+    getContractFactory(
+      name: "Ballot",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Ballot__factory>;
+    getContractFactory(
+      name: "BallotFactory",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BallotFactory__factory>;
+    getContractFactory(
+      name: "ExposedBallot",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ExposedBallot__factory>;
+    getContractFactory(
+      name: "VotingDelegation",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.VotingDelegation__factory>;
 
     getContractAt(
       name: "AggregatorV3Interface",
@@ -238,6 +254,26 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20Metadata>;
+    getContractAt(
+      name: "Ballot",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Ballot>;
+    getContractAt(
+      name: "BallotFactory",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BallotFactory>;
+    getContractAt(
+      name: "ExposedBallot",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ExposedBallot>;
+    getContractAt(
+      name: "VotingDelegation",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.VotingDelegation>;
 
     // default types
     getContractFactory(
