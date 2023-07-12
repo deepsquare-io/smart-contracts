@@ -55,8 +55,8 @@ async function main() {
   progress.stop();
 
   const convertToCsv = (record: Record<string, [string, string]>): string => {
-    return `Wallet,DPS bought,Referral gains\n${Object.entries(record).reduce(
-      (sum, entry) => `${sum}\n${entry[0]},${entry[1][0]},${entry[1][1]}`,
+    return `Wallet,Referral gains\n${Object.entries(record).reduce(
+      (sum, entry) => `${sum}\n${entry[0]},${entry[1][1]}`,
       '',
     )}`;
   };
