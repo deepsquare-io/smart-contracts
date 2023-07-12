@@ -3,10 +3,19 @@ import * as fs from 'fs';
 import { ethers } from 'hardhat';
 import { BigNumber } from '@ethersproject/bignumber';
 import { parseEther } from '@ethersproject/units';
+import nonPurchasedDPS from '../data/non_purchased_dps.json';
 import rawReferrals from '../data/referrals.json';
 import { DeepSquare__factory } from '../typings/factories/contracts/DeepSquare__factory';
 
 const LIMIT = parseEther('25000');
+
+interface NonPurchased {
+  [vault: string]: {
+    [address: string]: number;
+  };
+}
+
+const nonPurchased: NonPurchased = nonPurchasedDPS;
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -25,8 +34,19 @@ async function main() {
       continue; // User has not invested enough to 25000 DPS
     }
 
+    let nonPurchasedAmount = BigNumber.from(0);
+    for (const vault in nonPurchased) {
+      for (const [referee, amount] of Object.entries(nonPurchased[vault])) {
+        if (referees.includes(referee)) {
+          // Convert the non-purchased amount to WEI.
+          const amountInWei = ethers.utils.parseUnits(amount.toString(), 'ether');
+          nonPurchasedAmount = nonPurchasedAmount.add(BigNumber.from(amountInWei));
+        }
+      }
+    }
+
     const balances = await Promise.all(referees.map((referee) => DPS.balanceOf(referee)));
-    const sum = balances.reduce((total, value) => total.add(value), BigNumber.from(0));
+    const sum = balances.reduce((total, value) => total.add(value), BigNumber.from(0)).sub(nonPurchasedAmount);
 
     if (sum.gt(0)) {
       amounts[beneficiary] = [actualBalance.toString(), sum.mul(12).div(100).toString()];
