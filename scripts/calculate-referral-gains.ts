@@ -65,7 +65,7 @@ async function main() {
 
   const convertToCsv = (record: Record<string, [string, string]>): string => {
     return `Wallet,Referral gains\n${Object.entries(record).reduce(
-      (sum, entry) => `${sum}\n${entry[0]},${ethers.utils.formatEther(entry[1][1])}`,
+      (sum, entry) => `${sum}\n${entry[0]},${entry[1][1]}`,
       '',
     )}`;
   };
