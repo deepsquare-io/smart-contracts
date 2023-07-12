@@ -21,7 +21,7 @@ const nonPurchased: NonPurchased = nonPurchasedDPS;
 async function main() {
   const [deployer] = await ethers.getSigners();
   const DPS = new DeepSquare__factory(deployer).attach('0xf192cae2e7cd4048bea307368015e3647c49338e');
-  const amounts: Record<string, [string, string]> = {};
+  const amounts: Record<string, string> = {};
 
   // Convert blacklisted addresses to lower case
   const blacklisted_addresses = blacklist.blacklisted_addresses.map((address) => address.toLowerCase());
@@ -58,22 +58,13 @@ async function main() {
     const sum = balances.reduce((total, value) => total.add(value), BigNumber.from(0)).sub(nonPurchasedAmount);
 
     if (sum.gt(0)) {
-      amounts[beneficiary] = [actualBalance.toString(), sum.mul(12).div(100).toString()];
+      amounts[beneficiary] = sum.mul(12).div(100).toString();
     }
   }
   progress.stop();
 
-  const convertToCsv = (record: Record<string, [string, string]>): string => {
-    return `Wallet,Referral gains\n${Object.entries(record).reduce(
-      (sum, entry) => `${sum}\n${entry[0]},${entry[1][1]}`,
-      '',
-    )}`;
-  };
-
-  const writeRecordToFile = (record: Record<string, [string, string]>, filePath: string): void => {
-    const csvData = convertToCsv(record);
-
-    fs.writeFile(filePath, csvData, (err) => {
+  const writeRecordToFile = (record: Record<string, string>, filePath: string): void => {
+    fs.writeFile(filePath, JSON.stringify(record), (err) => {
       if (err) {
         console.error('An error occurred while writing the file:', err);
         return;
@@ -83,7 +74,7 @@ async function main() {
     });
   };
 
-  writeRecordToFile(amounts, './data/gains.csv');
+  writeRecordToFile(amounts, './data/gains.json');
 }
 
 main().catch((e) => {
