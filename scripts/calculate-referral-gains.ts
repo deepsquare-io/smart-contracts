@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import { ethers } from 'hardhat';
 import { BigNumber } from '@ethersproject/bignumber';
 import { parseEther } from '@ethersproject/units';
+import blacklist from '../data/blacklist_referral.json';
 import nonPurchasedDPS from '../data/non_purchased_dps.json';
 import rawReferrals from '../data/referrals.json';
 import { DeepSquare__factory } from '../typings/factories/contracts/DeepSquare__factory';
@@ -22,11 +23,18 @@ async function main() {
   const DPS = new DeepSquare__factory(deployer).attach('0xf192cae2e7cd4048bea307368015e3647c49338e');
   const amounts: Record<string, [string, string]> = {};
 
+  // Convert blacklisted addresses to lower case
+  const blacklisted_addresses = blacklist.blacklisted_addresses.map((address) => address.toLowerCase());
+
   const progress = new SingleBar({}, Presets.shades_classic);
 
   progress.start(Object.keys(rawReferrals).length, 0);
 
   for (const [beneficiary, referees] of Object.entries(rawReferrals)) {
+    // If beneficiary is in blacklist, skip
+    if (blacklisted_addresses.includes(beneficiary.toLowerCase())) {
+      continue;
+    }
     progress.increment();
     const actualBalance = await DPS.balanceOf(beneficiary);
 
@@ -37,7 +45,8 @@ async function main() {
     let nonPurchasedAmount = BigNumber.from(0);
     for (const vault in nonPurchased) {
       for (const [referee, amount] of Object.entries(nonPurchased[vault])) {
-        if (referees.includes(referee)) {
+        // Check if referees includes referee in a case-insensitive manner
+        if (referees.map((ref) => ref.toLowerCase()).includes(referee.toLowerCase())) {
           // Convert the non-purchased amount to WEI.
           const amountInWei = ethers.utils.parseUnits(amount.toString(), 'ether');
           nonPurchasedAmount = nonPurchasedAmount.add(BigNumber.from(amountInWei));
@@ -56,7 +65,7 @@ async function main() {
 
   const convertToCsv = (record: Record<string, [string, string]>): string => {
     return `Wallet,Referral gains\n${Object.entries(record).reduce(
-      (sum, entry) => `${sum}\n${entry[0]},${entry[1][1]}`,
+      (sum, entry) => `${sum}\n${entry[0]},${ethers.utils.formatEther(entry[1][1])}`,
       '',
     )}`;
   };
