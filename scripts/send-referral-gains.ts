@@ -1,4 +1,5 @@
 import { ethers } from 'hardhat';
+import { formatUnits } from '@ethersproject/units';
 import rawGains from '../data/gains.json';
 import waitTx from '../lib/waitTx';
 import { DeepSquare__factory } from '../typings/factories/contracts/DeepSquare__factory';
@@ -11,6 +12,7 @@ async function main() {
 
   for (const referrer of Object.keys(gains)) {
     await waitTx(DPS.transfer(referrer, gains[referrer]));
+    console.log('transfering ' + formatUnits(gains[referrer], 'ether') + ' to ' + referrer);
   }
 }
 
