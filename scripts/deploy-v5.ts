@@ -78,7 +78,7 @@ async function main() {
 
   const SaleFactory = new Sale__factory(deployer);
   const saleRate = 75;
-  const minimumPurchaseStc = 250e6;
+  const minimumPurchaseStc = 7.5e6;
   const initialSold = 0;
   const SaleArgs = [
     DeepSquare.address,
