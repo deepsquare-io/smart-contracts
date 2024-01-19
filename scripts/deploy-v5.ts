@@ -6,6 +6,8 @@ import { DeepSquare__factory } from '../typings/factories/contracts/DeepSquare__
 import { Sale__factory } from '../typings/factories/contracts/Sale__factory';
 import { SaleV3__factory } from '../typings/factories/contracts/legacy/v1.2/SaleV3__factory';
 
+// Context: Sale V5 for last week of January 2024.
+
 type NetworkName = 'hardhat' | 'mainnet' | 'fuji';
 type ContractName = 'USDC' | 'DeepSquare' | 'Eligibility' | 'PreviousSale' | 'Sale' | 'AggregatorV3' | 'Security';
 
@@ -75,8 +77,8 @@ async function main() {
   }
 
   const SaleFactory = new Sale__factory(deployer);
-  const saleRate = 70;
-  const minimumPurchaseStc = 250e6;
+  const saleRate = 75;
+  const minimumPurchaseStc = 7.5e6;
   const initialSold = 0;
   const SaleArgs = [
     DeepSquare.address,
@@ -102,7 +104,8 @@ async function main() {
     await waitTx(DeepSquare.transfer(Sale.address, await DeepSquare.balanceOf(previousSale.address)));
   }
 
-  await waitTx(Sale.setPause(true));
+  // No need to pause
+  // await waitTx(Sale.setPause(true));
 
   if (networkName === 'mainnet') {
     await waitTx(Sale.transferOwnership(gnosisAddress));

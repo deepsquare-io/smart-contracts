@@ -1,4 +1,6 @@
 # Changelog
+## v1.1.1 - Purchase DPS with AVAX native token
+- Added script to deploy Sale V5. It's based on Sale V4, which by the way removed the elligility constraint. The price is 0.75 USD.
 
 ## v1.1.0 - Purchase DPS with AVAX native token
 
